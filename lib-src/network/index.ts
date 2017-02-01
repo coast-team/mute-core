@@ -1,5 +1,6 @@
 export { BroadcastMessage } from './BroadcastMessage'
 export { JoinEvent } from './JoinEvent'
+export { MessageEmitter } from './MessageEmitter'
 export { NetworkMessage } from './NetworkMessage'
 export { SendRandomlyMessage } from './SendRandomlyMessage'
 export { SendToMessage } from './SendToMessage'
