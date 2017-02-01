@@ -1,16 +1,25 @@
 import { Observable, Observer, BehaviorSubject, ReplaySubject } from 'rxjs'
 
-import { NetworkMessage } from '../network/'
+import { BroadcastMessage, SendRandomlyMessage, SendToMessage, MessageEmitter, NetworkMessage } from '../network/'
 import { Collaborator } from './Collaborator'
 const pb = require('./collaborator_pb.js')
 
-export class CollaboratorsService {
+export class CollaboratorsService implements MessageEmitter {
 
   private pseudonym: string
 
   private joinSubject: ReplaySubject<Collaborator>
   private leaveSubject: ReplaySubject<Collaborator>
   private pseudoSubject: BehaviorSubject<Collaborator | null>
+
+  private msgToBroadcastObservable: Observable<BroadcastMessage>
+  private msgToBroadcastObservers: Observer<BroadcastMessage>[]
+
+  private msgToSendRandomlyObservable: Observable<SendRandomlyMessage>
+  private msgToSendRandomlyObservers: Observer<SendRandomlyMessage>[]
+
+  private msgToSendToObservable: Observable<SendToMessage>
+  private msgToSendToObservers: Observer<SendToMessage>[]
 
   readonly collaborators: Set<Collaborator>
 
@@ -19,6 +28,18 @@ export class CollaboratorsService {
     this.joinSubject = new ReplaySubject<Collaborator>()
     this.leaveSubject = new ReplaySubject<Collaborator>()
     this.pseudoSubject = new BehaviorSubject<Collaborator | null>(null)
+
+    this.msgToBroadcastObservable = Observable.create((observer) => {
+      this.msgToBroadcastObservers.push(observer)
+    })
+
+    this.msgToSendRandomlyObservable = Observable.create((observer) => {
+      this.msgToSendRandomlyObservers.push(observer)
+    })
+
+    this.msgToSendToObservable = Observable.create((observer) => {
+      this.msgToSendToObservers.push(observer)
+    })
   }
 
   get onJoin (): Observable<Collaborator> { return this.joinSubject.asObservable() }
@@ -26,6 +47,18 @@ export class CollaboratorsService {
   get onLeave (): Observable<Collaborator> { return this.leaveSubject.asObservable() }
 
   get onPseudo (): Observable<Collaborator | null> { return this.pseudoSubject.asObservable() }
+
+  get onMsgToBroadcast(): Observable<BroadcastMessage> {
+    return this.msgToBroadcastObservable
+  }
+
+  get onMsgToSendRandomly(): Observable<SendRandomlyMessage> {
+    return this.msgToSendRandomlyObservable
+  }
+
+  get onMsgToSendTo(): Observable<SendToMessage> {
+    return this.msgToSendToObservable
+  }
 
   set leaveSource (source: Observable<void>) {
     source.subscribe(() => {
@@ -80,8 +113,17 @@ export class CollaboratorsService {
     const collabMsg = new pb.Collaborator()
     collabMsg.setPseudo(pseudo)
 
-    // TODO: Enable again the following instruction
-    // this.network.newSend(this.constructor.name, collabMsg.serializeBinary(), id)
+    if (id) {
+      const msg: SendToMessage = new SendToMessage(this.constructor.name, id, collabMsg.serializeBinary())
+      this.msgToSendToObservers.forEach((observer: Observer<SendToMessage>) => {
+        observer.next(msg)
+      })
+    } else {
+      const msg: BroadcastMessage = new BroadcastMessage(this.constructor.name, collabMsg.serializeBinary())
+      this.msgToBroadcastObservers.forEach((observer: Observer<BroadcastMessage>) => {
+        observer.next(msg)
+      })
+    }
   }
 
   getCollaboratorById (id: number): Collaborator | null {
