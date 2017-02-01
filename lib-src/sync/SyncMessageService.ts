@@ -6,18 +6,18 @@ import { BroadcastMessage, MessageEmitter, NetworkMessage, SendRandomlyMessage, 
 import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichLogootSOperation } from './RichLogootSOperation'
 
-const pb = require('./sync_pb.js')
+const pb = require('../../proto/sync_pb.js')
 
 export class SyncMessageService implements MessageEmitter {
 
   private msgToBroadcastObservable: Observable<BroadcastMessage>
-  private msgToBroadcastObservers: Observer<BroadcastMessage>[]
+  private msgToBroadcastObservers: Observer<BroadcastMessage>[] = []
 
   private msgToSendRandomlyObservable: Observable<SendRandomlyMessage>
-  private msgToSendRandomlyObservers: Observer<SendRandomlyMessage>[]
+  private msgToSendRandomlyObservers: Observer<SendRandomlyMessage>[] = []
 
   private msgToSendToObservable: Observable<SendToMessage>
-  private msgToSendToObservers: Observer<SendToMessage>[]
+  private msgToSendToObservers: Observer<SendToMessage>[] = []
 
   private remoteQuerySyncObservable: Observable<Map<number, number>>
   private remoteQuerySyncObservers: Observer<Map<number, number>>[] = []

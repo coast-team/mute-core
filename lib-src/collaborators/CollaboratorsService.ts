@@ -13,13 +13,13 @@ export class CollaboratorsService implements MessageEmitter {
   private pseudoSubject: BehaviorSubject<Collaborator | null>
 
   private msgToBroadcastObservable: Observable<BroadcastMessage>
-  private msgToBroadcastObservers: Observer<BroadcastMessage>[]
+  private msgToBroadcastObservers: Observer<BroadcastMessage>[] = []
 
   private msgToSendRandomlyObservable: Observable<SendRandomlyMessage>
-  private msgToSendRandomlyObservers: Observer<SendRandomlyMessage>[]
+  private msgToSendRandomlyObservers: Observer<SendRandomlyMessage>[] = []
 
   private msgToSendToObservable: Observable<SendToMessage>
-  private msgToSendToObservers: Observer<SendToMessage>[]
+  private msgToSendToObservers: Observer<SendToMessage>[] = []
 
   readonly collaborators: Set<Collaborator>
 
