@@ -2,7 +2,7 @@ import { Observable, Observer, BehaviorSubject, ReplaySubject } from 'rxjs'
 
 import { BroadcastMessage, SendRandomlyMessage, SendToMessage, MessageEmitter, NetworkMessage } from '../network/'
 import { Collaborator } from './Collaborator'
-const pb = require('./collaborator_pb.js')
+const pb = require('../../proto/collaborator_pb.js')
 
 export class CollaboratorsService implements MessageEmitter {
 
