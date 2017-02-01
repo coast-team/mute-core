@@ -8,7 +8,7 @@ import { RichLogootSOperation } from './RichLogootSOperation'
 
 const pb = require('./sync_pb.js')
 
-export class SyncMessage {
+export class SyncMessageService {
 
   private remoteQuerySyncObservable: Observable<Map<number, number>>
   private remoteQuerySyncObservers: Observer<Map<number, number>>[] = []

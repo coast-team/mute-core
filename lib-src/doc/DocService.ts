@@ -10,7 +10,7 @@ import {
 
 import { JoinEvent } from '../network/'
 
-export class Doc {
+export class DocService {
 
   private doc: LogootSRopes
   private docID: string

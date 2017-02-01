@@ -8,7 +8,7 @@ import { State } from './State'
 
 import { JoinEvent } from '../network/'
 
-export class Sync {
+export class SyncService {
 
   private id: number = -1
   private clock: number = 0

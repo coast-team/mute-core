@@ -4,7 +4,7 @@ import { NetworkMessage } from '../network/'
 import { Collaborator } from './Collaborator'
 const pb = require('./collaborator_pb.js')
 
-export class Collaborators {
+export class CollaboratorsService {
 
   private pseudonym: string
 
