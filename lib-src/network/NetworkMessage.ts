@@ -1,8 +1,12 @@
-export class NetworkMessage {
+import { AbstractMessage } from './AbstractMessage'
+
+export class NetworkMessage extends AbstractMessage {
   constructor (
-    readonly service: string,
+    service: string,
     readonly id: number,
     readonly isBroadcast: boolean,
-    readonly content: ArrayBuffer
-  ) {}
+    content: ArrayBuffer
+  ) {
+    super(service, content)
+  }
 }
