@@ -84,18 +84,11 @@ export class SyncService {
   }
 
   set joinSource (source: Observable<JoinEvent>) {
-    source
-      .map((joinEvent: JoinEvent) => {
+    source.map((joinEvent: JoinEvent) => {
         this.id = joinEvent.id
         return joinEvent
-      })
-      .zip(
-        this.isReadyObservable,
-        (joinEvent: JoinEvent) => {
-          return joinEvent
-        }
-      )
-      .subscribe((joinEvent: JoinEvent) => {
+      }).subscribe((joinEvent: JoinEvent) => {
+        // TODO: Delay the synchronization process until the stored version has been retrieved
         if (!joinEvent.created) {
           this.querySyncObservers.forEach((observer: Observer<Map<number, number>>) => {
             observer.next(this.vector)
