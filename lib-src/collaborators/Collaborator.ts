@@ -1,8 +1,7 @@
 export class Collaborator {
 
-  public pseudo: string
-
   constructor (
-    readonly id: number
+    readonly id: number,
+    readonly pseudo: string
   ) {}
 }
