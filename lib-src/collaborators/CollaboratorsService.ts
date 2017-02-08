@@ -9,8 +9,8 @@ export class CollaboratorsService implements MessageEmitter {
   private pseudonym: string
 
   private collaboratorChangePseudoSubject: Subject<Collaborator>
-  private collaboratorJoinObservable: Observable<Collaborator>
-  private collaboratorLeaveObservable: Observable<number>
+  private collaboratorJoinSubject: Subject<Collaborator>
+  private collaboratorLeaveSubject: Subject<number>
 
   private msgToBroadcastSubject: Subject<BroadcastMessage>
   private msgToSendRandomlySubject: Subject<SendRandomlyMessage>
@@ -18,6 +18,8 @@ export class CollaboratorsService implements MessageEmitter {
 
   constructor () {
     this.collaboratorChangePseudoSubject = new Subject()
+    this.collaboratorJoinSubject = new Subject()
+    this.collaboratorLeaveSubject = new Subject()
     this.msgToBroadcastSubject = new Subject()
     this.msgToSendRandomlySubject = new Subject()
     this.msgToSendToSubject = new Subject()
@@ -28,11 +30,11 @@ export class CollaboratorsService implements MessageEmitter {
   }
 
   get onCollaboratorJoin (): Observable<Collaborator> {
-    return this.collaboratorJoinObservable
+    return this.collaboratorJoinSubject.asObservable()
   }
 
   get onCollaboratorLeave (): Observable<number> {
-    return this.collaboratorLeaveObservable
+    return this.collaboratorLeaveSubject.asObservable()
   }
 
   get onMsgToBroadcast (): Observable<BroadcastMessage> {
@@ -61,14 +63,16 @@ export class CollaboratorsService implements MessageEmitter {
   }
 
   set peerJoinSource (source: Observable<number>) {
-    this.collaboratorJoinObservable = source.map((id: number) => {
+    source.subscribe((id: number) => {
       this.emitPseudo(this.pseudonym, id)
-      return new Collaborator(id, 'Anonymous')
+      this.collaboratorJoinSubject.next(new Collaborator(id, 'Anonymous'))
     })
   }
 
   set peerLeaveSource (source: Observable<number>) {
-    this.collaboratorLeaveObservable = source
+    source.subscribe((id: number) => {
+      this.collaboratorLeaveSubject.next(id)
+    })
   }
 
   set pseudoSource (source: Observable<String>) {
