@@ -1,4 +1,4 @@
-import { Observable, Observer, Subject } from 'rxjs'
+import { Observable, Subject } from 'rxjs'
 
 import { BroadcastMessage, SendRandomlyMessage, SendToMessage, MessageEmitter, NetworkMessage } from '../network/'
 import { Collaborator } from './Collaborator'
@@ -12,53 +12,39 @@ export class CollaboratorsService implements MessageEmitter {
   private collaboratorJoinObservable: Observable<Collaborator>
   private collaboratorLeaveObservable: Observable<number>
 
-  private msgToBroadcastObservable: Observable<BroadcastMessage>
-  private msgToBroadcastObservers: Observer<BroadcastMessage>[] = []
-
-  private msgToSendRandomlyObservable: Observable<SendRandomlyMessage>
-  private msgToSendRandomlyObservers: Observer<SendRandomlyMessage>[] = []
-
-  private msgToSendToObservable: Observable<SendToMessage>
-  private msgToSendToObservers: Observer<SendToMessage>[] = []
+  private msgToBroadcastSubject: Subject<BroadcastMessage>
+  private msgToSendRandomlySubject: Subject<SendRandomlyMessage>
+  private msgToSendToSubject: Subject<SendToMessage>
 
   constructor () {
     this.collaboratorChangePseudoSubject = new Subject()
-
-    this.msgToBroadcastObservable = Observable.create((observer) => {
-      this.msgToBroadcastObservers.push(observer)
-    })
-
-    this.msgToSendRandomlyObservable = Observable.create((observer) => {
-      this.msgToSendRandomlyObservers.push(observer)
-    })
-
-    this.msgToSendToObservable = Observable.create((observer) => {
-      this.msgToSendToObservers.push(observer)
-    })
+    this.msgToBroadcastSubject = new Subject()
+    this.msgToSendRandomlySubject = new Subject()
+    this.msgToSendToSubject = new Subject()
   }
 
-  get onCollaboratorChangePseudo(): Observable<Collaborator> {
+  get onCollaboratorChangePseudo (): Observable<Collaborator> {
     return this.collaboratorChangePseudoSubject.asObservable()
   }
 
-  get onCollaboratorJoin(): Observable<Collaborator> {
+  get onCollaboratorJoin (): Observable<Collaborator> {
     return this.collaboratorJoinObservable
   }
 
-  get onCollaboratorLeave(): Observable<number> {
+  get onCollaboratorLeave (): Observable<number> {
     return this.collaboratorLeaveObservable
   }
 
-  get onMsgToBroadcast(): Observable<BroadcastMessage> {
-    return this.msgToBroadcastObservable
+  get onMsgToBroadcast (): Observable<BroadcastMessage> {
+    return this.msgToBroadcastSubject.asObservable()
   }
 
-  get onMsgToSendRandomly(): Observable<SendRandomlyMessage> {
-    return this.msgToSendRandomlyObservable
+  get onMsgToSendRandomly (): Observable<SendRandomlyMessage> {
+    return this.msgToSendRandomlySubject.asObservable()
   }
 
-  get onMsgToSendTo(): Observable<SendToMessage> {
-    return this.msgToSendToObservable
+  get onMsgToSendTo (): Observable<SendToMessage> {
+    return this.msgToSendToSubject.asObservable()
   }
 
   set leaveSource (source: Observable<void>) {}
@@ -98,14 +84,10 @@ export class CollaboratorsService implements MessageEmitter {
 
     if (id) {
       const msg: SendToMessage = new SendToMessage(this.constructor.name, id, collabMsg.serializeBinary())
-      this.msgToSendToObservers.forEach((observer: Observer<SendToMessage>) => {
-        observer.next(msg)
-      })
+      this.msgToSendToSubject.next(msg)
     } else {
       const msg: BroadcastMessage = new BroadcastMessage(this.constructor.name, collabMsg.serializeBinary())
-      this.msgToBroadcastObservers.forEach((observer: Observer<BroadcastMessage>) => {
-        observer.next(msg)
-      })
+      this.msgToBroadcastSubject.next(msg)
     }
   }
 
