@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, Observer } from 'rxjs'
+import { Observable, Observer, Subject } from 'rxjs'
 
 import { BroadcastMessage, SendRandomlyMessage, SendToMessage, MessageEmitter, NetworkMessage } from '../network/'
 import { Collaborator } from './Collaborator'
@@ -8,7 +8,9 @@ export class CollaboratorsService implements MessageEmitter {
 
   private pseudonym: string
 
-  private collaboratorsSubject: BehaviorSubject<Collaborator[]>
+  private collaboratorChangePseudoSubject: Subject<Collaborator>
+  private collaboratorJoinObservable: Observable<Collaborator>
+  private collaboratorLeaveObservable: Observable<number>
 
   private msgToBroadcastObservable: Observable<BroadcastMessage>
   private msgToBroadcastObservers: Observer<BroadcastMessage>[] = []
@@ -19,11 +21,8 @@ export class CollaboratorsService implements MessageEmitter {
   private msgToSendToObservable: Observable<SendToMessage>
   private msgToSendToObservers: Observer<SendToMessage>[] = []
 
-  private mapCollaborators: Map<number, Collaborator>
-
   constructor () {
-    this.mapCollaborators = new Map<number, Collaborator>()
-    this.collaboratorsSubject = new BehaviorSubject(this.mapCollaboratorsToArray)
+    this.collaboratorChangePseudoSubject = new Subject()
 
     this.msgToBroadcastObservable = Observable.create((observer) => {
       this.msgToBroadcastObservers.push(observer)
@@ -38,16 +37,16 @@ export class CollaboratorsService implements MessageEmitter {
     })
   }
 
-  get mapCollaboratorsToArray(): Collaborator[] {
-    const collaborators: Collaborator[] = []
-    this.mapCollaborators.forEach((collaborator: Collaborator) => {
-      collaborators.push(collaborator)
-    })
-    return collaborators
+  get onCollaboratorChangePseudo(): Observable<Collaborator> {
+    return this.collaboratorChangePseudoSubject.asObservable()
   }
 
-  get collaborators(): Observable<Collaborator[]> {
-    return this.collaboratorsSubject.asObservable()
+  get onCollaboratorJoin(): Observable<Collaborator> {
+    return this.collaboratorJoinObservable
+  }
+
+  get onCollaboratorLeave(): Observable<number> {
+    return this.collaboratorLeaveObservable
   }
 
   get onMsgToBroadcast(): Observable<BroadcastMessage> {
@@ -62,11 +61,7 @@ export class CollaboratorsService implements MessageEmitter {
     return this.msgToSendToObservable
   }
 
-  set leaveSource (source: Observable<void>) {
-    source.subscribe(() => {
-      this.mapCollaborators.clear()
-    })
-  }
+  set leaveSource (source: Observable<void>) {}
 
   set messageSource (source: Observable<NetworkMessage>) {
     source
@@ -75,29 +70,19 @@ export class CollaboratorsService implements MessageEmitter {
       const pbCollaborator = new pb.Collaborator.deserializeBinary(msg.content)
       const id: number = msg.id
       const pseudo: string = pbCollaborator.getPseudo()
-      if (this.mapCollaborators.has(id)) {
-        this.mapCollaborators.set(id, new Collaborator(id, pseudo))
-        this.collaboratorsSubject.next(this.mapCollaboratorsToArray)
-      }
+      this.collaboratorChangePseudoSubject.next(new Collaborator(id, pseudo))
     })
   }
 
   set peerJoinSource (source: Observable<number>) {
-    source.subscribe((id: number) => {
+    this.collaboratorJoinObservable = source.map((id: number) => {
       this.emitPseudo(this.pseudonym, id)
-      const collab = new Collaborator(id, 'Anonymous')
-      this.mapCollaborators.set(id, collab)
-      this.collaboratorsSubject.next(this.mapCollaboratorsToArray)
+      return new Collaborator(id, 'Anonymous')
     })
   }
 
   set peerLeaveSource (source: Observable<number>) {
-    source.subscribe((id: number) => {
-      if (this.mapCollaborators.has(id)) {
-        this.mapCollaborators.delete(id)
-        this.collaboratorsSubject.next(this.mapCollaboratorsToArray)
-      }
-    })
+    this.collaboratorLeaveObservable = source
   }
 
   set pseudoSource (source: Observable<String>) {
