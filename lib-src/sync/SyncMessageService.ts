@@ -1,5 +1,5 @@
 import { Identifier, IdentifierInterval, LogootSDel, LogootSAdd } from 'mute-structs'
-import { Observable, Observer } from 'rxjs'
+import { Observable, Subject } from 'rxjs'
 
 import { Interval } from './Interval'
 import { BroadcastMessage, MessageEmitter, NetworkMessage, SendRandomlyMessage, SendToMessage } from '../network/'
@@ -10,64 +10,29 @@ const pb = require('../../proto/sync_pb.js')
 
 export class SyncMessageService implements MessageEmitter {
 
-  private msgToBroadcastObservable: Observable<BroadcastMessage>
-  private msgToBroadcastObservers: Observer<BroadcastMessage>[] = []
-
-  private msgToSendRandomlyObservable: Observable<SendRandomlyMessage>
-  private msgToSendRandomlyObservers: Observer<SendRandomlyMessage>[] = []
-
-  private msgToSendToObservable: Observable<SendToMessage>
-  private msgToSendToObservers: Observer<SendToMessage>[] = []
-
-  private remoteQuerySyncObservable: Observable<Map<number, number>>
-  private remoteQuerySyncObservers: Observer<Map<number, number>>[] = []
-
-  private remoteQuerySyncIdObservable: Observable<number>
-  private remoteQuerySyncIdObserver: Observer<number>
-
-  private remoteRichLogootSOperationObservable: Observable<RichLogootSOperation>
-  private remoteRichLogootSOperationObservers: Observer<RichLogootSOperation>[] = []
-
-  private remoteReplySyncObservable: Observable<ReplySyncEvent>
-  private remoteReplySyncObservers: Observer<ReplySyncEvent>[] = []
+  private msgToBroadcastSubject: Subject<BroadcastMessage>
+  private msgToSendRandomlySubject: Subject<SendRandomlyMessage>
+  private msgToSendToSubject: Subject<SendToMessage>
+  private remoteQuerySyncSubject: Subject<Map<number, number>>
+  private remoteQuerySyncIdSubject: Subject<number>
+  private remoteRichLogootSOperationSubject: Subject<RichLogootSOperation>
+  private remoteReplySyncSubject: Subject<ReplySyncEvent>
 
   constructor () {
-    this.msgToBroadcastObservable = Observable.create((observer) => {
-      this.msgToBroadcastObservers.push(observer)
-    })
-
-    this.msgToSendRandomlyObservable = Observable.create((observer) => {
-      this.msgToSendRandomlyObservers.push(observer)
-    })
-
-    this.msgToSendToObservable = Observable.create((observer) => {
-      this.msgToSendToObservers.push(observer)
-    })
-
-    this.remoteQuerySyncObservable = Observable.create((observer) => {
-      this.remoteQuerySyncObservers.push(observer)
-    })
-
-    this.remoteQuerySyncIdObservable = Observable.create((observer) => {
-      this.remoteQuerySyncIdObserver = observer
-    })
-
-    this.remoteRichLogootSOperationObservable = Observable.create((observer) => {
-      this.remoteRichLogootSOperationObservers.push(observer)
-    })
-
-    this.remoteReplySyncObservable = Observable.create((observer) => {
-      this.remoteReplySyncObservers.push(observer)
-    })
+    this.msgToBroadcastSubject = new Subject()
+    this.msgToSendRandomlySubject = new Subject()
+    this.msgToSendToSubject = new Subject()
+    this.remoteQuerySyncSubject = new Subject()
+    this.remoteQuerySyncIdSubject = new Subject()
+    this.remoteRichLogootSOperationSubject = new Subject()
+    this.remoteReplySyncSubject = new Subject()
   }
 
   set localRichLogootSOperationSource (source: Observable<RichLogootSOperation>) {
     source.subscribe((richLogootSOp: RichLogootSOperation) => {
       const richLogootSOpMsg = this.generateRichLogootSOpMsg(richLogootSOp)
       const msg: BroadcastMessage = new BroadcastMessage(this.constructor.name, richLogootSOpMsg.serializeBinary())
-      this.msgToBroadcastObservers.forEach((observer: Observer<BroadcastMessage>) => {
-        observer.next(msg)
-      })
+      this.msgToBroadcastSubject.next(msg)
     })
   }
 
@@ -81,7 +46,7 @@ export class SyncMessageService implements MessageEmitter {
           this.handleRichLogootSOpMsg(content.getRichlogootsop())
           break
         case pb.Sync.TypeCase.QUERYSYNC:
-          this.remoteQuerySyncIdObserver.next(msg.id) // Register the id of the peer
+          this.remoteQuerySyncIdSubject.next(msg.id) // Register the id of the peer
           this.handleQuerySyncMsg(content.getQuerysync())
           break
         case pb.Sync.TypeCase.REPLYSYNC:
@@ -95,65 +60,57 @@ export class SyncMessageService implements MessageEmitter {
     source.subscribe((vector: Map<number, number>) => {
       const querySyncMsg = this.generateQuerySyncMsg(vector)
       const msg: SendRandomlyMessage = new SendRandomlyMessage(this.constructor.name, querySyncMsg.serializeBinary())
-      this.msgToSendRandomlyObservers.forEach((observer: Observer<SendRandomlyMessage>) => {
-        observer.next(msg)
-      })
+      this.msgToSendRandomlySubject.next(msg)
     })
   }
 
   set replySyncSource (source: Observable<ReplySyncEvent>) {
     Observable.zip(
       source,
-      this.remoteQuerySyncIdObservable,
+      this.remoteQuerySyncIdSubject.asObservable(),
       (replySyncEvent: ReplySyncEvent, id: number) => {
         return { id, replySyncEvent }
       })
       .subscribe(({ id, replySyncEvent}: { id: number, replySyncEvent: ReplySyncEvent }) => {
         const replySyncMsg = this.generateReplySyncMsg(replySyncEvent.richLogootSOps, replySyncEvent.intervals)
         const msg: SendToMessage = new SendToMessage(this.constructor.name, id, replySyncMsg.serializeBinary())
-        this.msgToSendToObservers.forEach((observer: Observer<SendToMessage>) => {
-          observer.next(msg)
-        })
+        this.msgToSendToSubject.next(msg)
       })
   }
 
   get onMsgToBroadcast(): Observable<BroadcastMessage> {
-    return this.msgToBroadcastObservable
+    return this.msgToBroadcastSubject.asObservable()
   }
 
   get onMsgToSendRandomly(): Observable<SendRandomlyMessage> {
-    return this.msgToSendRandomlyObservable
+    return this.msgToSendRandomlySubject.asObservable()
   }
 
   get onMsgToSendTo(): Observable<SendToMessage> {
-    return this.msgToSendToObservable
+    return this.msgToSendToSubject.asObservable()
   }
 
   get onRemoteRichLogootSOperation (): Observable<RichLogootSOperation> {
-    return this.remoteRichLogootSOperationObservable
+    return this.remoteRichLogootSOperationSubject.asObservable()
   }
 
   get onRemoteQuerySync (): Observable<Map<number, number>> {
-    return this.remoteQuerySyncObservable
+    return this.remoteQuerySyncSubject.asObservable()
   }
 
   get onRemoteReplySync (): Observable<ReplySyncEvent> {
-    return this.remoteReplySyncObservable
+    return this.remoteReplySyncSubject.asObservable()
   }
 
   handleRichLogootSOpMsg (content: any): void {
     const richLogootSOp: RichLogootSOperation = this.deserializeRichLogootSOperation(content)
 
-    this.remoteRichLogootSOperationObservers.forEach((observer: Observer<RichLogootSOperation>) => {
-      observer.next(richLogootSOp)
-    })
+    this.remoteRichLogootSOperationSubject.next(richLogootSOp)
   }
 
   handleQuerySyncMsg (content: any): void {
     const vector: Map<number, number> = content.getVectorMap()
-    this.remoteQuerySyncObservers.forEach((observer: Observer<Map<number, number>>) => {
-      observer.next(vector)
-    })
+    this.remoteQuerySyncSubject.next(vector)
   }
 
   handleReplySyncMsg (content: any): void {
@@ -167,9 +124,7 @@ export class SyncMessageService implements MessageEmitter {
     })
 
     const replySyncEvent: ReplySyncEvent = new ReplySyncEvent(richLogootSOps, intervals)
-    this.remoteReplySyncObservers.forEach((observer: Observer<ReplySyncEvent>) => {
-      observer.next(replySyncEvent)
-    })
+    this.remoteReplySyncSubject.next(replySyncEvent)
   }
 
   generateRichLogootSOpMsg (richLogootSOp: RichLogootSOperation): any {
