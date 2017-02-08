@@ -1,4 +1,4 @@
-import { Observable, Observer, Subscription } from 'rxjs'
+import { Observable, Subject, Subscription } from 'rxjs'
 import {
   LogootSAdd,
   LogootSDel,
@@ -15,14 +15,9 @@ export class DocService {
   private doc: LogootSRopes
   private docID: string
 
-  private docValueObservable: Observable<string>
-  private docValueObservers: Observer<string>[] = []
-
-  private localLogootSOperationObservable: Observable<LogootSAdd | LogootSDel>
-  private localLogootSOperationObservers: Observer<LogootSAdd | LogootSDel>[] = []
-
-  private remoteTextOperationsObservable: Observable<TextInsert[] | TextDelete[]>
-  private remoteTextOperationsObservers: Observer<TextInsert[] | TextDelete[]>[] = []
+  private docValueSubject: Subject<string>
+  private localLogootSOperationSubject: Subject<LogootSAdd | LogootSDel>
+  private remoteTextOperationsSubject: Subject<TextInsert[] | TextDelete[]>
 
   private joinSubscription: Subscription
   private localOperationsSubscription: Subscription
@@ -31,17 +26,9 @@ export class DocService {
   constructor () {
     this.doc = new LogootSRopes()
 
-    this.docValueObservable = Observable.create((observer) => {
-      this.docValueObservers.push(observer)
-    })
-
-    this.localLogootSOperationObservable = Observable.create((observer) => {
-      this.localLogootSOperationObservers.push(observer)
-    })
-
-    this.remoteTextOperationsObservable = Observable.create((observer) => {
-      this.remoteTextOperationsObservers.push(observer)
-    })
+    this.docValueSubject = new Subject()
+    this.localLogootSOperationSubject = new Subject()
+    this.remoteTextOperationsSubject = new Subject()
   }
 
   set localTextOperationsSource (source: Observable<(TextDelete | TextInsert)[][]>) {
@@ -52,9 +39,7 @@ export class DocService {
 
   set remoteLogootSOperationSource (source: Observable<LogootSAdd | LogootSDel>) {
     source.subscribe((logootSOp: LogootSAdd | LogootSDel) => {
-      this.remoteTextOperationsObservers.forEach((observer: Observer<(TextInsert | TextDelete)[]>) => {
-        observer.next(this.handleRemoteOperation(logootSOp))
-      })
+      this.remoteTextOperationsSubject.next(this.handleRemoteOperation(logootSOp))
     })
   }
 
@@ -63,22 +48,20 @@ export class DocService {
       this.docID = joinEvent.key
       this.doc = new LogootSRopes(joinEvent.id)
 
-      this.docValueObservers.forEach((observer: Observer<string>) => {
-        observer.next(this.doc.str)
-      })
+      this.docValueSubject.next(this.doc.str)
     })
   }
 
   get onDocValue (): Observable<string> {
-    return this.docValueObservable
+    return this.docValueSubject.asObservable()
   }
 
   get onLocalLogootSOperation (): Observable<LogootSAdd | LogootSDel> {
-    return this.localLogootSOperationObservable
+    return this.localLogootSOperationSubject.asObservable()
   }
 
   get onRemoteTextOperations (): Observable<TextInsert[] | TextDelete[]> {
-    return this.remoteTextOperationsObservable
+    return this.remoteTextOperationsSubject.asObservable()
   }
 
   clean (): void {
@@ -91,9 +74,7 @@ export class DocService {
     array.forEach( (textOperations: any[]) => {
       textOperations.forEach( (textOperation: any) => {
         const logootSOperation: LogootSAdd | LogootSDel = textOperation.applyTo(this.doc)
-        this.localLogootSOperationObservers.forEach((observer: Observer<LogootSAdd | LogootSDel>) => {
-          observer.next(logootSOperation)
-        })
+        this.localLogootSOperationSubject.next(logootSOperation)
       })
     })
     // log.info('operation:doc', 'updated doc: ', this.doc)
