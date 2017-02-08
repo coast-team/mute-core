@@ -1,5 +1,5 @@
 import { LogootSDel, LogootSAdd } from 'mute-structs'
-import { Observable, Observer } from 'rxjs'
+import { Observable, Subject } from 'rxjs'
 
 import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'
@@ -15,68 +15,40 @@ export class SyncService {
   private vector: Map<number, number> = new Map()
   private richLogootSOps: RichLogootSOperation[] = []
 
-  private isReadyObservable: Observable<void>
-  private isReadyObserver: Observer<void>
-
-  private localRichLogootSOperationObservable: Observable<RichLogootSOperation>
-  private localRichLogootSOperationObservers: Observer<RichLogootSOperation>[] = []
-
-  private querySyncObservable: Observable<Map<number, number>>
-  private querySyncObservers: Observer<Map<number, number>>[] = []
-
-  private remoteLogootSOperationObservable: Observable<LogootSAdd | LogootSDel>
-  private remoteLogootSOperationObservers: Observer<LogootSAdd | LogootSDel>[] = []
-
-  private replySyncObservable: Observable<ReplySyncEvent>
-  private replySyncObservers: Observer<ReplySyncEvent>[] = []
-
-  private stateObservable: Observable<State>
-  private stateObservers: Observer<State>[] = []
+  private isReadySubject: Subject<void>
+  private localRichLogootSOperationSubject: Subject<RichLogootSOperation>
+  private querySyncSubject: Subject<Map<number, number>>
+  private remoteLogootSOperationSubject: Subject<LogootSAdd | LogootSDel>
+  private replySyncSubject: Subject<ReplySyncEvent>
+  private stateSubject: Subject<State>
 
   constructor () {
-    this.isReadyObservable = Observable.create((observer) => {
-      this.isReadyObserver = observer
-    })
-
-    this.localRichLogootSOperationObservable = Observable.create((observer) => {
-      this.localRichLogootSOperationObservers.push(observer)
-    })
-
-    this.querySyncObservable = Observable.create((observer) => {
-      this.querySyncObservers.push(observer)
-    })
-
-    this.remoteLogootSOperationObservable = Observable.create((observer) => {
-      this.remoteLogootSOperationObservers.push(observer)
-    })
-
-    this.replySyncObservable = Observable.create((observer) => {
-      this.replySyncObservers.push(observer)
-    })
-
-    this.stateObservable = Observable.create((observer) => {
-      this.stateObservers.push(observer)
-    })
+    this.isReadySubject = new Subject<void>()
+    this.localRichLogootSOperationSubject = new Subject()
+    this.querySyncSubject = new Subject()
+    this.remoteLogootSOperationSubject = new Subject()
+    this.replySyncSubject = new Subject()
+    this.stateSubject = new Subject()
   }
 
   get onLocalRichLogootSOperation (): Observable<RichLogootSOperation> {
-    return this.localRichLogootSOperationObservable
+    return this.localRichLogootSOperationSubject.asObservable()
   }
 
   get onQuerySync (): Observable<Map<number, number>> {
-    return this.querySyncObservable
+    return this.querySyncSubject.asObservable()
   }
 
   get onRemoteLogootSOperation (): Observable<LogootSAdd | LogootSDel> {
-    return this.remoteLogootSOperationObservable
+    return this.remoteLogootSOperationSubject.asObservable()
   }
 
   get onReplySync (): Observable<ReplySyncEvent> {
-    return this.replySyncObservable
+    return this.replySyncSubject.asObservable()
   }
 
   get onState (): Observable<State> {
-    return this.stateObservable
+    return this.stateSubject.asObservable()
   }
 
   get state (): State {
@@ -90,9 +62,7 @@ export class SyncService {
       }).subscribe((joinEvent: JoinEvent) => {
         // TODO: Delay the synchronization process until the stored version has been retrieved
         if (!joinEvent.created) {
-          this.querySyncObservers.forEach((observer: Observer<Map<number, number>>) => {
-            observer.next(this.vector)
-          })
+          this.querySyncSubject.next(this.vector)
         }
       })
   }
@@ -103,13 +73,8 @@ export class SyncService {
 
       this.updateState(richLogootSOp)
 
-      this.stateObservers.forEach((observer: Observer<State>) => {
-        observer.next(this.state)
-      })
-
-      this.localRichLogootSOperationObservers.forEach((observer: Observer<RichLogootSOperation>) => {
-        observer.next(richLogootSOp)
-      })
+      this.stateSubject.next(this.state)
+      this.localRichLogootSOperationSubject.next(richLogootSOp)
 
       this.clock++
     })
@@ -143,9 +108,7 @@ export class SyncService {
       })
 
       const replySyncEvent: ReplySyncEvent = new ReplySyncEvent(missingRichLogootSOps, missingIntervals)
-      this.replySyncObservers.forEach((observer: Observer<ReplySyncEvent>) => {
-        observer.next(replySyncEvent)
-      })
+      this.replySyncSubject.next(replySyncEvent)
     })
   }
 
@@ -155,9 +118,7 @@ export class SyncService {
         this.applyRichLogootSOperation(richLogootSOp)
       })
 
-      this.stateObservers.forEach((observer: Observer<State>) => {
-        observer.next(this.state)
-      })
+      this.stateSubject.next(this.state)
 
       replySyncEvent.intervals.forEach((interval: Interval) => {
         this.richLogootSOps
@@ -167,9 +128,7 @@ export class SyncService {
             return interval.id === id && interval.begin <= clock && clock <= interval.end
           })
           .forEach((richLogootSOp: RichLogootSOperation) => {
-            this.localRichLogootSOperationObservers.forEach((observer: Observer<RichLogootSOperation>) => {
-              observer.next(richLogootSOp)
-            })
+            this.localRichLogootSOperationSubject.next(richLogootSOp)
           })
       })
     })
@@ -179,9 +138,7 @@ export class SyncService {
     source.subscribe((richLogootSOp: RichLogootSOperation) => {
       this.applyRichLogootSOperation(richLogootSOp)
 
-      this.stateObservers.forEach((observer: Observer<State>) => {
-        observer.next(this.state)
-      })
+      this.stateSubject.next(this.state)
     })
   }
 
@@ -192,15 +149,13 @@ export class SyncService {
       this.richLogootSOps.forEach((richLogootSOp: RichLogootSOperation) => {
         this.applyRichLogootSOperation(richLogootSOp)
       })
-      this.isReadyObserver.next(undefined)
+      this.isReadySubject.next(undefined)
     })
   }
 
   applyRichLogootSOperation (richLogootSOp: RichLogootSOperation): void {
     this.updateState(richLogootSOp)
-    this.remoteLogootSOperationObservers.forEach((observer: Observer<LogootSAdd | LogootSDel>) => {
-      observer.next(richLogootSOp.logootSOp)
-    })
+    this.remoteLogootSOperationSubject.next(richLogootSOp.logootSOp)
   }
 
   updateState (richLogootSOp: RichLogootSOperation): void {
