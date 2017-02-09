@@ -1,5 +1,5 @@
 import { Identifier, IdentifierInterval, LogootSDel, LogootSAdd } from 'mute-structs'
-import { Observable, Subject } from 'rxjs'
+import { Observable, Subject, Subscription } from 'rxjs'
 
 import { Interval } from './Interval'
 import { BroadcastMessage, MessageEmitter, NetworkMessage, SendRandomlyMessage, SendToMessage } from '../network/'
@@ -18,6 +18,11 @@ export class SyncMessageService implements MessageEmitter {
   private remoteRichLogootSOperationSubject: Subject<RichLogootSOperation>
   private remoteReplySyncSubject: Subject<ReplySyncEvent>
 
+  private localRichLogootSOperationSubscription: Subscription
+  private messageSubscription: Subscription
+  private querySyncSubscription: Subscription
+  private replySyncSubscription: Subscription
+
   constructor () {
     this.msgToBroadcastSubject = new Subject()
     this.msgToSendRandomlySubject = new Subject()
@@ -29,7 +34,7 @@ export class SyncMessageService implements MessageEmitter {
   }
 
   set localRichLogootSOperationSource (source: Observable<RichLogootSOperation>) {
-    source.subscribe((richLogootSOp: RichLogootSOperation) => {
+    this.localRichLogootSOperationSubscription = source.subscribe((richLogootSOp: RichLogootSOperation) => {
       const richLogootSOpMsg = this.generateRichLogootSOpMsg(richLogootSOp)
       const msg: BroadcastMessage = new BroadcastMessage(this.constructor.name, richLogootSOpMsg.serializeBinary())
       this.msgToBroadcastSubject.next(msg)
@@ -37,7 +42,7 @@ export class SyncMessageService implements MessageEmitter {
   }
 
   set messageSource (source: Observable<NetworkMessage>) {
-    source
+    this.messageSubscription = source
     .filter((msg: NetworkMessage) => msg.service === this.constructor.name)
     .subscribe((msg: NetworkMessage) => {
       const content = new pb.Sync.deserializeBinary(msg.content)
@@ -57,7 +62,7 @@ export class SyncMessageService implements MessageEmitter {
   }
 
   set querySyncSource (source: Observable<Map<number, number>>) {
-    source.subscribe((vector: Map<number, number>) => {
+    this.querySyncSubscription = source.subscribe((vector: Map<number, number>) => {
       const querySyncMsg = this.generateQuerySyncMsg(vector)
       const msg: SendRandomlyMessage = new SendRandomlyMessage(this.constructor.name, querySyncMsg.serializeBinary())
       this.msgToSendRandomlySubject.next(msg)
@@ -65,7 +70,7 @@ export class SyncMessageService implements MessageEmitter {
   }
 
   set replySyncSource (source: Observable<ReplySyncEvent>) {
-    Observable.zip(
+    this.replySyncSubscription = Observable.zip(
       source,
       this.remoteQuerySyncIdSubject.asObservable(),
       (replySyncEvent: ReplySyncEvent, id: number) => {
@@ -100,6 +105,21 @@ export class SyncMessageService implements MessageEmitter {
 
   get onRemoteReplySync (): Observable<ReplySyncEvent> {
     return this.remoteReplySyncSubject.asObservable()
+  }
+
+  clean (): void {
+    this.msgToBroadcastSubject.complete()
+    this.msgToSendRandomlySubject.complete()
+    this.msgToSendToSubject.complete()
+    this.remoteQuerySyncSubject.complete()
+    this.remoteQuerySyncIdSubject.complete()
+    this.remoteRichLogootSOperationSubject.complete()
+    this.remoteReplySyncSubject.complete()
+
+    this.localRichLogootSOperationSubscription.unsubscribe()
+    this.messageSubscription.unsubscribe()
+    this.querySyncSubscription.unsubscribe()
+    this.replySyncSubscription.unsubscribe()
   }
 
   handleRichLogootSOpMsg (content: any): void {
