@@ -21,7 +21,7 @@ export class DocService {
 
   private joinSubscription: Subscription
   private localOperationsSubscription: Subscription
-  private messageSubscription: Subscription
+  private remoteLogootSOperationsSubscription: Subscription
 
   constructor () {
     this.doc = new LogootSRopes()
@@ -38,7 +38,7 @@ export class DocService {
   }
 
   set remoteLogootSOperationSource (source: Observable<LogootSAdd | LogootSDel>) {
-    source.subscribe((logootSOp: LogootSAdd | LogootSDel) => {
+    this.remoteLogootSOperationsSubscription = source.subscribe((logootSOp: LogootSAdd | LogootSDel) => {
       this.remoteTextOperationsSubject.next(this.handleRemoteOperation(logootSOp))
     })
   }
@@ -65,9 +65,13 @@ export class DocService {
   }
 
   clean (): void {
+    this.docValueSubject.complete()
+    this.localLogootSOperationSubject.complete()
+    this.remoteTextOperationsSubject.complete()
+
     this.joinSubscription.unsubscribe()
     this.localOperationsSubscription.unsubscribe()
-    this.messageSubscription.unsubscribe()
+    this.remoteLogootSOperationsSubscription.unsubscribe()
   }
 
   handleTextOperations (array: any[][]): void {
