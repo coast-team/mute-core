@@ -1,4 +1,4 @@
-import { Observable, Subject } from 'rxjs'
+import { Observable, Subject, Subscription } from 'rxjs'
 
 import { BroadcastMessage, SendRandomlyMessage, SendToMessage, MessageEmitter, NetworkMessage } from '../network/'
 import { Collaborator } from './Collaborator'
@@ -15,6 +15,10 @@ export class CollaboratorsService implements MessageEmitter {
   private msgToBroadcastSubject: Subject<BroadcastMessage>
   private msgToSendRandomlySubject: Subject<SendRandomlyMessage>
   private msgToSendToSubject: Subject<SendToMessage>
+
+  private peerJoinSubscription: Subscription
+  private peerLeaveSubscription: Subscription
+  private pseudoSubscription: Subscription
 
   constructor () {
     this.collaboratorChangePseudoSubject = new Subject()
@@ -63,20 +67,20 @@ export class CollaboratorsService implements MessageEmitter {
   }
 
   set peerJoinSource (source: Observable<number>) {
-    source.subscribe((id: number) => {
+    this.peerJoinSubscription = source.subscribe((id: number) => {
       this.emitPseudo(this.pseudonym, id)
       this.collaboratorJoinSubject.next(new Collaborator(id, 'Anonymous'))
     })
   }
 
   set peerLeaveSource (source: Observable<number>) {
-    source.subscribe((id: number) => {
+    this.peerLeaveSubscription = source.subscribe((id: number) => {
       this.collaboratorLeaveSubject.next(id)
     })
   }
 
   set pseudoSource (source: Observable<String>) {
-    source.subscribe((pseudo: string) => {
+    this.pseudoSubscription = source.subscribe((pseudo: string) => {
       this.pseudonym = pseudo
       this.emitPseudo(pseudo)
     })
@@ -93,6 +97,19 @@ export class CollaboratorsService implements MessageEmitter {
       const msg: BroadcastMessage = new BroadcastMessage(this.constructor.name, collabMsg.serializeBinary())
       this.msgToBroadcastSubject.next(msg)
     }
+  }
+
+  clean (): void {
+    this.collaboratorChangePseudoSubject.complete()
+    this.collaboratorJoinSubject.complete()
+    this.collaboratorLeaveSubject.complete()
+    this.msgToBroadcastSubject.complete()
+    this.msgToSendRandomlySubject.complete()
+    this.msgToSendToSubject.complete()
+
+    this.peerJoinSubscription.unsubscribe()
+    this.peerLeaveSubscription.unsubscribe()
+    this.pseudoSubscription.unsubscribe()
   }
 
 }
