@@ -85,23 +85,20 @@ export class SyncService {
       const missingRichLogootSOps: RichLogootSOperation[] = this.richLogootSOps.filter((richLogootSOperation: RichLogootSOperation) => {
         const id: number = richLogootSOperation.id
         const clock: number = richLogootSOperation.clock
-        if (vector.get(id) === undefined) {
-          return true
-        } else if (vector.get(id) < clock) {
-          return true
-        }
-        return false
+        const v = vector.get(id)
+        return v === undefined ? true : v < clock ? true : false
       })
       // TODO: Add sort function to apply LogootSAdd operations before LogootSDel ones
 
       const missingIntervals: Interval[] = []
       vector.forEach((clock: number, id: number) => {
-        if (this.vector.has(id) && this.vector.get(id) < clock) {
-          const begin: number = this.vector.get(id) + 1
+        const v = this.vector.get(id)
+        if (v === undefined) {
+          const begin = 0
           const end: number = clock
           missingIntervals.push( new Interval(id, begin, end))
-        } else if (!this.vector.has(id)) {
-          const begin = 0
+        } else if (v < clock) {
+          const begin: number = v + 1
           const end: number = clock
           missingIntervals.push( new Interval(id, begin, end))
         }
@@ -164,7 +161,8 @@ export class SyncService {
   }
 
   updateVector (id: number, clock: number): void {
-    if (!this.vector.has(id) || this.vector.get(id) < clock) {
+    const v = this.vector.get(id)
+    if (v === undefined || v < clock) {
       this.vector.set(id, clock)
     }
 
