@@ -1,5 +1,5 @@
 import { LogootSDel, LogootSAdd } from 'mute-structs'
-import { Observable, Subject } from 'rxjs'
+import { Observable, Subject, Subscription } from 'rxjs'
 
 import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'
@@ -21,6 +21,13 @@ export class SyncService {
   private remoteLogootSOperationSubject: Subject<LogootSAdd | LogootSDel>
   private replySyncSubject: Subject<ReplySyncEvent>
   private stateSubject: Subject<State>
+
+  private joinSubscription: Subscription
+  private localLogootSOperationSubscription: Subscription
+  private remoteQuerySyncSubscription: Subscription
+  private remoteReplySyncSubscription: Subscription
+  private remoteRichLogootSOperationSubscription: Subscription
+  private storedStateSubscription: Subscription
 
   constructor () {
     this.isReadySubject = new Subject<void>()
@@ -56,7 +63,7 @@ export class SyncService {
   }
 
   set joinSource (source: Observable<JoinEvent>) {
-    source.map((joinEvent: JoinEvent) => {
+    this.joinSubscription = source.map((joinEvent: JoinEvent) => {
         this.id = joinEvent.id
         return joinEvent
       }).subscribe((joinEvent: JoinEvent) => {
@@ -68,7 +75,7 @@ export class SyncService {
   }
 
   set localLogootSOperationSource (source: Observable<LogootSAdd | LogootSDel>) {
-    source.subscribe((logootSOp: LogootSAdd | LogootSDel) => {
+    this.localLogootSOperationSubscription = source.subscribe((logootSOp: LogootSAdd | LogootSDel) => {
       const richLogootSOp: RichLogootSOperation = new RichLogootSOperation(this.id, this.clock, logootSOp)
 
       this.updateState(richLogootSOp)
@@ -81,7 +88,7 @@ export class SyncService {
   }
 
   set remoteQuerySyncSource (source: Observable<Map<number, number>>) {
-    source.subscribe((vector: Map<number, number>) => {
+    this.remoteQuerySyncSubscription = source.subscribe((vector: Map<number, number>) => {
       const missingRichLogootSOps: RichLogootSOperation[] = this.richLogootSOps.filter((richLogootSOperation: RichLogootSOperation) => {
         const id: number = richLogootSOperation.id
         const clock: number = richLogootSOperation.clock
@@ -110,7 +117,7 @@ export class SyncService {
   }
 
   set remoteReplySyncSource (source: Observable<ReplySyncEvent>) {
-    source.subscribe((replySyncEvent: ReplySyncEvent) => {
+    this.remoteReplySyncSubscription = source.subscribe((replySyncEvent: ReplySyncEvent) => {
       replySyncEvent.richLogootSOps.forEach((richLogootSOp: RichLogootSOperation) => {
         this.applyRichLogootSOperation(richLogootSOp)
       })
@@ -132,7 +139,7 @@ export class SyncService {
   }
 
   set remoteRichLogootSOperationSource (source: Observable<RichLogootSOperation>) {
-    source.subscribe((richLogootSOp: RichLogootSOperation) => {
+    this.remoteRichLogootSOperationSubscription = source.subscribe((richLogootSOp: RichLogootSOperation) => {
       this.applyRichLogootSOperation(richLogootSOp)
 
       this.stateSubject.next(this.state)
@@ -140,7 +147,7 @@ export class SyncService {
   }
 
   set storedStateSource (source: Observable<State>) {
-    source.subscribe((state: State) => {
+    this.storedStateSubscription = source.subscribe((state: State) => {
       this.vector.clear()
       this.richLogootSOps = state.richLogootSOps
       this.richLogootSOps.forEach((richLogootSOp: RichLogootSOperation) => {
@@ -148,6 +155,22 @@ export class SyncService {
       })
       this.isReadySubject.next(undefined)
     })
+  }
+
+  clean (): void {
+    this.isReadySubject.complete()
+    this.localRichLogootSOperationSubject.complete()
+    this.querySyncSubject.complete()
+    this.remoteLogootSOperationSubject.complete()
+    this.replySyncSubject.complete()
+    this.stateSubject.complete()
+
+    this.joinSubscription.unsubscribe()
+    this.localLogootSOperationSubscription.unsubscribe()
+    this.remoteQuerySyncSubscription.unsubscribe()
+    this.remoteReplySyncSubscription.unsubscribe()
+    this.remoteRichLogootSOperationSubscription.unsubscribe()
+    this.storedStateSubscription.unsubscribe()
   }
 
   applyRichLogootSOperation (richLogootSOp: RichLogootSOperation): void {
