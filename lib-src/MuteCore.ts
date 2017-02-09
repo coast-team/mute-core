@@ -61,4 +61,11 @@ export class MuteCore implements MessageEmitter {
       this.syncMessageService.onMsgToSendTo
     )
   }
+
+  clean (): void {
+    this.collaboratorsService.clean()
+    this.docService.clean()
+    this.syncService.clean()
+    this.syncMessageService.clean()
+  }
 }
