@@ -149,8 +149,7 @@ export class SyncService {
   set storedStateSource (source: Observable<State>) {
     this.storedStateSubscription = source.subscribe((state: State) => {
       this.vector.clear()
-      this.richLogootSOps = state.richLogootSOps
-      this.richLogootSOps.forEach((richLogootSOp: RichLogootSOperation) => {
+      state.richLogootSOps.forEach((richLogootSOp: RichLogootSOperation) => {
         this.applyRichLogootSOperation(richLogootSOp)
       })
       this.isReadySubject.next(undefined)
