@@ -32,7 +32,6 @@ export class MuteCore implements MessageEmitter {
 
   set joinSource (source: Observable<JoinEvent>) {
     this.docService.joinSource = source
-    this.syncService.joinSource = source
   }
 
   set messageSource (source: Observable<NetworkMessage>) {

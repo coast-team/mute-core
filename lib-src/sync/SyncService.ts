@@ -28,6 +28,7 @@ export class SyncService {
   private remoteReplySyncSubscription: Subscription
   private remoteRichLogootSOperationSubscription: Subscription
   private storedStateSubscription: Subscription
+  private triggerQuerySyncSubscription: Subscription
 
   constructor () {
     this.isReadySubject = new Subject<void>()
@@ -62,16 +63,10 @@ export class SyncService {
     return new State(this.vector, this.richLogootSOps)
   }
 
-  set joinSource (source: Observable<JoinEvent>) {
-    this.joinSubscription = source.map((joinEvent: JoinEvent) => {
-        this.id = joinEvent.id
-        return joinEvent
-      }).subscribe((joinEvent: JoinEvent) => {
-        // TODO: Delay the synchronization process until the stored version has been retrieved
-        if (!joinEvent.created) {
-          this.querySyncSubject.next(this.vector)
-        }
-      })
+  private set joinSource (source: Observable<JoinEvent>) {
+    this.joinSubscription = source.subscribe((joinEvent: JoinEvent) => {
+      this.id = joinEvent.id
+    })
   }
 
   set localLogootSOperationSource (source: Observable<LogootSAdd | LogootSDel>) {
@@ -146,13 +141,32 @@ export class SyncService {
     })
   }
 
-  set storedStateSource (source: Observable<State>) {
+  private set storedStateSource (source: Observable<State>) {
     this.storedStateSubscription = source.subscribe((state: State) => {
       this.vector.clear()
       state.richLogootSOps.forEach((richLogootSOp: RichLogootSOperation) => {
         this.applyRichLogootSOperation(richLogootSOp)
       })
       this.isReadySubject.next(undefined)
+    })
+  }
+
+  setJoinAndStateSources (joinSource: Observable<JoinEvent>, storedStateSource?: Observable<State>): void {
+    this.joinSource = joinSource
+    let triggerQuerySyncObservable: Observable<JoinEvent> = joinSource
+    if (storedStateSource) {
+      this.storedStateSource = storedStateSource
+      triggerQuerySyncObservable = joinSource.zip(
+        this.isReadySubject,
+        (joinEvent: JoinEvent) => {
+          return joinEvent
+        }
+      )
+    }
+    this.triggerQuerySyncSubscription = triggerQuerySyncObservable.subscribe((joinEvent: JoinEvent) => {
+      if (!joinEvent.created) {
+        this.querySyncSubject.next(this.vector)
+      }
     })
   }
 
@@ -169,7 +183,10 @@ export class SyncService {
     this.remoteQuerySyncSubscription.unsubscribe()
     this.remoteReplySyncSubscription.unsubscribe()
     this.remoteRichLogootSOperationSubscription.unsubscribe()
-    this.storedStateSubscription.unsubscribe()
+    if (this.storedStateSubscription !== undefined) {
+      this.storedStateSubscription.unsubscribe()
+    }
+    this.triggerQuerySyncSubscription.unsubscribe()
   }
 
   applyRichLogootSOperation (richLogootSOp: RichLogootSOperation): void {
