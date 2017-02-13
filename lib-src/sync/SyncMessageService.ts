@@ -10,6 +10,8 @@ const pb = require('../../proto/sync_pb.js')
 
 export class SyncMessageService implements MessageEmitter {
 
+  private static ID: string = 'SyncMessage'
+
   private msgToBroadcastSubject: Subject<BroadcastMessage>
   private msgToSendRandomlySubject: Subject<SendRandomlyMessage>
   private msgToSendToSubject: Subject<SendToMessage>
@@ -36,14 +38,14 @@ export class SyncMessageService implements MessageEmitter {
   set localRichLogootSOperationSource (source: Observable<RichLogootSOperation>) {
     this.localRichLogootSOperationSubscription = source.subscribe((richLogootSOp: RichLogootSOperation) => {
       const richLogootSOpMsg = this.generateRichLogootSOpMsg(richLogootSOp)
-      const msg: BroadcastMessage = new BroadcastMessage(this.constructor.name, richLogootSOpMsg.serializeBinary())
+      const msg: BroadcastMessage = new BroadcastMessage(SyncMessageService.ID, richLogootSOpMsg.serializeBinary())
       this.msgToBroadcastSubject.next(msg)
     })
   }
 
   set messageSource (source: Observable<NetworkMessage>) {
     this.messageSubscription = source
-    .filter((msg: NetworkMessage) => msg.service === this.constructor.name)
+    .filter((msg: NetworkMessage) => msg.service === SyncMessageService.ID)
     .subscribe((msg: NetworkMessage) => {
       const content = new pb.Sync.deserializeBinary(msg.content)
       switch (content.getTypeCase()) {
@@ -64,7 +66,7 @@ export class SyncMessageService implements MessageEmitter {
   set querySyncSource (source: Observable<Map<number, number>>) {
     this.querySyncSubscription = source.subscribe((vector: Map<number, number>) => {
       const querySyncMsg = this.generateQuerySyncMsg(vector)
-      const msg: SendRandomlyMessage = new SendRandomlyMessage(this.constructor.name, querySyncMsg.serializeBinary())
+      const msg: SendRandomlyMessage = new SendRandomlyMessage(SyncMessageService.ID, querySyncMsg.serializeBinary())
       this.msgToSendRandomlySubject.next(msg)
     })
   }
@@ -78,7 +80,7 @@ export class SyncMessageService implements MessageEmitter {
       })
       .subscribe(({ id, replySyncEvent}: { id: number, replySyncEvent: ReplySyncEvent }) => {
         const replySyncMsg = this.generateReplySyncMsg(replySyncEvent.richLogootSOps, replySyncEvent.intervals)
-        const msg: SendToMessage = new SendToMessage(this.constructor.name, id, replySyncMsg.serializeBinary())
+        const msg: SendToMessage = new SendToMessage(SyncMessageService.ID, id, replySyncMsg.serializeBinary())
         this.msgToSendToSubject.next(msg)
       })
   }

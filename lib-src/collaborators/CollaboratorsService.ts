@@ -6,6 +6,8 @@ const pb = require('../../proto/collaborator_pb.js')
 
 export class CollaboratorsService implements MessageEmitter {
 
+  private static ID: string = 'Collaborators'
+
   private pseudonym: string
 
   private collaboratorChangePseudoSubject: Subject<Collaborator>
@@ -57,7 +59,7 @@ export class CollaboratorsService implements MessageEmitter {
 
   set messageSource (source: Observable<NetworkMessage>) {
     source
-    .filter((msg: NetworkMessage) => msg.service === this.constructor.name)
+    .filter((msg: NetworkMessage) => msg.service === CollaboratorsService.ID)
     .subscribe((msg: NetworkMessage) => {
       const pbCollaborator = new pb.Collaborator.deserializeBinary(msg.content)
       const id: number = msg.id
@@ -91,10 +93,10 @@ export class CollaboratorsService implements MessageEmitter {
     collabMsg.setPseudo(pseudo)
 
     if (id) {
-      const msg: SendToMessage = new SendToMessage(this.constructor.name, id, collabMsg.serializeBinary())
+      const msg: SendToMessage = new SendToMessage(CollaboratorsService.ID, id, collabMsg.serializeBinary())
       this.msgToSendToSubject.next(msg)
     } else {
-      const msg: BroadcastMessage = new BroadcastMessage(this.constructor.name, collabMsg.serializeBinary())
+      const msg: BroadcastMessage = new BroadcastMessage(CollaboratorsService.ID, collabMsg.serializeBinary())
       this.msgToBroadcastSubject.next(msg)
     }
   }
