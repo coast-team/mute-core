@@ -18,7 +18,7 @@ export class SyncService {
   private isReadySubject: Subject<void>
   private localRichLogootSOperationSubject: Subject<RichLogootSOperation>
   private querySyncSubject: Subject<Map<number, number>>
-  private remoteLogootSOperationSubject: Subject<LogootSAdd | LogootSDel>
+  private remoteLogootSOperationSubject: Subject<(LogootSAdd | LogootSDel)[]>
   private replySyncSubject: Subject<ReplySyncEvent>
   private stateSubject: Subject<State>
 
@@ -47,7 +47,7 @@ export class SyncService {
     return this.querySyncSubject.asObservable()
   }
 
-  get onRemoteLogootSOperation (): Observable<LogootSAdd | LogootSDel> {
+  get onRemoteLogootSOperation (): Observable<(LogootSAdd | LogootSDel)[]> {
     return this.remoteLogootSOperationSubject.asObservable()
   }
 
@@ -113,11 +113,10 @@ export class SyncService {
 
   set remoteReplySyncSource (source: Observable<ReplySyncEvent>) {
     this.remoteReplySyncSubscription = source.subscribe((replySyncEvent: ReplySyncEvent) => {
-      replySyncEvent.richLogootSOps.forEach((richLogootSOp: RichLogootSOperation) => {
-        this.applyRichLogootSOperation(richLogootSOp)
-      })
-
-      this.stateSubject.next(this.state)
+      if (replySyncEvent.richLogootSOps.length > 0) {
+        this.applyRichLogootSOperations(replySyncEvent.richLogootSOps)
+        this.stateSubject.next(this.state)
+      }
 
       replySyncEvent.intervals.forEach((interval: Interval) => {
         this.richLogootSOps
@@ -135,7 +134,7 @@ export class SyncService {
 
   set remoteRichLogootSOperationSource (source: Observable<RichLogootSOperation>) {
     this.remoteRichLogootSOperationSubscription = source.subscribe((richLogootSOp: RichLogootSOperation) => {
-      this.applyRichLogootSOperation(richLogootSOp)
+      this.applyRichLogootSOperations([richLogootSOp])
 
       this.stateSubject.next(this.state)
     })
@@ -144,9 +143,7 @@ export class SyncService {
   private set storedStateSource (source: Observable<State>) {
     this.storedStateSubscription = source.subscribe((state: State) => {
       this.vector.clear()
-      state.richLogootSOps.forEach((richLogootSOp: RichLogootSOperation) => {
-        this.applyRichLogootSOperation(richLogootSOp)
-      })
+      this.applyRichLogootSOperations(state.richLogootSOps)
       this.isReadySubject.next(undefined)
     })
   }
@@ -189,9 +186,15 @@ export class SyncService {
     this.triggerQuerySyncSubscription.unsubscribe()
   }
 
-  applyRichLogootSOperation (richLogootSOp: RichLogootSOperation): void {
-    this.updateState(richLogootSOp)
-    this.remoteLogootSOperationSubject.next(richLogootSOp.logootSOp)
+  applyRichLogootSOperations (richLogootSOps: RichLogootSOperation[]): void {
+    richLogootSOps.forEach((richLogootSOp) => {
+      this.updateState(richLogootSOp)
+    })
+    const logootSOperations: (LogootSAdd | LogootSDel)[] =
+      richLogootSOps.map((richLogootSOp: RichLogootSOperation) => {
+        return richLogootSOp.logootSOp
+      })
+    this.remoteLogootSOperationSubject.next(logootSOperations)
   }
 
   updateState (richLogootSOp: RichLogootSOperation): void {
