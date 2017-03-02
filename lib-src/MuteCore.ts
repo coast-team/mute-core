@@ -35,7 +35,6 @@ export class MuteCore implements MessageEmitter {
   }
 
   set messageSource (source: Observable<NetworkMessage>) {
-    source.subscribe((msg: NetworkMessage) => { console.log('received msg: ', msg) })
     this.collaboratorsService.messageSource = source
     this.syncMessageService.messageSource = source
   }
