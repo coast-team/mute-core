@@ -22,7 +22,6 @@ export class SyncService {
   private replySyncSubject: Subject<ReplySyncEvent>
   private stateSubject: Subject<State>
 
-  private joinSubscription: Subscription
   private localLogootSOperationSubscription: Subscription
   private remoteQuerySyncSubscription: Subscription
   private remoteReplySyncSubscription: Subscription
@@ -30,7 +29,8 @@ export class SyncService {
   private storedStateSubscription: Subscription
   private triggerQuerySyncSubscription: Subscription
 
-  constructor () {
+  constructor (id: number) {
+    this.id = id
     this.isReadySubject = new Subject<void>()
     this.localRichLogootSOperationSubject = new Subject()
     this.querySyncSubject = new Subject()
@@ -61,12 +61,6 @@ export class SyncService {
 
   get state (): State {
     return new State(this.vector, this.richLogootSOps)
-  }
-
-  private set joinSource (source: Observable<JoinEvent>) {
-    this.joinSubscription = source.subscribe((joinEvent: JoinEvent) => {
-      this.id = joinEvent.id
-    })
   }
 
   set localLogootSOperationSource (source: Observable<LogootSAdd | LogootSDel>) {
@@ -149,7 +143,6 @@ export class SyncService {
   }
 
   setJoinAndStateSources (joinSource: Observable<JoinEvent>, storedStateSource?: Observable<State>): void {
-    this.joinSource = joinSource
     let triggerQuerySyncObservable: Observable<JoinEvent> = joinSource
     if (storedStateSource) {
       this.storedStateSource = storedStateSource
@@ -175,7 +168,6 @@ export class SyncService {
     this.replySyncSubject.complete()
     this.stateSubject.complete()
 
-    this.joinSubscription.unsubscribe()
     this.localLogootSOperationSubscription.unsubscribe()
     this.remoteQuerySyncSubscription.unsubscribe()
     this.remoteReplySyncSubscription.unsubscribe()

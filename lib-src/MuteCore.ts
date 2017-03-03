@@ -18,7 +18,7 @@ export class MuteCore implements MessageEmitter {
 
     this.collaboratorsService = new CollaboratorsService()
     this.docService = new DocService(id)
-    this.syncService = new SyncService()
+    this.syncService = new SyncService(id)
     this.syncMessageService = new SyncMessageService()
 
     this.docService.initSource = this.initSubject
