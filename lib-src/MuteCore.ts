@@ -1,4 +1,4 @@
-import { Observable, Observer, Subscription } from 'rxjs'
+import { Observable, Observer, Subject, Subscription } from 'rxjs'
 import { CollaboratorsService } from './collaborators/'
 import { DocService } from './doc/'
 import { BroadcastMessage, JoinEvent, MessageEmitter, NetworkMessage, SendRandomlyMessage, SendToMessage } from './network/'
@@ -11,7 +11,11 @@ export class MuteCore implements MessageEmitter {
   readonly syncService: SyncService
   readonly syncMessageService: SyncMessageService
 
+  private initSubject: Subject<string>
+
   constructor (id: number) {
+    this.initSubject = new Subject<string>()
+
     this.collaboratorsService = new CollaboratorsService()
     this.docService = new DocService()
     this.syncService = new SyncService()
@@ -30,13 +34,13 @@ export class MuteCore implements MessageEmitter {
     this.syncMessageService.replySyncSource = this.syncService.onReplySync
   }
 
-  set joinSource (source: Observable<JoinEvent>) {
-    this.docService.joinSource = source
-  }
-
   set messageSource (source: Observable<NetworkMessage>) {
     this.collaboratorsService.messageSource = source
     this.syncMessageService.messageSource = source
+  }
+
+  get onInit (): Observable<string> {
+    return this.initSubject.asObservable()
   }
 
   get onMsgToBroadcast (): Observable<BroadcastMessage> {
@@ -58,6 +62,10 @@ export class MuteCore implements MessageEmitter {
       this.collaboratorsService.onMsgToSendTo,
       this.syncMessageService.onMsgToSendTo
     )
+  }
+
+  init (key: string): void {
+    this.initSubject.next(key)
   }
 
   clean (): void {
