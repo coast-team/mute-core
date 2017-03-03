@@ -12,6 +12,8 @@ import { JoinEvent } from '../network/'
 
 export class DocService {
 
+  private disposeSubject: Subject<void>
+
   private doc: LogootSRopes
   private docID: string
 
@@ -19,16 +21,25 @@ export class DocService {
   private localLogootSOperationSubject: Subject<LogootSAdd | LogootSDel>
   private remoteTextOperationsSubject: Subject<(TextInsert | TextDelete)[]>
 
-  private joinSubscription: Subscription
   private localOperationsSubscription: Subscription
   private remoteLogootSOperationsSubscription: Subscription
 
-  constructor () {
-    this.doc = new LogootSRopes()
+  constructor (id: number) {
+    this.doc = new LogootSRopes(id)
 
+    this.disposeSubject = new Subject<void>()
     this.docValueSubject = new Subject()
     this.localLogootSOperationSubject = new Subject()
     this.remoteTextOperationsSubject = new Subject()
+  }
+
+  set initSource (source: Observable<string>) {
+    source
+      .takeUntil(this.disposeSubject)
+      .subscribe( (key: string) => {
+        this.docID = key
+        this.docValueSubject.next(this.doc.str)
+      })
   }
 
   set localTextOperationsSource (source: Observable<(TextDelete | TextInsert)[][]>) {
@@ -51,15 +62,6 @@ export class DocService {
     })
   }
 
-  set joinSource (source: Observable<JoinEvent>) {
-    this.joinSubscription = source.subscribe( (joinEvent: JoinEvent) => {
-      this.docID = joinEvent.key
-      this.doc = new LogootSRopes(joinEvent.id)
-
-      this.docValueSubject.next(this.doc.str)
-    })
-  }
-
   get onDocValue (): Observable<string> {
     return this.docValueSubject.asObservable()
   }
@@ -73,11 +75,11 @@ export class DocService {
   }
 
   clean (): void {
+    this.disposeSubject.complete()
     this.docValueSubject.complete()
     this.localLogootSOperationSubject.complete()
     this.remoteTextOperationsSubject.complete()
 
-    this.joinSubscription.unsubscribe()
     this.localOperationsSubscription.unsubscribe()
     this.remoteLogootSOperationsSubscription.unsubscribe()
   }

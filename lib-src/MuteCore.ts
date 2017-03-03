@@ -17,10 +17,11 @@ export class MuteCore implements MessageEmitter {
     this.initSubject = new Subject<string>()
 
     this.collaboratorsService = new CollaboratorsService()
-    this.docService = new DocService()
+    this.docService = new DocService(id)
     this.syncService = new SyncService()
     this.syncMessageService = new SyncMessageService()
 
+    this.docService.initSource = this.initSubject
     this.docService.remoteLogootSOperationSource = this.syncService.onRemoteLogootSOperation
 
     this.syncService.localLogootSOperationSource = this.docService.onLocalLogootSOperation
