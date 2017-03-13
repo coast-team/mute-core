@@ -17,6 +17,7 @@ export class DocService {
   private doc: LogootSRopes
   private docID: string
 
+  private docDigestSubject: Subject<number>
   private docValueSubject: Subject<string>
   private localLogootSOperationSubject: Subject<LogootSAdd | LogootSDel>
   private remoteTextOperationsSubject: Subject<(TextInsert | TextDelete)[]>
@@ -28,6 +29,7 @@ export class DocService {
     this.doc = new LogootSRopes(id)
 
     this.disposeSubject = new Subject<void>()
+    this.docDigestSubject = new Subject()
     this.docValueSubject = new Subject()
     this.localLogootSOperationSubject = new Subject()
     this.remoteTextOperationsSubject = new Subject()
@@ -46,6 +48,13 @@ export class DocService {
     this.localOperationsSubscription = source.subscribe((textOperations: (TextDelete | TextInsert)[][]) => {
       this.handleTextOperations(textOperations)
     })
+
+    source
+      .takeUntil(this.disposeSubject)
+      .debounceTime(1000)
+      .subscribe(() => {
+        this.docDigestSubject.next(this.doc.digest())
+      })
   }
 
   set remoteLogootSOperationSource (source: Observable<(LogootSAdd | LogootSDel)[]>) {
@@ -60,6 +69,17 @@ export class DocService {
           }, [])
       this.remoteTextOperationsSubject.next(remoteTextOps)
     })
+
+    source
+      .takeUntil(this.disposeSubject)
+      .debounceTime(1000)
+      .subscribe(() => {
+        this.docDigestSubject.next(this.doc.digest())
+      })
+  }
+
+  get onDocDigest (): Observable<number> {
+    return this.docDigestSubject.asObservable()
   }
 
   get onDocValue (): Observable<string> {
