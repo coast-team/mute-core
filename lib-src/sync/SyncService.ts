@@ -11,6 +11,7 @@ import { JoinEvent } from '../network/'
 export class SyncService {
 
   private id: number = -1
+  private isSync: boolean = false
   private clock: number = 0
   private vector: Map<number, number> = new Map()
   private richLogootSOps: RichLogootSOperation[] = []
@@ -20,6 +21,7 @@ export class SyncService {
   private localRichLogootSOperationSubject: Subject<RichLogootSOperation>
   private querySyncSubject: Subject<Map<number, number>>
   private remoteLogootSOperationSubject: Subject<(LogootSAdd | LogootSDel)[]>
+  private remoteQuerySyncSubject: Subject<Map<number, number>>
   private remoteRichLogootSOperationSubject: Subject<RichLogootSOperation>
   private replySyncSubject: Subject<ReplySyncEvent>
   private stateSubject: Subject<State>
@@ -38,6 +40,7 @@ export class SyncService {
     this.localRichLogootSOperationSubject = new Subject()
     this.querySyncSubject = new Subject()
     this.remoteLogootSOperationSubject = new Subject()
+    this.remoteQuerySyncSubject = new Subject()
     this.remoteRichLogootSOperationSubject = new Subject()
     this.replySyncSubject = new Subject()
     this.stateSubject = new Subject()
@@ -81,7 +84,25 @@ export class SyncService {
   }
 
   set remoteQuerySyncSource (source: Observable<Map<number, number>>) {
+    let buffer: Array<Map<number, number>> = []
+
     this.remoteQuerySyncSubscription = source.subscribe((vector: Map<number, number>) => {
+      if (this.isSync) {
+        this.remoteQuerySyncSubject.next(vector)
+      } else {
+        buffer.push(vector)
+      }
+    })
+
+    const isSyncSubscription = this.isSyncSubject.subscribe(() => {
+      buffer.forEach((vector: Map<number, number>) => {
+        this.remoteQuerySyncSubject.next(vector)
+      })
+      buffer = []
+      isSyncSubscription.unsubscribe()
+    })
+
+    this.remoteQuerySyncSubject.subscribe((vector: Map<number, number>) => {
       const missingRichLogootSOps: RichLogootSOperation[] = this.richLogootSOps.filter((richLogootSOperation: RichLogootSOperation) => {
         const id: number = richLogootSOperation.id
         const clock: number = richLogootSOperation.clock
@@ -134,10 +155,9 @@ export class SyncService {
 
   set remoteRichLogootSOperationSource (source: Observable<RichLogootSOperation>) {
     let buffer: Array<RichLogootSOperation> = []
-    let isSync = false
 
     this.remoteRichLogootSOperationSubscription = source.subscribe((richLogootSOp: RichLogootSOperation) => {
-      if (isSync) {
+      if (this.isSync) {
         this.remoteRichLogootSOperationSubject.next(richLogootSOp)
       } else {
         buffer.push(richLogootSOp)
@@ -154,7 +174,7 @@ export class SyncService {
         this.remoteRichLogootSOperationSubject.next(richLogootSOp)
       })
       buffer = []
-      isSync = true
+      this.isSync = true
       isSyncSubscription.unsubscribe()
     })
   }
@@ -181,6 +201,8 @@ export class SyncService {
     this.triggerQuerySyncSubscription = triggerQuerySyncObservable.subscribe((joinEvent: JoinEvent) => {
       if (!joinEvent.created) {
         this.querySyncSubject.next(this.vector)
+      } else {
+        this.isSync = true
       }
     })
   }
@@ -190,6 +212,7 @@ export class SyncService {
     this.localRichLogootSOperationSubject.complete()
     this.querySyncSubject.complete()
     this.remoteLogootSOperationSubject.complete()
+    this.remoteQuerySyncSubject.complete()
     this.remoteRichLogootSOperationSubject.complete()
     this.replySyncSubject.complete()
     this.stateSubject.complete()
