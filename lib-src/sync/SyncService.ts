@@ -16,9 +16,11 @@ export class SyncService {
   private richLogootSOps: RichLogootSOperation[] = []
 
   private isReadySubject: Subject<void>
+  private isSyncSubject: Subject<void>
   private localRichLogootSOperationSubject: Subject<RichLogootSOperation>
   private querySyncSubject: Subject<Map<number, number>>
   private remoteLogootSOperationSubject: Subject<(LogootSAdd | LogootSDel)[]>
+  private remoteRichLogootSOperationSubject: Subject<RichLogootSOperation>
   private replySyncSubject: Subject<ReplySyncEvent>
   private stateSubject: Subject<State>
 
@@ -32,9 +34,11 @@ export class SyncService {
   constructor (id: number) {
     this.id = id
     this.isReadySubject = new Subject<void>()
+    this.isSyncSubject = new Subject<void>()
     this.localRichLogootSOperationSubject = new Subject()
     this.querySyncSubject = new Subject()
     this.remoteLogootSOperationSubject = new Subject()
+    this.remoteRichLogootSOperationSubject = new Subject()
     this.replySyncSubject = new Subject()
     this.stateSubject = new Subject()
   }
@@ -123,14 +127,35 @@ export class SyncService {
             this.localRichLogootSOperationSubject.next(richLogootSOp)
           })
       })
+
+      this.isSyncSubject.next()
     })
   }
 
   set remoteRichLogootSOperationSource (source: Observable<RichLogootSOperation>) {
-    this.remoteRichLogootSOperationSubscription = source.subscribe((richLogootSOp: RichLogootSOperation) => {
-      this.applyRichLogootSOperations([richLogootSOp])
+    let buffer: Array<RichLogootSOperation> = []
+    let isSync = false
 
+    this.remoteRichLogootSOperationSubscription = source.subscribe((richLogootSOp: RichLogootSOperation) => {
+      if (isSync) {
+        this.remoteRichLogootSOperationSubject.next(richLogootSOp)
+      } else {
+        buffer.push(richLogootSOp)
+      }
+    })
+
+    this.remoteRichLogootSOperationSubject.subscribe((richLogootSOp: RichLogootSOperation) => {
+      this.applyRichLogootSOperations([richLogootSOp])
       this.stateSubject.next(this.state)
+    })
+
+    const isSyncSubscription = this.isSyncSubject.subscribe(() => {
+      buffer.forEach((richLogootSOp: RichLogootSOperation) => {
+        this.remoteRichLogootSOperationSubject.next(richLogootSOp)
+      })
+      buffer = []
+      isSync = true
+      isSyncSubscription.unsubscribe()
     })
   }
 
@@ -165,6 +190,7 @@ export class SyncService {
     this.localRichLogootSOperationSubject.complete()
     this.querySyncSubject.complete()
     this.remoteLogootSOperationSubject.complete()
+    this.remoteRichLogootSOperationSubject.complete()
     this.replySyncSubject.complete()
     this.stateSubject.complete()
 
