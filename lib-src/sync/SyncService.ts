@@ -289,7 +289,7 @@ export class SyncService {
 
   private isAlreadyApplied (id: number, clock: number): boolean {
     const v = this.vector.get(id)
-    return v === undefined || v < clock
+    return v !== undefined && v >= clock
   }
 
   private isAppliable (id: number, clock: number): boolean {
