@@ -249,6 +249,7 @@ export class SyncService {
   }
 
   private updateState (richLogootSOp: RichLogootSOperation): void {
+    console.assert(this.isAppliable(richLogootSOp.id, richLogootSOp.clock))
     this.vector.set(richLogootSOp.id, richLogootSOp.clock)
     this.richLogootSOps.push(richLogootSOp)
   }
@@ -256,7 +257,17 @@ export class SyncService {
   private isAlreadyApplied (id: number, clock: number): boolean {
     const v = this.vector.get(id)
     return v === undefined || v < clock
+  }
 
+  private isAppliable (id: number, clock: number): boolean {
+    if (this.isAlreadyApplied(id, clock)) {
+      return false
+    }
+    const v = this.vector.get(id)
+    if (v === undefined) {
+      return clock === 0
+    }
+    return clock === v + 1
   }
 
 }
