@@ -237,15 +237,47 @@ export class SyncService {
     this.triggerQuerySyncSubscription.unsubscribe()
   }
 
-  applyRichLogootSOperations (richLogootSOps: RichLogootSOperation[]): void {
-    richLogootSOps.forEach((richLogootSOp) => {
-      this.updateState(richLogootSOp)
-    })
-    const logootSOperations: (LogootSAdd | LogootSDel)[] =
-      richLogootSOps.map((richLogootSOp: RichLogootSOperation) => {
-        return richLogootSOp.logootSOp
+  private applyRichLogootSOperations (richLogootSOps: RichLogootSOperation[]): void {
+    // Keep only new operations
+    const newRichLogootSOps: RichLogootSOperation[] =
+      richLogootSOps.filter((richLogootSOp: RichLogootSOperation) => {
+        const id: number = richLogootSOp.id
+        const clock: number = richLogootSOp.clock
+        return !this.isAlreadyApplied(id, clock)
       })
-    this.remoteLogootSOperationSubject.next(logootSOperations)
+
+    if (newRichLogootSOps.length > 0) {
+      const minClockById = newRichLogootSOps.reduce((vector: Map<number, number>, richLogootSOp: RichLogootSOperation) => {
+        // Keep only the oldest operation for each id
+        const v = vector.get(richLogootSOp.id)
+        if (v === undefined || v > richLogootSOp.clock) {
+          vector.set(richLogootSOp.id, richLogootSOp.clock)
+        }
+        return vector
+      }, new Map())
+
+      let isNotAppliable = false
+      minClockById.forEach((clock: number, id: number) => {
+        if (!this.isAppliable(id, clock)) {
+          isNotAppliable = true
+        }
+      })
+
+      if (isNotAppliable) {
+        this.isSync = false
+        // Trigger a QuerySync message
+        this.querySyncSubject.next(this.vector)
+      } else {
+        const logootSOperations: (LogootSAdd | LogootSDel)[] = []
+        newRichLogootSOps
+          .forEach((richLogootSOp) => {
+            this.updateState(richLogootSOp)
+            logootSOperations.push(richLogootSOp.logootSOp)
+          })
+
+        this.remoteLogootSOperationSubject.next(logootSOperations)
+      }
+    }
   }
 
   private updateState (richLogootSOp: RichLogootSOperation): void {
