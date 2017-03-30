@@ -26,6 +26,7 @@ export class SyncService {
   private replySyncSubject: Subject<ReplySyncEvent>
   private stateSubject: Subject<State>
 
+  private isSyncSubscriptions: Subscription[]
   private localLogootSOperationSubscription: Subscription
   private remoteQuerySyncSubscription: Subscription
   private remoteReplySyncSubscription: Subscription
@@ -44,6 +45,13 @@ export class SyncService {
     this.remoteRichLogootSOperationSubject = new Subject()
     this.replySyncSubject = new Subject()
     this.stateSubject = new Subject()
+
+    this.isSyncSubscriptions = []
+
+    const isSyncSubscription = this.isSyncSubject.subscribe(() => {
+      this.isSync = true
+    })
+    this.isSyncSubscriptions.push(isSyncSubscription)
   }
 
   get onLocalRichLogootSOperation (): Observable<RichLogootSOperation> {
@@ -99,8 +107,8 @@ export class SyncService {
         this.remoteQuerySyncSubject.next(vector)
       })
       buffer = []
-      isSyncSubscription.unsubscribe()
     })
+    this.isSyncSubscriptions.push(isSyncSubscription)
 
     this.remoteQuerySyncSubject.subscribe((vector: Map<number, number>) => {
       const missingRichLogootSOps: RichLogootSOperation[] = this.richLogootSOps.filter((richLogootSOperation: RichLogootSOperation) => {
@@ -174,9 +182,8 @@ export class SyncService {
         this.remoteRichLogootSOperationSubject.next(richLogootSOp)
       })
       buffer = []
-      this.isSync = true
-      isSyncSubscription.unsubscribe()
     })
+    this.isSyncSubscriptions.push(isSyncSubscription)
   }
 
   private set storedStateSource (source: Observable<State>) {
@@ -217,6 +224,9 @@ export class SyncService {
     this.replySyncSubject.complete()
     this.stateSubject.complete()
 
+    this.isSyncSubscriptions.forEach((subscription: Subscription) => {
+      subscription.unsubscribe()
+    })
     this.localLogootSOperationSubscription.unsubscribe()
     this.remoteQuerySyncSubscription.unsubscribe()
     this.remoteReplySyncSubscription.unsubscribe()
