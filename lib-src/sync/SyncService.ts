@@ -248,19 +248,15 @@ export class SyncService {
     this.remoteLogootSOperationSubject.next(logootSOperations)
   }
 
-  updateState (richLogootSOp: RichLogootSOperation): void {
-    this.updateVector(richLogootSOp.id, richLogootSOp.clock)
+  private updateState (richLogootSOp: RichLogootSOperation): void {
+    this.vector.set(richLogootSOp.id, richLogootSOp.clock)
     this.richLogootSOps.push(richLogootSOp)
   }
 
-  updateVector (id: number, clock: number): void {
+  private isAlreadyApplied (id: number, clock: number): boolean {
     const v = this.vector.get(id)
-    if (v === undefined || v < clock) {
-      this.vector.set(id, clock)
-    }
+    return v === undefined || v < clock
 
-    // TODO: Check if operation had previously been received
-    // TODO: Check if some operations are missing
   }
 
 }
