@@ -24,6 +24,8 @@ export class SyncService {
   private remoteLogootSOperationSubject: Subject<(LogootSAdd | LogootSDel)[]>
   private replySyncSubject: Subject<ReplySyncEvent>
   private stateSubject: Subject<State>
+  private triggerQuerySyncSubject: Subject<void>
+
 
   private localLogootSOperationSubscription: Subscription
   private remoteQuerySyncSubscription: Subscription
@@ -41,7 +43,9 @@ export class SyncService {
     this.remoteLogootSOperationSubject = new Subject()
     this.replySyncSubject = new Subject()
     this.stateSubject = new Subject()
+    this.triggerQuerySyncSubject = new Subject<void>()
 
+    this.initPeriodicQuerySync()
   }
 
   get onLocalRichLogootSOperation (): Observable<RichLogootSOperation> {
@@ -158,13 +162,34 @@ export class SyncService {
         }
       )
     }
-    this.triggerQuerySyncSubscription = triggerQuerySyncObservable.subscribe((joinEvent: JoinEvent) => {
-      if (!joinEvent.created) {
-        this.querySyncSubject.next(this.vector)
-      } else {
-        this.isSync = true
-      }
+    triggerQuerySyncObservable
+      .take(1)
+      .subscribe((joinEvent: JoinEvent) => {
+        if (!joinEvent.created) {
+          console.log('SyncService: performing querySync at init')
+          this.querySyncSubject.next(this.vector)
+        }
+      })
+  }
+
+  private initPeriodicQuerySync (): void {
+    this.triggerQuerySyncSubscription = this.triggerQuerySyncSubject.subscribe(() => {
+      console.log('SyncService: performing a periodic querySync')
+      this.querySyncSubject.next(this.vector)
+      this.triggerPeriodicQuerySync()
     })
+
+    this.triggerPeriodicQuerySync()
+  }
+
+  private triggerPeriodicQuerySync (): void {
+    const defaultTime = 10000
+    const max = defaultTime / 2
+    const min = - max
+    const random = Math.floor(Math.random() * 2 * max) + min // Compute a random number between [0, 10000] then shift interval to [-5000, 5000]
+    setTimeout(() => {
+      this.triggerQuerySyncSubject.next()
+    }, defaultTime + random)
   }
 
   clean (): void {
