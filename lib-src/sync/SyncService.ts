@@ -8,6 +8,8 @@ import { State } from './State'
 
 import { JoinEvent } from '../network/'
 
+type Key = { id: number, clock: number }
+
 export class SyncService {
 
   private id: number = -1
@@ -15,6 +17,7 @@ export class SyncService {
   private vector: Map<number, number> = new Map()
   private richLogootSOps: RichLogootSOperation[] = []
 
+  private appliedOperationsSubject: Subject<Key>
   private isReadySubject: Subject<void>
   private localRichLogootSOperationSubject: Subject<RichLogootSOperation>
   private querySyncSubject: Subject<Map<number, number>>
@@ -31,6 +34,7 @@ export class SyncService {
 
   constructor (id: number) {
     this.id = id
+    this.appliedOperationsSubject = new Subject()
     this.isReadySubject = new Subject<void>()
     this.localRichLogootSOperationSubject = new Subject()
     this.querySyncSubject = new Subject()
@@ -164,6 +168,7 @@ export class SyncService {
   }
 
   clean (): void {
+    this.appliedOperationsSubject.complete()
     this.isReadySubject.complete()
     this.localRichLogootSOperationSubject.complete()
     this.querySyncSubject.complete()
@@ -199,6 +204,22 @@ export class SyncService {
           if (this.isAppliable(id, clock)) {
             this.updateState(richLogootSOp)
             logootSOperations.push(richLogootSOp.logootSOp)
+            // Notify that the operation has been delivered
+            this.appliedOperationsSubject.next({ id , clock })
+          } else {
+            // Deliver operation once the previous one will be applied
+            console.log('SyncService: Buffering operation: ', { id, clock })
+            this.appliedOperationsSubject
+              .filter(({ id, clock}: Key) => {
+                return richLogootSOp.id === id && richLogootSOp.clock === (clock + 1)
+              })
+              .take(1)
+              .subscribe(() => {
+                console.log('SyncService: Delivering operation: ', { id, clock })
+                if (!this.isAlreadyApplied(id, clock)) {
+                  this.applyRichLogootSOperations([richLogootSOp])
+                }
+              })
           }
         })
 
