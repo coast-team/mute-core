@@ -6,9 +6,9 @@ import { BroadcastMessage, MessageEmitter, NetworkMessage, SendRandomlyMessage, 
 import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichLogootSOperation } from './RichLogootSOperation'
 
-import { Sync, QuerySync, ReplySync, LogootSAddMsg, LogootSDelMsg, RichLogootSOperationMsg, IntervalMsg, IdentifierMsg, IdentifierIntervalMsg } from '../../proto/sync'
+const pb = require('../../proto/sync_pb.js')
 
-export class SyncMessageService implements MessageEmitter {
+export class OldSyncMessageService implements MessageEmitter {
 
   private static ID: string = 'SyncMessage'
 
@@ -38,26 +38,26 @@ export class SyncMessageService implements MessageEmitter {
   set localRichLogootSOperationSource (source: Observable<RichLogootSOperation>) {
     this.localRichLogootSOperationSubscription = source.subscribe((richLogootSOp: RichLogootSOperation) => {
       const richLogootSOpMsg = this.generateRichLogootSOpMsg(richLogootSOp)
-      const msg: BroadcastMessage = new BroadcastMessage(SyncMessageService.ID, Sync.encode(richLogootSOpMsg).finish())
+      const msg: BroadcastMessage = new BroadcastMessage(OldSyncMessageService.ID, richLogootSOpMsg.serializeBinary())
       this.msgToBroadcastSubject.next(msg)
     })
   }
 
   set messageSource (source: Observable<NetworkMessage>) {
     this.messageSubscription = source
-    .filter((msg: NetworkMessage) => msg.service === SyncMessageService.ID)
+    .filter((msg: NetworkMessage) => msg.service === OldSyncMessageService.ID)
     .subscribe((msg: NetworkMessage) => {
-      const content = Sync.decode(msg.content)
-      switch (content.type) {
-        case 'richLogootSOpMsg':
-          this.handleRichLogootSOpMsg(content.richLogootSOpMsg as RichLogootSOperationMsg)
+      const content = new pb.Sync.deserializeBinary(msg.content)
+      switch (content.getTypeCase()) {
+        case pb.Sync.TypeCase.RICHLOGOOTSOP:
+          this.handleRichLogootSOpMsg(content.getRichlogootsop())
           break
-        case 'querySync':
+        case pb.Sync.TypeCase.QUERYSYNC:
           this.remoteQuerySyncIdSubject.next(msg.id) // Register the id of the peer
-          this.handleQuerySyncMsg(content.querySync as QuerySync)
+          this.handleQuerySyncMsg(content.getQuerysync())
           break
-        case 'replySync':
-          this.handleReplySyncMsg(content.replySync as ReplySync)
+        case pb.Sync.TypeCase.REPLYSYNC:
+          this.handleReplySyncMsg(content.getReplysync())
           break
       }
     })
@@ -66,7 +66,7 @@ export class SyncMessageService implements MessageEmitter {
   set querySyncSource (source: Observable<Map<number, number>>) {
     this.querySyncSubscription = source.subscribe((vector: Map<number, number>) => {
       const querySyncMsg = this.generateQuerySyncMsg(vector)
-      const msg: SendRandomlyMessage = new SendRandomlyMessage(SyncMessageService.ID, QuerySync.encode(querySyncMsg).finish())
+      const msg: SendRandomlyMessage = new SendRandomlyMessage(OldSyncMessageService.ID, querySyncMsg.serializeBinary())
       this.msgToSendRandomlySubject.next(msg)
     })
   }
@@ -80,7 +80,7 @@ export class SyncMessageService implements MessageEmitter {
       })
       .subscribe(({ id, replySyncEvent}: { id: number, replySyncEvent: ReplySyncEvent }) => {
         const replySyncMsg = this.generateReplySyncMsg(replySyncEvent.richLogootSOps, replySyncEvent.intervals)
-        const msg: SendToMessage = new SendToMessage(SyncMessageService.ID, id, ReplySync.encode(replySyncMsg).finish())
+        const msg: SendToMessage = new SendToMessage(OldSyncMessageService.ID, id, replySyncMsg.serializeBinary())
         this.msgToSendToSubject.next(msg)
       })
   }
@@ -124,31 +124,26 @@ export class SyncMessageService implements MessageEmitter {
     this.replySyncSubscription.unsubscribe()
   }
 
-  handleRichLogootSOpMsg (content: RichLogootSOperationMsg): any {
+  handleRichLogootSOpMsg (content: any): any {
     const richLogootSOp: RichLogootSOperation = this.deserializeRichLogootSOperation(content)
-
     this.remoteRichLogootSOperationSubject.next(richLogootSOp)
     return richLogootSOp
   }
 
-  handleQuerySyncMsg (content: QuerySync): any {
-    let vector: Map<number, number> = new Map()
-    Object.keys(content.vector).forEach((key) => {
-      let newKey = parseInt(key, 10)
-      vector.set(newKey, content.vector[key])
-    })
+  handleQuerySyncMsg (content: any): any {
+    const vector: Map<number, number> = content.getVectorMap()
     this.remoteQuerySyncSubject.next(vector)
     return vector
   }
 
-  handleReplySyncMsg (content: ReplySync): any {
-    const richLogootSOpsList: any[] = content.richLogootSOpsMsg
+  handleReplySyncMsg (content: any): any {
+    const richLogootSOpsList: any[] = content.getRichlogootsopsList()
     const richLogootSOps: RichLogootSOperation[] = richLogootSOpsList.map((richLogootSOpMsg: any) => {
       return this.deserializeRichLogootSOperation(richLogootSOpMsg)
     })
 
-    const intervals: Interval[] = content.intervals.map((interval: IntervalMsg) => {
-      return new Interval(interval.id, interval.begin, interval.end)
+    const intervals: Interval[] = content.getIntervalsList().map((interval: any) => {
+      return new Interval(interval.getId(), interval.getBegin(), interval.getEnd())
     })
 
     const replySyncEvent: ReplySyncEvent = new ReplySyncEvent(richLogootSOps, intervals)
@@ -156,39 +151,42 @@ export class SyncMessageService implements MessageEmitter {
     return replySyncEvent
   }
 
-  generateRichLogootSOpMsg (richLogootSOp: RichLogootSOperation): Sync {
+  generateRichLogootSOpMsg (richLogootSOp: RichLogootSOperation): any {
     const richLogootSOperationMsg = this.serializeRichLogootSOperation(richLogootSOp)
-    const msg = Sync.create({richLogootSOpMsg: richLogootSOperationMsg})
+    const msg = new pb.Sync()
+    msg.setRichlogootsop(richLogootSOperationMsg)
+
     return msg
   }
 
-  // TODO: Watch this function
-  serializeRichLogootSOperation (richLogootSOp: RichLogootSOperation): RichLogootSOperationMsg {
-    let richLogootSOperationMsg = RichLogootSOperationMsg.create({ id: richLogootSOp.id, clock: richLogootSOp.clock})
+  serializeRichLogootSOperation (richLogootSOp: RichLogootSOperation): any {
+    const richLogootSOperationMsg = new pb.RichLogootSOperation()
+    richLogootSOperationMsg.setId(richLogootSOp.id)
+    richLogootSOperationMsg.setClock(richLogootSOp.clock)
+
     const logootSOp: LogootSAdd | LogootSDel = richLogootSOp.logootSOp
-    if (logootSOp instanceof LogootSDel) {
-      richLogootSOperationMsg.logootSDelMsg = this.generateLogootSDelMsg(logootSOp)
-    }
-    else if (logootSOp instanceof LogootSAdd) {
-      richLogootSOperationMsg.logootSAddMsg = this.generateLogootSAddMsg(logootSOp)
+    if (logootSOp instanceof LogootSAdd) {
+      richLogootSOperationMsg.setLogootsadd(this.generateLogootSAddMsg(logootSOp))
+    } else if (logootSOp instanceof LogootSDel) {
+      richLogootSOperationMsg.setLogootsdel(this.generateLogootSDelMsg(logootSOp))
     }
 
     return richLogootSOperationMsg
   }
 
-  deserializeRichLogootSOperation (content: RichLogootSOperationMsg): RichLogootSOperation {
-    const id: number = content.id
-    const clock: number = content.clock
+  deserializeRichLogootSOperation (content: any): RichLogootSOperation {
+    const id: number = content.getId()
+    const clock: number = content.getClock()
 
     let logootSOp: LogootSAdd | LogootSDel
-    if (content.logootSAddMsg) {
-      const logootSAddMsg = content.logootSAddMsg
-      const identifier: Identifier = new Identifier(logootSAddMsg.id.base, logootSAddMsg.id.last)
-      logootSOp = new LogootSAdd(identifier, logootSAddMsg.content)
+    if (content.hasLogootsadd()) {
+      const logootSAddMsg = content.getLogootsadd()
+      const identifier: Identifier = new Identifier(logootSAddMsg.getId().getBaseList(), logootSAddMsg.getId().getLast())
+      logootSOp = new LogootSAdd(identifier, logootSAddMsg.getContent())
     } else {
-      const logootSDelMsg: LogootSDelMsg = content.logootSDelMsg as LogootSDelMsg
-      const lid: any = logootSDelMsg.lid.map( (identifier: IdentifierIntervalMsg) => {
-        return new IdentifierInterval(identifier.base, identifier.begin, identifier.end)
+      const logootSDelMsg: any = content.getLogootsdel()
+      const lid: any = logootSDelMsg.getLidList().map( (identifier: any) => {
+        return new IdentifierInterval(identifier.getBaseList(), identifier.getBegin(), identifier.getEnd())
       })
       logootSOp = new LogootSDel(lid)
     }
@@ -196,51 +194,72 @@ export class SyncMessageService implements MessageEmitter {
     return new RichLogootSOperation(id, clock, logootSOp)
   }
 
-  generateLogootSAddMsg (logootSAdd: LogootSAdd): LogootSAddMsg {
-    const identifier = IdentifierMsg.create({base: logootSAdd.id.base, last: logootSAdd.id.last})
-    return LogootSAddMsg.create({id: identifier, content: logootSAdd.l})
+  generateLogootSAddMsg (logootSAdd: LogootSAdd): any {
+    const identifier = new pb.Identifier()
+
+    identifier.setBaseList(logootSAdd.id.base)
+    identifier.setLast(logootSAdd.id.last)
+
+    const logootSAddMsg = new pb.LogootSAdd()
+    logootSAddMsg.setId(identifier)
+    logootSAddMsg.setContent(logootSAdd.l)
+
+    return logootSAddMsg
   }
 
-  generateLogootSDelMsg (logootSDel: LogootSDel): LogootSDelMsg {
-    const lid: IdentifierIntervalMsg[] = logootSDel.lid.map( (id: any) => {
-      const identifierInterval: IdentifierIntervalMsg = this.generateIdentifierIntervalMsg(id)
+  generateLogootSDelMsg (logootSDel: LogootSDel): any {
+    const lid: any[] = logootSDel.lid.map( (id: any) => {
+      const identifierInterval: any = this.generateIdentifierIntervalMsg(id)
       return identifierInterval
     })
-    const logootSDelMsg = LogootSDelMsg.create({lid})
+
+    const logootSDelMsg = new pb.LogootSDel()
+    logootSDelMsg.setLidList(lid)
     return logootSDelMsg
   }
 
-  generateIdentifierIntervalMsg (id: IdentifierInterval): IdentifierIntervalMsg {
-    const identifierIntervalMsg = IdentifierIntervalMsg.create({base: id.base, begin: id.begin, end: id.end})
+  generateIdentifierIntervalMsg (id: IdentifierInterval): any {
+    const identifierIntervalMsg = new pb.IdentifierInterval()
+
+    identifierIntervalMsg.setBaseList(id.base)
+    identifierIntervalMsg.setBegin(id.begin)
+    identifierIntervalMsg.setEnd(id.end)
+
     return identifierIntervalMsg
   }
 
-  generateQuerySyncMsg (vector: Map<number, number>): Sync {
-    const querySyncMsg = QuerySync.create()
+  generateQuerySyncMsg (vector: Map<number, number>): any {
+    const querySyncMsg = new pb.QuerySync()
 
+    const map: Map<number, number> = querySyncMsg.getVectorMap()
     vector.forEach((clock: number, id: number) => {
-      querySyncMsg.vector[id] = clock
+      map.set(id, clock)
     })
 
-    const msg = Sync.create({querySync: querySyncMsg})
+    const msg = new pb.Sync()
+    msg.setQuerysync(querySyncMsg)
 
     return msg
   }
 
-  generateReplySyncMsg (richLogootSOps: RichLogootSOperation[], intervals: Interval[]): Sync {
-    const replySyncMsg = ReplySync.create()
+  generateReplySyncMsg (richLogootSOps: RichLogootSOperation[], intervals: Interval[]): any {
+    const replySyncMsg = new pb.ReplySync()
 
-    replySyncMsg.richLogootSOpsMsg = (richLogootSOps.map((richLogootSOp: RichLogootSOperation) => {
+    replySyncMsg.setRichlogootsopsList(richLogootSOps.map((richLogootSOp: RichLogootSOperation) => {
       return this.serializeRichLogootSOperation(richLogootSOp)
     }))
 
     const intervalsMsg = intervals.map((interval: Interval) => {
-      const intervalMsg = IntervalMsg.create({ id: interval.id, begin: interval.begin, end: interval.end})
+      const intervalMsg = new pb.Interval()
+      intervalMsg.setId(interval.id)
+      intervalMsg.setBegin(interval.begin)
+      intervalMsg.setEnd(interval.end)
       return intervalMsg
     })
-    replySyncMsg.intervals = intervalsMsg
+    replySyncMsg.setIntervalsList(intervalsMsg)
 
-    const msg = Sync.create({replySync: replySyncMsg})
+    const msg = new pb.Sync()
+    msg.setReplysync(replySyncMsg)
 
     return msg
   }
