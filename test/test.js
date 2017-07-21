@@ -3,6 +3,10 @@ import { Identifier, LogootSAdd } from 'mute-structs'
 import { RichLogootSOperation } from '../lib/sync/RichLogootSOperation'
 import { SyncMessageService } from '../lib/sync/SyncMessageService'
 import { OldSyncMessageService } from '../lib/sync/OldSyncMessageService'
+import { CollaboratorsService } from '../lib/collaborators/CollaboratorsService'
+import { OldCollaboratorsService } from '../lib/collaborators/OldCollaboratorsService'
+import { CollaboratorMsg } from '../proto/collaborator'
+const pb = require('../proto/collaborator_pb.js')
 
 test('InitMessageService', t => {
   const service = new SyncMessageService()
@@ -23,27 +27,13 @@ test('HandleRich', async t => {
   t.deepEqual(val1, val2)
 })
 
-test.skip('HandleQuery', async t => {
-  const service = new SyncMessageService()
-  const oldService = new OldSyncMessageService()
-  let map = new Map()
-  map.set(23, 12)
-  map.set(45, 14)
+test('CollaboratorService', t => {
+  const service = new CollaboratorsService()
+  const oldService = new OldCollaboratorsService()
 
-  let query = service.generateQuerySyncMsg(map)
-  let oldQuery = oldService.generateQuerySyncMsg(map)
+  const val1 = service.emitPseudo('pseudo')
+  const val2 = oldService.emitPseudo('pseudo')
+  const val3 = new pb.Collaborator.deserializeBinary(val2)
 
-  let val1 = service.handleQuerySyncMsg(query.querySync)
-  let val2 = oldService.handleQuerySyncMsg(oldQuery.getQuerysync())
-  t.deepEqual(val1, val2)
-})
-
-test.skip('HandleReply', async t => {
-  const service = new SyncMessageService()
-  const oldService = new OldSyncMessageService()
-
-  let val1 = service.generateReplySyncMsg()
-  let val2 = oldService.generateReplySyncMsg()
-
-  t.deepEqual(val1, val2)
+  t.deepEqual(CollaboratorMsg.decode(val1).pseudo, val3.getPseudo())
 })

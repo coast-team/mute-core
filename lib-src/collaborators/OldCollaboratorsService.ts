@@ -2,9 +2,10 @@ import { Observable, Subject, Subscription } from 'rxjs'
 
 import { BroadcastMessage, SendRandomlyMessage, SendToMessage, MessageEmitter, NetworkMessage } from '../network/'
 import { Collaborator } from './Collaborator'
-import { CollaboratorMsg } from '../../proto/collaborator'
+const pb = require('../../proto/collaborator_pb.js')
 
-export class CollaboratorsService implements MessageEmitter {
+
+export class OldCollaboratorsService implements MessageEmitter {
 
   private static ID: string = 'Collaborators'
 
@@ -59,11 +60,11 @@ export class CollaboratorsService implements MessageEmitter {
 
   set messageSource (source: Observable<NetworkMessage>) {
     source
-    .filter((msg: NetworkMessage) => msg.service === CollaboratorsService.ID)
+    .filter((msg: NetworkMessage) => msg.service === OldCollaboratorsService.ID)
     .subscribe((msg: NetworkMessage) => {
-      const collabMsg = CollaboratorMsg.decode(msg.content)
+      const pbCollaborator = new pb.Collaborator.deserializeBinary(msg.content)
       const id: number = msg.id
-      const pseudo: string = collabMsg.pseudo
+      const pseudo: string = pbCollaborator.getPseudo()
       this.collaboratorChangePseudoSubject.next(new Collaborator(id, pseudo))
     })
   }
@@ -88,17 +89,18 @@ export class CollaboratorsService implements MessageEmitter {
     })
   }
 
-  emitPseudo (pseudo: string, id?: number): Uint8Array {
-    const collabMsg = CollaboratorMsg.create({pseudo})
+  emitPseudo (pseudo: string, id?: number): ArrayBuffer {
+    const collabMsg = new pb.Collaborator()
+    collabMsg.setPseudo(pseudo)
 
     if (id) {
-      const msg: SendToMessage = new SendToMessage(CollaboratorsService.ID, id, CollaboratorMsg.encode(collabMsg).finish())
+      const msg: SendToMessage = new SendToMessage(OldCollaboratorsService.ID, id, collabMsg.serializeBinary())
       this.msgToSendToSubject.next(msg)
     } else {
-      const msg: BroadcastMessage = new BroadcastMessage(CollaboratorsService.ID, CollaboratorMsg.encode(collabMsg).finish())
+      const msg: BroadcastMessage = new BroadcastMessage(OldCollaboratorsService.ID, collabMsg.serializeBinary())
       this.msgToBroadcastSubject.next(msg)
     }
-    return CollaboratorMsg.encode(collabMsg).finish()
+    return collabMsg.serializeBinary()
   }
 
   clean (): void {
