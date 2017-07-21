@@ -25,9 +25,9 @@
     "clean": "rm -rf lib",
     "check": "tsc --noEmit",
     "lint": "tslint --project tsconfig.json",
-    "test:unit": "npm run build && ava --verbose",
+    "test:unit": "npm run build && ava",
     "test": "npm run test:unit",
-    "pbjs": "pbjs -t static-module -o proto/collaborator.js -w es6 --es6 proto/collaborator.proto && pbts -o proto/collaborator.d.ts proto/collaborator.js && pbjs -t static-module -o proto/sync.js -w es6 --es6 proto/sync.proto && pbts -o proto/sync.d.ts proto/sync.js"
+    "pbjs": "pbjs -t static-module -o proto/collaborator_pb.js -w es6 --es6 proto/collaborator.proto && pbts -o proto/collaborator_pb.d.ts proto/collaborator_pb.js && pbjs -t static-module -o proto/sync_pb.js -w es6 --es6 proto/sync.proto && pbts -o proto/sync_pb.d.ts proto/sync_pb.js"
   },
   "ava": {
     "require": ["babel-register"],

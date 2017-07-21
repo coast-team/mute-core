@@ -6,7 +6,7 @@ import { BroadcastMessage, MessageEmitter, NetworkMessage, SendRandomlyMessage, 
 import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichLogootSOperation } from './RichLogootSOperation'
 
-import { Sync, QuerySync, ReplySync, LogootSAddMsg, LogootSDelMsg, RichLogootSOperationMsg, IntervalMsg, IdentifierMsg, IdentifierIntervalMsg } from '../../proto/sync'
+import { Sync, QuerySync, ReplySync, LogootSAddMsg, LogootSDelMsg, RichLogootSOperationMsg, IntervalMsg, IdentifierMsg, IdentifierIntervalMsg } from '../../proto/sync_pb'
 
 export class SyncMessageService implements MessageEmitter {
 

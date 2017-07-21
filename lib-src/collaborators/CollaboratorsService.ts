@@ -2,7 +2,7 @@ import { Observable, Subject, Subscription } from 'rxjs'
 
 import { BroadcastMessage, SendRandomlyMessage, SendToMessage, MessageEmitter, NetworkMessage } from '../network/'
 import { Collaborator } from './Collaborator'
-import { CollaboratorMsg } from '../../proto/collaborator'
+import { CollaboratorMsg } from '../../proto/collaborator_pb'
 
 export class CollaboratorsService implements MessageEmitter {
 
