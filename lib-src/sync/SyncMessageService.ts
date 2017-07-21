@@ -66,7 +66,7 @@ export class SyncMessageService implements MessageEmitter {
   set querySyncSource (source: Observable<Map<number, number>>) {
     this.querySyncSubscription = source.subscribe((vector: Map<number, number>) => {
       const querySyncMsg = this.generateQuerySyncMsg(vector)
-      const msg: SendRandomlyMessage = new SendRandomlyMessage(SyncMessageService.ID, QuerySync.encode(querySyncMsg).finish())
+      const msg: SendRandomlyMessage = new SendRandomlyMessage(SyncMessageService.ID, Sync.encode(querySyncMsg).finish())
       this.msgToSendRandomlySubject.next(msg)
     })
   }
@@ -80,7 +80,7 @@ export class SyncMessageService implements MessageEmitter {
       })
       .subscribe(({ id, replySyncEvent}: { id: number, replySyncEvent: ReplySyncEvent }) => {
         const replySyncMsg = this.generateReplySyncMsg(replySyncEvent.richLogootSOps, replySyncEvent.intervals)
-        const msg: SendToMessage = new SendToMessage(SyncMessageService.ID, id, ReplySync.encode(replySyncMsg).finish())
+        const msg: SendToMessage = new SendToMessage(SyncMessageService.ID, id, Sync.encode(replySyncMsg).finish())
         this.msgToSendToSubject.next(msg)
       })
   }
