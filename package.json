@@ -15,10 +15,10 @@
     "url": "https://github.com/coast-team/mute-core"
   },
   "devDependencies": {
-    "@types/node": "^7.0.4",
+    "@types/node": "^7.0.39",
     "ava": "^0.16.0",
     "tslint": "^3.15.1",
-    "typescript": "2.3.4"
+    "typescript": "^2.4.2"
   },
   "scripts": {
     "build": "tsc",
@@ -30,7 +30,9 @@
     "pbjs": "pbjs -t static-module -o proto/collaborator_pb.js -w es6 --es6 proto/collaborator.proto && pbts -o proto/collaborator_pb.d.ts proto/collaborator_pb.js && pbjs -t static-module -o proto/sync_pb.js -w es6 --es6 proto/sync.proto && pbts -o proto/sync_pb.d.ts proto/sync_pb.js"
   },
   "ava": {
-    "require": ["babel-register"],
+    "require": [
+      "babel-register"
+    ],
     "babel": "inherit"
   },
   "keywords": [],
