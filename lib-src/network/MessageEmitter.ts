@@ -6,6 +6,6 @@ import { SendToMessage } from './SendToMessage'
 
 export interface MessageEmitter {
   readonly onMsgToBroadcast: Observable<BroadcastMessage>
-  readonly onMsgToSendTo: Observable<SendRandomlyMessage>
-  readonly onMsgToSendRandomly: Observable<SendToMessage>
+  readonly onMsgToSendTo: Observable<SendToMessage>
+  readonly onMsgToSendRandomly: Observable<SendRandomlyMessage>
 }
