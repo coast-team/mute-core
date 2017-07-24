@@ -98,7 +98,7 @@ export class DocService {
     return this.localLogootSOperationSubject.asObservable()
   }
 
-  get onRemoteTextOperations (): Observable<TextInsert[] | TextDelete[]> {
+  get onRemoteTextOperations (): Observable<(TextInsert | TextDelete)[]> {
     return this.remoteTextOperationsSubject.asObservable()
   }
 
