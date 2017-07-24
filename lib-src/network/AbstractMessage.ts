@@ -1,6 +1,6 @@
 export abstract class AbstractMessage {
   constructor(
     readonly service: string,
-    readonly content: ArrayBuffer
+    readonly content: Uint8Array
   ) {}
 }

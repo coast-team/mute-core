@@ -2,7 +2,7 @@ import { Observable, Subject, Subscription } from 'rxjs'
 
 import { BroadcastMessage, SendRandomlyMessage, SendToMessage, MessageEmitter, NetworkMessage } from '../network/'
 import { Collaborator } from './Collaborator'
-const pb = require('../../proto/collaborator_pb.js')
+import { CollaboratorMsg } from '../../proto/collaborator_pb'
 
 export class CollaboratorsService implements MessageEmitter {
 
@@ -61,9 +61,9 @@ export class CollaboratorsService implements MessageEmitter {
     source
     .filter((msg: NetworkMessage) => msg.service === CollaboratorsService.ID)
     .subscribe((msg: NetworkMessage) => {
-      const pbCollaborator = new pb.Collaborator.deserializeBinary(msg.content)
+      const collabMsg = CollaboratorMsg.decode(msg.content)
       const id: number = msg.id
-      const pseudo: string = pbCollaborator.getPseudo()
+      const pseudo: string = collabMsg.pseudo
       this.collaboratorChangePseudoSubject.next(new Collaborator(id, pseudo))
     })
   }
@@ -88,17 +88,17 @@ export class CollaboratorsService implements MessageEmitter {
     })
   }
 
-  emitPseudo (pseudo: string, id?: number): void {
-    const collabMsg = new pb.Collaborator()
-    collabMsg.setPseudo(pseudo)
+  emitPseudo (pseudo: string, id?: number): Uint8Array {
+    const collabMsg = CollaboratorMsg.create({pseudo})
 
     if (id) {
-      const msg: SendToMessage = new SendToMessage(CollaboratorsService.ID, id, collabMsg.serializeBinary())
+      const msg: SendToMessage = new SendToMessage(CollaboratorsService.ID, id, CollaboratorMsg.encode(collabMsg).finish())
       this.msgToSendToSubject.next(msg)
     } else {
-      const msg: BroadcastMessage = new BroadcastMessage(CollaboratorsService.ID, collabMsg.serializeBinary())
+      const msg: BroadcastMessage = new BroadcastMessage(CollaboratorsService.ID, CollaboratorMsg.encode(collabMsg).finish())
       this.msgToBroadcastSubject.next(msg)
     }
+    return CollaboratorMsg.encode(collabMsg).finish()
   }
 
   clean (): void {

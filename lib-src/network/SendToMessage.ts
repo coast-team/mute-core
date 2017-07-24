@@ -4,7 +4,7 @@ export class SendToMessage extends AbstractMessage {
   constructor(
     service: string,
     readonly id: number,
-    msg: ArrayBuffer) {
+    msg: Uint8Array) {
       super(service, msg)
     }
 }

@@ -1,5 +1,5 @@
 syntax = "proto3";
 
-message Collaborator {
+message CollaboratorMsg {
   string pseudo = 1;
 }

@@ -2,36 +2,36 @@ syntax = "proto3";
 
 message Sync {
   oneof type {
-    RichLogootSOperation richLogootSOp = 1;
+    RichLogootSOperationMsg richLogootSOpMsg = 1;
     QuerySync querySync = 2;
     ReplySync replySync = 3;
   }
 }
 
-message RichLogootSOperation {
+message RichLogootSOperationMsg {
   int32 id = 1;
   int32 clock = 2;
   oneof type {
-    LogootSAdd logootSAdd = 3;
-    LogootSDel logootSDel = 4;
+    LogootSAddMsg logootSAddMsg = 3;
+    LogootSDelMsg logootSDelMsg = 4;
   }
 }
 
-message LogootSAdd {
-  Identifier id = 1;
+message LogootSAddMsg {
+  IdentifierMsg id = 1;
   string content = 2;
 }
 
-message Identifier {
+message IdentifierMsg {
   repeated int32 base = 1;
   int32 last = 2;
 }
 
-message LogootSDel {
-  repeated IdentifierInterval lid = 1;
+message LogootSDelMsg {
+  repeated IdentifierIntervalMsg lid = 1;
 }
 
-message IdentifierInterval {
+message IdentifierIntervalMsg {
   repeated int32 base = 1;
   int32 begin = 2;
   int32 end = 3;
@@ -42,11 +42,11 @@ message QuerySync {
 }
 
 message ReplySync {
-  repeated RichLogootSOperation richLogootSOps = 1;
-  repeated Interval intervals = 2;
+  repeated RichLogootSOperationMsg richLogootSOpsMsg = 1;
+  repeated IntervalMsg intervals = 2;
 }
 
-message Interval {
+message IntervalMsg {
   int32 id = 1;
   int32 begin = 2;
   int32 end = 3;
