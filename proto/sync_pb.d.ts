@@ -50,14 +50,6 @@ export class Sync {
     public static encode(message: ISync, writer?: $protobuf.Writer): $protobuf.Writer;
 
     /**
-     * Encodes the specified Sync message, length delimited. Does not implicitly {@link Sync.verify|verify} messages.
-     * @param message Sync message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encodeDelimited(message: ISync, writer?: $protobuf.Writer): $protobuf.Writer;
-
-    /**
      * Decodes a Sync message from the specified reader or buffer.
      * @param reader Reader or buffer to decode from
      * @param [length] Message length if known beforehand
@@ -66,43 +58,6 @@ export class Sync {
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
     public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Sync;
-
-    /**
-     * Decodes a Sync message from the specified reader or buffer, length delimited.
-     * @param reader Reader or buffer to decode from
-     * @returns Sync
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): Sync;
-
-    /**
-     * Verifies a Sync message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): (string|null);
-
-    /**
-     * Creates a Sync message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns Sync
-     */
-    public static fromObject(object: { [k: string]: any }): Sync;
-
-    /**
-     * Creates a plain object from a Sync message. Also converts values to other types if specified.
-     * @param message Sync
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(message: Sync, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-    /**
-     * Converts this Sync to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
 }
 
 /** Properties of a RichLogootSOperationMsg. */
@@ -161,14 +116,6 @@ export class RichLogootSOperationMsg {
     public static encode(message: IRichLogootSOperationMsg, writer?: $protobuf.Writer): $protobuf.Writer;
 
     /**
-     * Encodes the specified RichLogootSOperationMsg message, length delimited. Does not implicitly {@link RichLogootSOperationMsg.verify|verify} messages.
-     * @param message RichLogootSOperationMsg message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encodeDelimited(message: IRichLogootSOperationMsg, writer?: $protobuf.Writer): $protobuf.Writer;
-
-    /**
      * Decodes a RichLogootSOperationMsg message from the specified reader or buffer.
      * @param reader Reader or buffer to decode from
      * @param [length] Message length if known beforehand
@@ -177,43 +124,6 @@ export class RichLogootSOperationMsg {
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
     public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): RichLogootSOperationMsg;
-
-    /**
-     * Decodes a RichLogootSOperationMsg message from the specified reader or buffer, length delimited.
-     * @param reader Reader or buffer to decode from
-     * @returns RichLogootSOperationMsg
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): RichLogootSOperationMsg;
-
-    /**
-     * Verifies a RichLogootSOperationMsg message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): (string|null);
-
-    /**
-     * Creates a RichLogootSOperationMsg message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns RichLogootSOperationMsg
-     */
-    public static fromObject(object: { [k: string]: any }): RichLogootSOperationMsg;
-
-    /**
-     * Creates a plain object from a RichLogootSOperationMsg message. Also converts values to other types if specified.
-     * @param message RichLogootSOperationMsg
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(message: RichLogootSOperationMsg, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-    /**
-     * Converts this RichLogootSOperationMsg to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
 }
 
 /** Properties of a LogootSAddMsg. */
@@ -257,14 +167,6 @@ export class LogootSAddMsg {
     public static encode(message: ILogootSAddMsg, writer?: $protobuf.Writer): $protobuf.Writer;
 
     /**
-     * Encodes the specified LogootSAddMsg message, length delimited. Does not implicitly {@link LogootSAddMsg.verify|verify} messages.
-     * @param message LogootSAddMsg message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encodeDelimited(message: ILogootSAddMsg, writer?: $protobuf.Writer): $protobuf.Writer;
-
-    /**
      * Decodes a LogootSAddMsg message from the specified reader or buffer.
      * @param reader Reader or buffer to decode from
      * @param [length] Message length if known beforehand
@@ -273,43 +175,6 @@ export class LogootSAddMsg {
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
     public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): LogootSAddMsg;
-
-    /**
-     * Decodes a LogootSAddMsg message from the specified reader or buffer, length delimited.
-     * @param reader Reader or buffer to decode from
-     * @returns LogootSAddMsg
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): LogootSAddMsg;
-
-    /**
-     * Verifies a LogootSAddMsg message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): (string|null);
-
-    /**
-     * Creates a LogootSAddMsg message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns LogootSAddMsg
-     */
-    public static fromObject(object: { [k: string]: any }): LogootSAddMsg;
-
-    /**
-     * Creates a plain object from a LogootSAddMsg message. Also converts values to other types if specified.
-     * @param message LogootSAddMsg
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(message: LogootSAddMsg, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-    /**
-     * Converts this LogootSAddMsg to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
 }
 
 /** Properties of an IdentifierMsg. */
@@ -353,14 +218,6 @@ export class IdentifierMsg {
     public static encode(message: IIdentifierMsg, writer?: $protobuf.Writer): $protobuf.Writer;
 
     /**
-     * Encodes the specified IdentifierMsg message, length delimited. Does not implicitly {@link IdentifierMsg.verify|verify} messages.
-     * @param message IdentifierMsg message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encodeDelimited(message: IIdentifierMsg, writer?: $protobuf.Writer): $protobuf.Writer;
-
-    /**
      * Decodes an IdentifierMsg message from the specified reader or buffer.
      * @param reader Reader or buffer to decode from
      * @param [length] Message length if known beforehand
@@ -369,43 +226,6 @@ export class IdentifierMsg {
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
     public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): IdentifierMsg;
-
-    /**
-     * Decodes an IdentifierMsg message from the specified reader or buffer, length delimited.
-     * @param reader Reader or buffer to decode from
-     * @returns IdentifierMsg
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): IdentifierMsg;
-
-    /**
-     * Verifies an IdentifierMsg message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): (string|null);
-
-    /**
-     * Creates an IdentifierMsg message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns IdentifierMsg
-     */
-    public static fromObject(object: { [k: string]: any }): IdentifierMsg;
-
-    /**
-     * Creates a plain object from an IdentifierMsg message. Also converts values to other types if specified.
-     * @param message IdentifierMsg
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(message: IdentifierMsg, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-    /**
-     * Converts this IdentifierMsg to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
 }
 
 /** Properties of a LogootSDelMsg. */
@@ -443,14 +263,6 @@ export class LogootSDelMsg {
     public static encode(message: ILogootSDelMsg, writer?: $protobuf.Writer): $protobuf.Writer;
 
     /**
-     * Encodes the specified LogootSDelMsg message, length delimited. Does not implicitly {@link LogootSDelMsg.verify|verify} messages.
-     * @param message LogootSDelMsg message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encodeDelimited(message: ILogootSDelMsg, writer?: $protobuf.Writer): $protobuf.Writer;
-
-    /**
      * Decodes a LogootSDelMsg message from the specified reader or buffer.
      * @param reader Reader or buffer to decode from
      * @param [length] Message length if known beforehand
@@ -459,43 +271,6 @@ export class LogootSDelMsg {
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
     public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): LogootSDelMsg;
-
-    /**
-     * Decodes a LogootSDelMsg message from the specified reader or buffer, length delimited.
-     * @param reader Reader or buffer to decode from
-     * @returns LogootSDelMsg
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): LogootSDelMsg;
-
-    /**
-     * Verifies a LogootSDelMsg message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): (string|null);
-
-    /**
-     * Creates a LogootSDelMsg message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns LogootSDelMsg
-     */
-    public static fromObject(object: { [k: string]: any }): LogootSDelMsg;
-
-    /**
-     * Creates a plain object from a LogootSDelMsg message. Also converts values to other types if specified.
-     * @param message LogootSDelMsg
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(message: LogootSDelMsg, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-    /**
-     * Converts this LogootSDelMsg to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
 }
 
 /** Properties of an IdentifierIntervalMsg. */
@@ -545,14 +320,6 @@ export class IdentifierIntervalMsg {
     public static encode(message: IIdentifierIntervalMsg, writer?: $protobuf.Writer): $protobuf.Writer;
 
     /**
-     * Encodes the specified IdentifierIntervalMsg message, length delimited. Does not implicitly {@link IdentifierIntervalMsg.verify|verify} messages.
-     * @param message IdentifierIntervalMsg message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encodeDelimited(message: IIdentifierIntervalMsg, writer?: $protobuf.Writer): $protobuf.Writer;
-
-    /**
      * Decodes an IdentifierIntervalMsg message from the specified reader or buffer.
      * @param reader Reader or buffer to decode from
      * @param [length] Message length if known beforehand
@@ -561,43 +328,6 @@ export class IdentifierIntervalMsg {
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
     public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): IdentifierIntervalMsg;
-
-    /**
-     * Decodes an IdentifierIntervalMsg message from the specified reader or buffer, length delimited.
-     * @param reader Reader or buffer to decode from
-     * @returns IdentifierIntervalMsg
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): IdentifierIntervalMsg;
-
-    /**
-     * Verifies an IdentifierIntervalMsg message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): (string|null);
-
-    /**
-     * Creates an IdentifierIntervalMsg message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns IdentifierIntervalMsg
-     */
-    public static fromObject(object: { [k: string]: any }): IdentifierIntervalMsg;
-
-    /**
-     * Creates a plain object from an IdentifierIntervalMsg message. Also converts values to other types if specified.
-     * @param message IdentifierIntervalMsg
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(message: IdentifierIntervalMsg, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-    /**
-     * Converts this IdentifierIntervalMsg to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
 }
 
 /** Properties of a QuerySync. */
@@ -635,14 +365,6 @@ export class QuerySync {
     public static encode(message: IQuerySync, writer?: $protobuf.Writer): $protobuf.Writer;
 
     /**
-     * Encodes the specified QuerySync message, length delimited. Does not implicitly {@link QuerySync.verify|verify} messages.
-     * @param message QuerySync message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encodeDelimited(message: IQuerySync, writer?: $protobuf.Writer): $protobuf.Writer;
-
-    /**
      * Decodes a QuerySync message from the specified reader or buffer.
      * @param reader Reader or buffer to decode from
      * @param [length] Message length if known beforehand
@@ -651,43 +373,6 @@ export class QuerySync {
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
     public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): QuerySync;
-
-    /**
-     * Decodes a QuerySync message from the specified reader or buffer, length delimited.
-     * @param reader Reader or buffer to decode from
-     * @returns QuerySync
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): QuerySync;
-
-    /**
-     * Verifies a QuerySync message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): (string|null);
-
-    /**
-     * Creates a QuerySync message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns QuerySync
-     */
-    public static fromObject(object: { [k: string]: any }): QuerySync;
-
-    /**
-     * Creates a plain object from a QuerySync message. Also converts values to other types if specified.
-     * @param message QuerySync
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(message: QuerySync, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-    /**
-     * Converts this QuerySync to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
 }
 
 /** Properties of a ReplySync. */
@@ -731,14 +416,6 @@ export class ReplySync {
     public static encode(message: IReplySync, writer?: $protobuf.Writer): $protobuf.Writer;
 
     /**
-     * Encodes the specified ReplySync message, length delimited. Does not implicitly {@link ReplySync.verify|verify} messages.
-     * @param message ReplySync message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encodeDelimited(message: IReplySync, writer?: $protobuf.Writer): $protobuf.Writer;
-
-    /**
      * Decodes a ReplySync message from the specified reader or buffer.
      * @param reader Reader or buffer to decode from
      * @param [length] Message length if known beforehand
@@ -747,43 +424,6 @@ export class ReplySync {
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
     public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): ReplySync;
-
-    /**
-     * Decodes a ReplySync message from the specified reader or buffer, length delimited.
-     * @param reader Reader or buffer to decode from
-     * @returns ReplySync
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): ReplySync;
-
-    /**
-     * Verifies a ReplySync message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): (string|null);
-
-    /**
-     * Creates a ReplySync message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns ReplySync
-     */
-    public static fromObject(object: { [k: string]: any }): ReplySync;
-
-    /**
-     * Creates a plain object from a ReplySync message. Also converts values to other types if specified.
-     * @param message ReplySync
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(message: ReplySync, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-    /**
-     * Converts this ReplySync to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
 }
 
 /** Properties of an IntervalMsg. */
@@ -833,14 +473,6 @@ export class IntervalMsg {
     public static encode(message: IIntervalMsg, writer?: $protobuf.Writer): $protobuf.Writer;
 
     /**
-     * Encodes the specified IntervalMsg message, length delimited. Does not implicitly {@link IntervalMsg.verify|verify} messages.
-     * @param message IntervalMsg message or plain object to encode
-     * @param [writer] Writer to encode to
-     * @returns Writer
-     */
-    public static encodeDelimited(message: IIntervalMsg, writer?: $protobuf.Writer): $protobuf.Writer;
-
-    /**
      * Decodes an IntervalMsg message from the specified reader or buffer.
      * @param reader Reader or buffer to decode from
      * @param [length] Message length if known beforehand
@@ -849,41 +481,4 @@ export class IntervalMsg {
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
     public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): IntervalMsg;
-
-    /**
-     * Decodes an IntervalMsg message from the specified reader or buffer, length delimited.
-     * @param reader Reader or buffer to decode from
-     * @returns IntervalMsg
-     * @throws {Error} If the payload is not a reader or valid buffer
-     * @throws {$protobuf.util.ProtocolError} If required fields are missing
-     */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): IntervalMsg;
-
-    /**
-     * Verifies an IntervalMsg message.
-     * @param message Plain object to verify
-     * @returns `null` if valid, otherwise the reason why it is not
-     */
-    public static verify(message: { [k: string]: any }): (string|null);
-
-    /**
-     * Creates an IntervalMsg message from a plain object. Also converts values to their respective internal types.
-     * @param object Plain object
-     * @returns IntervalMsg
-     */
-    public static fromObject(object: { [k: string]: any }): IntervalMsg;
-
-    /**
-     * Creates a plain object from an IntervalMsg message. Also converts values to other types if specified.
-     * @param message IntervalMsg
-     * @param [options] Conversion options
-     * @returns Plain object
-     */
-    public static toObject(message: IntervalMsg, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-    /**
-     * Converts this IntervalMsg to JSON.
-     * @returns JSON object
-     */
-    public toJSON(): { [k: string]: any };
 }

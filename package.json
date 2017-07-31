@@ -1,6 +1,6 @@
 {
   "name": "mute-core",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -27,7 +27,8 @@
     "lint": "tslint --project tsconfig.json",
     "test:unit": "npm run build && ava",
     "test": "npm run test:unit",
-    "pbjs": "pbjs -t static-module -o proto/collaborator_pb.js -w es6 --es6 proto/collaborator.proto && pbts -o proto/collaborator_pb.d.ts proto/collaborator_pb.js && pbjs -t static-module -o proto/sync_pb.js -w es6 --es6 proto/sync.proto && pbts -o proto/sync_pb.d.ts proto/sync_pb.js"
+    "proto": "pbjs -t static-module -w es6 --no-verify --no-delimited --no-convert proto/collaborator.proto -o proto/collaborator_pb.js && pbts -o proto/collaborator_pb.d.ts proto/collaborator_pb.js && pbjs -t static-module -w es6 --no-verify --no-delimited --no-convert proto/sync.proto -o proto/sync_pb.js && pbts -o proto/sync_pb.d.ts proto/sync_pb.js",
+    "postproto": "sed -i 's/const \\|let /var /g' proto/collaborator_pb.js && sed -i 's/const \\|let /var /g' proto/sync_pb.js"
   },
   "ava": {
     "require": [
