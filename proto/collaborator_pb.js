@@ -1,5 +1,7 @@
 /*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins*/
-import * as $protobuf from "protobufjs/minimal";
+"use strict";
+
+var $protobuf = require("protobufjs/minimal");
 
 // Common aliases
 var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
@@ -7,7 +9,7 @@ var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.ut
 // Exported root namespace
 var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
-export var CollaboratorMsg = $root.CollaboratorMsg = (() => {
+$root.CollaboratorMsg = (function() {
 
     /**
      * Properties of a CollaboratorMsg.
@@ -99,4 +101,4 @@ export var CollaboratorMsg = $root.CollaboratorMsg = (() => {
     return CollaboratorMsg;
 })();
 
-export { $root as default };
+module.exports = $root;

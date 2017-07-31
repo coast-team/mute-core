@@ -1,5 +1,7 @@
 /*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins*/
-import * as $protobuf from "protobufjs/minimal";
+"use strict";
+
+var $protobuf = require("protobufjs/minimal");
 
 // Common aliases
 var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
@@ -7,7 +9,7 @@ var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.ut
 // Exported root namespace
 var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
-export var Sync = $root.Sync = (() => {
+$root.Sync = (function() {
 
     /**
      * Properties of a Sync.
@@ -141,7 +143,7 @@ export var Sync = $root.Sync = (() => {
     return Sync;
 })();
 
-export var RichLogootSOperationMsg = $root.RichLogootSOperationMsg = (() => {
+$root.RichLogootSOperationMsg = (function() {
 
     /**
      * Properties of a RichLogootSOperationMsg.
@@ -289,7 +291,7 @@ export var RichLogootSOperationMsg = $root.RichLogootSOperationMsg = (() => {
     return RichLogootSOperationMsg;
 })();
 
-export var LogootSAddMsg = $root.LogootSAddMsg = (() => {
+$root.LogootSAddMsg = (function() {
 
     /**
      * Properties of a LogootSAddMsg.
@@ -395,7 +397,7 @@ export var LogootSAddMsg = $root.LogootSAddMsg = (() => {
     return LogootSAddMsg;
 })();
 
-export var IdentifierMsg = $root.IdentifierMsg = (() => {
+$root.IdentifierMsg = (function() {
 
     /**
      * Properties of an IdentifierMsg.
@@ -513,7 +515,7 @@ export var IdentifierMsg = $root.IdentifierMsg = (() => {
     return IdentifierMsg;
 })();
 
-export var LogootSDelMsg = $root.LogootSDelMsg = (() => {
+$root.LogootSDelMsg = (function() {
 
     /**
      * Properties of a LogootSDelMsg.
@@ -609,7 +611,7 @@ export var LogootSDelMsg = $root.LogootSDelMsg = (() => {
     return LogootSDelMsg;
 })();
 
-export var IdentifierIntervalMsg = $root.IdentifierIntervalMsg = (() => {
+$root.IdentifierIntervalMsg = (function() {
 
     /**
      * Properties of an IdentifierIntervalMsg.
@@ -741,7 +743,7 @@ export var IdentifierIntervalMsg = $root.IdentifierIntervalMsg = (() => {
     return IdentifierIntervalMsg;
 })();
 
-export var QuerySync = $root.QuerySync = (() => {
+$root.QuerySync = (function() {
 
     /**
      * Properties of a QuerySync.
@@ -840,7 +842,7 @@ export var QuerySync = $root.QuerySync = (() => {
     return QuerySync;
 })();
 
-export var ReplySync = $root.ReplySync = (() => {
+$root.ReplySync = (function() {
 
     /**
      * Properties of a ReplySync.
@@ -954,7 +956,7 @@ export var ReplySync = $root.ReplySync = (() => {
     return ReplySync;
 })();
 
-export var IntervalMsg = $root.IntervalMsg = (() => {
+$root.IntervalMsg = (function() {
 
     /**
      * Properties of an IntervalMsg.
@@ -1074,4 +1076,4 @@ export var IntervalMsg = $root.IntervalMsg = (() => {
     return IntervalMsg;
 })();
 
-export { $root as default };
+module.exports = $root;
