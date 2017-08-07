@@ -184,14 +184,10 @@ export class SyncMessageService implements MessageEmitter {
     let logootSOp: LogootSAdd | LogootSDel
     if (content.logootSAddMsg) {
       const logootSAddMsg = content.logootSAddMsg
-      const identifier: Identifier = new Identifier(logootSAddMsg.id.base, logootSAddMsg.id.last)
-      logootSOp = new LogootSAdd(identifier, logootSAddMsg.content)
+      logootSOp = LogootSAdd.fromPlain(logootSAddMsg)
     } else {
       const logootSDelMsg: LogootSDelMsg = content.logootSDelMsg as LogootSDelMsg
-      const lid: any = logootSDelMsg.lid.map( (identifier: IdentifierIntervalMsg) => {
-        return new IdentifierInterval(identifier.base, identifier.begin, identifier.end)
-      })
-      logootSOp = new LogootSDel(lid)
+      logootSOp = LogootSDel.fromPlain(logootSDelMsg)
     }
 
     return new RichLogootSOperation(id, clock, logootSOp)
