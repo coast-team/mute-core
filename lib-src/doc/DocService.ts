@@ -133,8 +133,8 @@ export class DocService {
     if (respIntnode !== null) {
       return {
         index: respIntnode.i,
-        last: respIntnode.node.offset + respIntnode.i,
-        base: respIntnode.node.block.id.base
+        last: respIntnode.node.actualBegin + respIntnode.i,
+        base: respIntnode.node.block.idInterval.base
       }
     }
     return null

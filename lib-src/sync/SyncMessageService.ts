@@ -198,7 +198,7 @@ export class SyncMessageService implements MessageEmitter {
 
   generateLogootSAddMsg (logootSAdd: LogootSAdd): LogootSAddMsg {
     const identifier = IdentifierMsg.create({base: logootSAdd.id.base, last: logootSAdd.id.last})
-    return LogootSAddMsg.create({id: identifier, content: logootSAdd.l})
+    return LogootSAddMsg.create({id: identifier, content: logootSAdd.content})
   }
 
   generateLogootSDelMsg (logootSDel: LogootSDel): LogootSDelMsg {

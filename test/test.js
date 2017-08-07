@@ -17,7 +17,7 @@ test('HandleRich', async t => {
 
   let val1 = service.handleRichLogootSOpMsg(richMsg)
 
-  t.deepEqual(val1.logootSOp.l, richMsg.logootSAddMsg.content)
+  t.deepEqual(val1.logootSOp.content, richMsg.logootSAddMsg.content)
 })
 
 test('CollaboratorService', t => {
