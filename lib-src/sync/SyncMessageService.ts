@@ -124,27 +124,28 @@ export class SyncMessageService implements MessageEmitter {
     this.replySyncSubscription.unsubscribe()
   }
 
-  handleRichLogootSOpMsg (content: RichLogootSOperationMsg): any {
-    const richLogootSOp: RichLogootSOperation = this.deserializeRichLogootSOperation(content)
+  handleRichLogootSOpMsg (content: RichLogootSOperationMsg): RichLogootSOperation | null {
+    const richLogootSOp: RichLogootSOperation | null =
+      this.deserializeRichLogootSOperation(content)
 
     this.remoteRichLogootSOperationSubject.next(richLogootSOp)
     return richLogootSOp
   }
 
-  handleQuerySyncMsg (content: QuerySync): any {
-    let vector: Map<number, number> = new Map()
+  handleQuerySyncMsg (content: QuerySync): Map<number, number> {
+    const vector: Map<number, number> = new Map()
     Object.keys(content.vector).forEach((key) => {
-      let newKey = parseInt(key, 10)
+      const newKey = parseInt(key, 10)
       vector.set(newKey, content.vector[key])
     })
     this.remoteQuerySyncSubject.next(vector)
     return vector
   }
 
-  handleReplySyncMsg (content: ReplySync): any {
-    const richLogootSOpsList: any[] = content.richLogootSOpsMsg
-    const richLogootSOps: RichLogootSOperation[] = richLogootSOpsList.map((richLogootSOpMsg: any) => {
-      return this.deserializeRichLogootSOperation(richLogootSOpMsg)
+  handleReplySyncMsg (content: ReplySync): ReplySyncEvent {
+    const richLogootSOpsList = content.richLogootSOpsMsg
+    const richLogootSOps: RichLogootSOperation[] = richLogootSOpsList.map((richLogootSOpMsg) => {
+      return this.deserializeRichLogootSOperation(richLogootSOpMsg as RichLogootSOperationMsg)
     })
 
     const intervals: Interval[] = content.intervals.map((interval: IntervalMsg) => {
