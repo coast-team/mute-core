@@ -1,5 +1,5 @@
 import test from "ava"
-import { AssertContext } from "ava"
+import { TestContext } from "ava"
 import {
     Identifier,
     IdentifierInterval,
@@ -8,9 +8,15 @@ import {
 } from "mute-structs"
 import { Observable } from "rxjs"
 
-import { BroadcastMessage, NetworkMessage, SendRandomlyMessage } from "../src/network"
-import { RichLogootSOperation } from "../src/sync/RichLogootSOperation"
-import { SyncMessageService } from "../src/sync/SyncMessageService"
+import {
+    BroadcastMessage,
+    NetworkMessage,
+    SendRandomlyMessage
+} from "../src/network"
+import {
+    RichLogootSOperation,
+    SyncMessageService
+} from "../src/sync"
 
 function generateRichLogootSOps (): RichLogootSOperation[] {
     const replicaNumber = 0
@@ -35,7 +41,7 @@ function generateRichLogootSOps (): RichLogootSOperation[] {
     return [richLogootSOp1, richLogootSOp2, richLogootSOp3]
 }
 
-test("in-out-richLogootSOperations", (t: AssertContext) => {
+test("in-out-richLogootSOperations", (t: TestContext) => {
     const syncMsgServiceIn = new SyncMessageService()
     const syncMsgServiceOut = new SyncMessageService()
 
@@ -49,19 +55,23 @@ test("in-out-richLogootSOperations", (t: AssertContext) => {
                 return new NetworkMessage(msg.service, 0, true, msg.content)
             })
 
-    syncMsgServiceOut.onRemoteRichLogootSOperation
-        .subscribe((actual: RichLogootSOperation) => {
+    setTimeout(() => {
+        syncMsgServiceIn.localRichLogootSOperationSource =
+            Observable.from(richLogootSOps)
+    }, 0)
+
+    t.plan(richLogootSOps.length)
+    return syncMsgServiceOut.onRemoteRichLogootSOperation
+        .take(richLogootSOps.length)
+        .map((actual: RichLogootSOperation): void => {
             const expected: RichLogootSOperation = richLogootSOps[counter]
             t.true(actual.equals(expected))
 
             counter++
         })
-
-    syncMsgServiceIn.localRichLogootSOperationSource =
-        Observable.from(richLogootSOps)
 })
 
-test("in-out-querySync", (t: AssertContext) => {
+test("in-out-querySync", (t: TestContext) => {
     const syncMsgServiceIn = new SyncMessageService()
     const syncMsgServiceOut = new SyncMessageService()
 
@@ -76,12 +86,16 @@ test("in-out-querySync", (t: AssertContext) => {
                 return new NetworkMessage(msg.service, 0, true, msg.content)
             })
 
-    syncMsgServiceOut.onRemoteQuerySync
-        .subscribe((actualVector: Map<number, number>) => {
-            actualVector.forEach((actual: number, key: number) => {
+    setTimeout(() => {
+        syncMsgServiceIn.querySyncSource = Observable.from([expected])
+    }, 0)
+
+    t.plan(expected.size)
+    return syncMsgServiceOut.onRemoteQuerySync
+        .first()
+        .map((actualVector: Map<number, number>): void => {
+            actualVector.forEach((actual: number, key: number): void => {
                 t.is(actual, expected.get(key))
             })
         })
-
-    syncMsgServiceIn.querySyncSource = Observable.from([expected])
 })
