@@ -31,4 +31,18 @@ export class RichLogootSOperation {
 
     return null
   }
+
+  equals (aOther: RichLogootSOperation): boolean {
+    const result: boolean = this.id === aOther.id && this.clock === aOther.clock
+    if (this.logootSOp instanceof LogootSAdd &&
+      aOther.logootSOp instanceof LogootSAdd) {
+
+      return result && this.logootSOp.equals(aOther.logootSOp)
+    } else if (this.logootSOp instanceof LogootSDel &&
+      aOther.logootSOp instanceof LogootSDel) {
+
+      return result && this.logootSOp.equals(aOther.logootSOp)
+    }
+    return false
+  }
 }
