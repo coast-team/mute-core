@@ -133,7 +133,7 @@ export class SyncMessageService implements MessageEmitter {
 
   handleQuerySyncMsg (content: QuerySync): void {
     const vector: Map<number, number> = new Map()
-    Object.keys(content.vector).forEach((key) => {
+    Object.keys(content.vector).forEach((key: string) => {
       const newKey = parseInt(key, 10)
       vector.set(newKey, content.vector[key])
     })

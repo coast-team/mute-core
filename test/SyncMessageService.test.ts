@@ -8,7 +8,7 @@ import {
 } from "mute-structs"
 import { Observable } from "rxjs"
 
-import { BroadcastMessage, NetworkMessage } from "../src/network"
+import { BroadcastMessage, NetworkMessage, SendRandomlyMessage } from "../src/network"
 import { RichLogootSOperation } from "../src/sync/RichLogootSOperation"
 import { SyncMessageService } from "../src/sync/SyncMessageService"
 
@@ -59,4 +59,29 @@ test("in-out-richLogootSOperations", (t: AssertContext) => {
 
     syncMsgServiceIn.localRichLogootSOperationSource =
         Observable.from(richLogootSOps)
+})
+
+test("in-out-querySync", (t: AssertContext) => {
+    const syncMsgServiceIn = new SyncMessageService()
+    const syncMsgServiceOut = new SyncMessageService()
+
+    const expected: Map<number, number> = new Map()
+    expected.set(0, 42)
+    expected.set(1, 10)
+    expected.set(53, 1)
+
+    syncMsgServiceOut.messageSource =
+        syncMsgServiceIn.onMsgToSendRandomly
+            .map((msg: SendRandomlyMessage): NetworkMessage => {
+                return new NetworkMessage(msg.service, 0, true, msg.content)
+            })
+
+    syncMsgServiceOut.onRemoteQuerySync
+        .subscribe((actualVector: Map<number, number>) => {
+            actualVector.forEach((actual: number, key: number) => {
+                t.is(actual, expected.get(key))
+            })
+        })
+
+    syncMsgServiceIn.querySyncSource = Observable.from([expected])
 })
