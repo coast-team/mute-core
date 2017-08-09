@@ -8,7 +8,7 @@
     "sourceMap": true,
     "target": "ES5",
 
-    "outDir": "lib",
+    "outDir": "./dist",
 
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny" : false,
@@ -17,8 +17,5 @@
     "strictNullChecks": false,
 
     "pretty": true
-  },
-  "include": [
-    "lib-src/*"
-  ]
+  }
 }

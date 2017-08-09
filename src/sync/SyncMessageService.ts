@@ -124,25 +124,23 @@ export class SyncMessageService implements MessageEmitter {
     this.replySyncSubscription.unsubscribe()
   }
 
-  handleRichLogootSOpMsg (content: RichLogootSOperationMsg): RichLogootSOperation | null {
+  handleRichLogootSOpMsg (content: RichLogootSOperationMsg): void {
     const richLogootSOp: RichLogootSOperation | null =
       this.deserializeRichLogootSOperation(content)
 
     this.remoteRichLogootSOperationSubject.next(richLogootSOp)
-    return richLogootSOp
   }
 
-  handleQuerySyncMsg (content: QuerySync): Map<number, number> {
+  handleQuerySyncMsg (content: QuerySync): void {
     const vector: Map<number, number> = new Map()
     Object.keys(content.vector).forEach((key) => {
       const newKey = parseInt(key, 10)
       vector.set(newKey, content.vector[key])
     })
     this.remoteQuerySyncSubject.next(vector)
-    return vector
   }
 
-  handleReplySyncMsg (content: ReplySync): ReplySyncEvent {
+  handleReplySyncMsg (content: ReplySync): void {
     const richLogootSOpsList = content.richLogootSOpsMsg
     const richLogootSOps: RichLogootSOperation[] = richLogootSOpsList.map((richLogootSOpMsg) => {
       return this.deserializeRichLogootSOperation(richLogootSOpMsg as RichLogootSOperationMsg)
@@ -154,7 +152,6 @@ export class SyncMessageService implements MessageEmitter {
 
     const replySyncEvent: ReplySyncEvent = new ReplySyncEvent(richLogootSOps, intervals)
     this.remoteReplySyncSubject.next(replySyncEvent)
-    return replySyncEvent
   }
 
   generateRichLogootSOpMsg (richLogootSOp: RichLogootSOperation): Sync {

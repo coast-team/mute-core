@@ -7,6 +7,12 @@ export class RichLogootSOperation {
   readonly clock: number
   readonly logootSOp: LogootSAdd | LogootSDel
 
+  constructor (id: number, clock: number, logootSOp: LogootSAdd | LogootSDel) {
+    this.id = id
+    this.clock = clock
+    this.logootSOp = logootSOp
+  }
+
   static fromPlain (o: SafeAny<RichLogootSOperation>): RichLogootSOperation | null {
     if (typeof o === 'object' && o !== null &&
         typeof o.id === 'number' && Number.isInteger(o.id) &&
@@ -24,11 +30,5 @@ export class RichLogootSOperation {
     }
 
     return null
-  }
-
-  constructor (id: number, clock: number, logootSOp: LogootSAdd | LogootSDel) {
-    this.id = id
-    this.clock = clock
-    this.logootSOp = logootSOp
   }
 }

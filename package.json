@@ -2,8 +2,8 @@
   "name": "mute-core",
   "version": "0.2.2",
   "description": "",
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
   "dependencies": {
     "google-protobuf": "^3.2.0",
     "mute-structs": "^0.2.0",
@@ -22,8 +22,8 @@
     "typescript": "^2.4.2"
   },
   "scripts": {
-    "build": "tsc",
-    "clean": "rm -rf lib",
+    "build": "tsc; cp -r proto/ dist/proto/",
+    "clean": "rm -rf dist",
     "check": "tsc --noEmit",
     "lint": "tslint --project tsconfig.json",
     "test:unit": "npm run build && ava",
@@ -31,10 +31,12 @@
     "proto": "pbjs -t static-module -w commonjs --no-verify --no-delimited --no-convert proto/collaborator.proto -o proto/collaborator_pb.js && pbts -o proto/collaborator_pb.d.ts proto/collaborator_pb.js && pbjs -t static-module -w commonjs --no-verify --no-delimited --no-convert proto/sync.proto -o proto/sync_pb.js && pbts -o proto/sync_pb.d.ts proto/sync_pb.js"
   },
   "ava": {
-    "require": [
-      "babel-register"
+    "files": [
+      "dist/test/**/*.test.js"
     ],
-    "babel": "inherit"
+    "source": [
+      "test"
+    ]
   },
   "keywords": [],
   "contributors": [
