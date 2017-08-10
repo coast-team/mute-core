@@ -47,6 +47,15 @@ function generateRichLogootSOps (): RichLogootSOperation[] {
     return [richLogootSOp1, richLogootSOp2, richLogootSOp3]
 }
 
+function generateVector (): Map<number, number> {
+    const vector: Map<number, number> = new Map()
+    vector.set(0, 42)
+    vector.set(1, 10)
+    vector.set(53, 1)
+
+    return vector
+}
+
 test("richLogootSOperations-correct-send-and-delivery", (t: TestContext) => {
     const syncMsgServiceIn = new SyncMessageService()
     disposeOf(syncMsgServiceIn, 1000)
@@ -84,10 +93,6 @@ test("querySync-correct-send-and-delivery", (t: TestContext) => {
     const syncMsgServiceOut = new SyncMessageService()
     disposeOf(syncMsgServiceOut, 1000)
 
-    const expectedVector: Map<number, number> = new Map()
-    expectedVector.set(0, 42)
-    expectedVector.set(1, 10)
-    expectedVector.set(53, 1)
 
     syncMsgServiceOut.messageSource =
         syncMsgServiceIn.onMsgToSendRandomly
@@ -95,6 +100,7 @@ test("querySync-correct-send-and-delivery", (t: TestContext) => {
                 return new NetworkMessage(msg.service, 0, true, msg.content)
             })
 
+    const expectedVector: Map<number, number> = generateVector()
     setTimeout(() => {
         syncMsgServiceIn.querySyncSource = Observable.from([expectedVector])
     }, 0)
