@@ -18,6 +18,12 @@ import {
     SyncMessageService
 } from "../src/sync"
 
+function disposeOf (syncMsgService: SyncMessageService, time: number): void {
+    setTimeout(() => {
+        syncMsgService.clean()
+    }, time)
+}
+
 function generateRichLogootSOps (): RichLogootSOperation[] {
     const replicaNumber = 0
     const clock = 0
@@ -43,10 +49,9 @@ function generateRichLogootSOps (): RichLogootSOperation[] {
 
 test("richLogootSOperations-correct-send-and-delivery", (t: TestContext) => {
     const syncMsgServiceIn = new SyncMessageService()
+    disposeOf(syncMsgServiceIn, 1000)
     const syncMsgServiceOut = new SyncMessageService()
-
-    const richLogootSOps: RichLogootSOperation[] = generateRichLogootSOps()
-    let counter = 0
+    disposeOf(syncMsgServiceOut, 1000)
 
     // Simulate the network between the two instances of the service
     syncMsgServiceOut.messageSource =
@@ -55,11 +60,13 @@ test("richLogootSOperations-correct-send-and-delivery", (t: TestContext) => {
                 return new NetworkMessage(msg.service, 0, true, msg.content)
             })
 
+    const richLogootSOps: RichLogootSOperation[] = generateRichLogootSOps()
     setTimeout(() => {
         syncMsgServiceIn.localRichLogootSOperationSource =
             Observable.from(richLogootSOps)
     }, 0)
 
+    let counter = 0
     t.plan(richLogootSOps.length)
     return syncMsgServiceOut.onRemoteRichLogootSOperation
         .take(richLogootSOps.length)
@@ -73,7 +80,9 @@ test("richLogootSOperations-correct-send-and-delivery", (t: TestContext) => {
 
 test("querySync-correct-send-and-delivery", (t: TestContext) => {
     const syncMsgServiceIn = new SyncMessageService()
+    disposeOf(syncMsgServiceIn, 1000)
     const syncMsgServiceOut = new SyncMessageService()
+    disposeOf(syncMsgServiceOut, 1000)
 
     const expectedVector: Map<number, number> = new Map()
     expectedVector.set(0, 42)
