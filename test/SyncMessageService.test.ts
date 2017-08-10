@@ -41,7 +41,7 @@ function generateRichLogootSOps (): RichLogootSOperation[] {
     return [richLogootSOp1, richLogootSOp2, richLogootSOp3]
 }
 
-test("in-out-richLogootSOperations", (t: TestContext) => {
+test("richLogootSOperations-correct-send-and-delivery", (t: TestContext) => {
     const syncMsgServiceIn = new SyncMessageService()
     const syncMsgServiceOut = new SyncMessageService()
 
@@ -71,14 +71,14 @@ test("in-out-richLogootSOperations", (t: TestContext) => {
         })
 })
 
-test("in-out-querySync", (t: TestContext) => {
+test("querySync-correct-send-and-delivery", (t: TestContext) => {
     const syncMsgServiceIn = new SyncMessageService()
     const syncMsgServiceOut = new SyncMessageService()
 
-    const expected: Map<number, number> = new Map()
-    expected.set(0, 42)
-    expected.set(1, 10)
-    expected.set(53, 1)
+    const expectedVector: Map<number, number> = new Map()
+    expectedVector.set(0, 42)
+    expectedVector.set(1, 10)
+    expectedVector.set(53, 1)
 
     syncMsgServiceOut.messageSource =
         syncMsgServiceIn.onMsgToSendRandomly
@@ -87,15 +87,15 @@ test("in-out-querySync", (t: TestContext) => {
             })
 
     setTimeout(() => {
-        syncMsgServiceIn.querySyncSource = Observable.from([expected])
+        syncMsgServiceIn.querySyncSource = Observable.from([expectedVector])
     }, 0)
 
-    t.plan(expected.size)
+    t.plan(expectedVector.size)
     return syncMsgServiceOut.onRemoteQuerySync
         .first()
         .map((actualVector: Map<number, number>): void => {
             actualVector.forEach((actual: number, key: number): void => {
-                t.is(actual, expected.get(key))
+                t.is(actual, expectedVector.get(key))
             })
         })
 })
