@@ -161,3 +161,40 @@ test("replySync-correct-recipient", (t: TestContext) => {
             t.is(msg.id, expected)
         })
 })
+
+test("replySync-correct-send-and-delivery", (t: TestContext) => {
+    const syncMsgServiceIn = new SyncMessageService()
+    disposeOf(syncMsgServiceIn, 200)
+    const syncMsgServiceOut = new SyncMessageService()
+    disposeOf(syncMsgServiceOut, 200)
+
+    // Simulate the generation of a ReplySyncEvent
+    // when delivering a remote QuerySync
+    const replySyncSubject: Subject<ReplySyncEvent> = new Subject<ReplySyncEvent>()
+    syncMsgServiceIn.replySyncSource = replySyncSubject.asObservable()
+    const expected: ReplySyncEvent = generateReplySync()
+    syncMsgServiceIn.onRemoteQuerySync
+        .subscribe((vector: Map<number, number>): void => {
+            replySyncSubject.next(expected)
+        })
+
+    syncMsgServiceOut.messageSource =
+        syncMsgServiceIn.onMsgToSendTo
+            .map((msg: SendToMessage): NetworkMessage => {
+                return new NetworkMessage(msg.service, 0, true, msg.content)
+            })
+
+    const vector: Map<number, number> = generateVector()
+    const querySyncMsg = syncMsgServiceIn.generateQuerySyncMsg(vector)
+    const msgSubject: Subject<NetworkMessage> = new Subject<NetworkMessage>()
+    syncMsgServiceIn.messageSource = msgSubject.asObservable()
+    setTimeout(() => {
+        msgSubject.next(new NetworkMessage("SyncMessage", 0, false, querySyncMsg))
+    }, 0)
+
+    t.plan(1)
+    return syncMsgServiceOut.onRemoteReplySync
+        .map((actual: ReplySyncEvent): void => {
+            t.true(actual.equals(expected))
+        })
+})
