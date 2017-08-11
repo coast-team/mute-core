@@ -15,6 +15,7 @@ import {
     SendToMessage
 } from "../src/network"
 import {
+    Interval,
     ReplySyncEvent,
     RichLogootSOperation,
     SyncMessageService
@@ -24,6 +25,22 @@ function disposeOf (syncMsgService: SyncMessageService, time: number): void {
     setTimeout(() => {
         syncMsgService.clean()
     }, time)
+}
+
+function generateIntervals (): Interval[] {
+    const intervals: Interval[] = []
+    intervals.push(new Interval(0, 0, 5))
+    intervals.push(new Interval(1, 10, 30))
+    intervals.push(new Interval(42, 3, 3))
+
+    return intervals
+}
+
+function generateReplySync (): ReplySyncEvent {
+    const richLogootSOps: RichLogootSOperation[] = generateRichLogootSOps()
+    const intervals: Interval[] = generateIntervals()
+
+    return new ReplySyncEvent(richLogootSOps, intervals)
 }
 
 function generateRichLogootSOps (): RichLogootSOperation[] {
@@ -125,7 +142,7 @@ test("replySync-correct-recipient", (t: TestContext) => {
     syncMsgService.replySyncSource = replySyncSubject.asObservable()
     syncMsgService.onRemoteQuerySync
         .subscribe((vector: Map<number, number>): void => {
-            const replySyncEvent: ReplySyncEvent = new ReplySyncEvent([], [])
+            const replySyncEvent: ReplySyncEvent = generateReplySync()
             replySyncSubject.next(replySyncEvent)
         })
 
