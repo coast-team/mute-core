@@ -5,7 +5,6 @@
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
   "dependencies": {
-    "google-protobuf": "^3.2.0",
     "mute-structs": "^0.2.3",
     "protobufjs": "^6.8.0",
     "rxjs": "^5.4.3",
