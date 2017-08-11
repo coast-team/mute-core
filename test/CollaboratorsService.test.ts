@@ -43,3 +43,24 @@ test("pseudos-correct-send-and-delivery", (t: TestContext) => {
             counter++
         })
 })
+
+test("peers-joining-correct-delivery", (t: TestContext) => {
+    const collaboratorsService = new CollaboratorsService()
+    disposeOf(collaboratorsService, 200)
+
+    const expectedIds = [0, 1, 7, 42, 80]
+    setTimeout(() => {
+        collaboratorsService.peerJoinSource = Observable.from(expectedIds)
+    }, 0)
+
+    t.plan(expectedIds.length * 2)
+    let counter = 0
+    return collaboratorsService.onCollaboratorJoin
+        .map((collaborator: Collaborator): void => {
+            const expectedId = expectedIds[counter]
+            t.is(collaborator.id, expectedId)
+            t.is(collaborator.pseudo, CollaboratorsService.DEFAULT_PSEUDO)
+
+            counter++
+        })
+})
