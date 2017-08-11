@@ -88,27 +88,16 @@ export class SyncService {
       .subscribe((vector: Map<number, number>) => {
         const missingRichLogootSOps: RichLogootSOperation[] =
           this.richLogootSOps
-            .filter((richLogootSOperation: RichLogootSOperation) => {
-              const id: number = richLogootSOperation.id
-              const clock: number = richLogootSOperation.clock
-              const v = vector.get(id)
-              return v === undefined ? true : v < clock ? true : false
-            })
+          .filter((richLogootSOperation: RichLogootSOperation) => {
+            const id: number = richLogootSOperation.id
+            const clock: number = richLogootSOperation.clock
+            const v = vector.get(id)
+            return v === undefined ? true : v < clock ? true : false
+          })
         // TODO: Add sort function to apply LogootSAdd operations before LogootSDel ones
 
-        const missingIntervals: Interval[] = []
-        vector.forEach((clock: number, id: number) => {
-          const v = this.vector.get(id)
-          if (v === undefined) {
-            const begin = 0
-            const end: number = clock
-            missingIntervals.push( new Interval(id, begin, end))
-          } else if (v < clock) {
-            const begin: number = v + 1
-            const end: number = clock
-            missingIntervals.push( new Interval(id, begin, end))
-          }
-        })
+        const missingIntervals: Interval[] =
+          this.computeMissingIntervals(vector)
 
         const replySyncEvent: ReplySyncEvent =
           new ReplySyncEvent(missingRichLogootSOps, missingIntervals)
@@ -276,5 +265,23 @@ export class SyncService {
       return clock === 0
     }
     return clock === v + 1
+  }
+
+  computeMissingIntervals (vector: Map<number, number>): Interval[] {
+    const missingIntervals: Interval[] = []
+    vector.forEach((clock: number, id: number) => {
+      const v = this.vector.get(id)
+      if (v === undefined) {
+        const begin = 0
+        const end: number = clock
+        missingIntervals.push( new Interval(id, begin, end))
+      } else if (v < clock) {
+        const begin: number = v + 1
+        const end: number = clock
+        missingIntervals.push( new Interval(id, begin, end))
+      }
+    })
+
+    return missingIntervals
   }
 }
