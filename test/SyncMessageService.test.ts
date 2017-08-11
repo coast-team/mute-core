@@ -6,14 +6,16 @@ import {
     LogootSAdd,
     LogootSDel
 } from "mute-structs"
-import { Observable } from "rxjs"
+import { Observable, Subject } from "rxjs"
 
 import {
     BroadcastMessage,
     NetworkMessage,
-    SendRandomlyMessage
+    SendRandomlyMessage,
+    SendToMessage
 } from "../src/network"
 import {
+    ReplySyncEvent,
     RichLogootSOperation,
     SyncMessageService
 } from "../src/sync"
@@ -112,5 +114,37 @@ test("querySync-correct-send-and-delivery", (t: TestContext) => {
             actualVector.forEach((actual: number, key: number): void => {
                 t.is(actual, expectedVector.get(key))
             })
+        })
+})
+
+test("replySync-correct-recipient", (t: TestContext) => {
+    const syncMsgService = new SyncMessageService()
+    disposeOf(syncMsgService, 1000)
+
+    // Simulate the generation of a ReplySyncEvent
+    // when delivering a remote QuerySync
+    const replySyncSubject: Subject<ReplySyncEvent> = new Subject<ReplySyncEvent>()
+    syncMsgService.replySyncSource = replySyncSubject.asObservable()
+    syncMsgService.onRemoteQuerySync
+        .first()
+        .subscribe((vector: Map<number, number>): void => {
+            const replySyncEvent: ReplySyncEvent = new ReplySyncEvent([], [])
+            replySyncSubject.next(replySyncEvent)
+        })
+
+    const expected = 42
+    const vector: Map<number, number> = generateVector()
+    const querySyncMsg = syncMsgService.generateQuerySyncMsg(vector)
+    const msgSubject: Subject<NetworkMessage> = new Subject<NetworkMessage>()
+    syncMsgService.messageSource = msgSubject.asObservable()
+    setTimeout(() => {
+        msgSubject.next(new NetworkMessage("SyncMessage", expected, false, querySyncMsg))
+    }, 0)
+
+    t.plan(1)
+    return syncMsgService.onMsgToSendTo
+        .first()
+        .map((msg: SendToMessage): void => {
+            t.is(msg.id, expected)
         })
 })
