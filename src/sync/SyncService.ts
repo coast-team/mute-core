@@ -1,5 +1,5 @@
 import { LogootSDel, LogootSAdd } from 'mute-structs'
-import { Observable, Subject, Subscription } from 'rxjs'
+import { Observable, Subject } from 'rxjs'
 
 import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'
@@ -18,6 +18,7 @@ export class SyncService {
   private richLogootSOps: RichLogootSOperation[] = []
 
   private appliedOperationsSubject: Subject<Key>
+  private disposeSubject: Subject<void>
   private isReadySubject: Subject<void>
   private localRichLogootSOperationSubject: Subject<RichLogootSOperation>
   private querySyncSubject: Subject<Map<number, number>>
@@ -26,17 +27,10 @@ export class SyncService {
   private stateSubject: Subject<State>
   private triggerQuerySyncSubject: Subject<void>
 
-
-  private localLogootSOperationSubscription: Subscription
-  private remoteQuerySyncSubscription: Subscription
-  private remoteReplySyncSubscription: Subscription
-  private remoteRichLogootSOperationSubscription: Subscription
-  private storedStateSubscription: Subscription
-  private triggerQuerySyncSubscription: Subscription
-
   constructor (id: number) {
     this.id = id
     this.appliedOperationsSubject = new Subject()
+    this.disposeSubject = new Subject<void>()
     this.isReadySubject = new Subject<void>()
     this.localRichLogootSOperationSubject = new Subject()
     this.querySyncSubject = new Subject()
@@ -73,94 +67,110 @@ export class SyncService {
   }
 
   set localLogootSOperationSource (source: Observable<LogootSAdd | LogootSDel>) {
-    this.localLogootSOperationSubscription = source.subscribe((logootSOp: LogootSAdd | LogootSDel) => {
-      const richLogootSOp: RichLogootSOperation = new RichLogootSOperation(this.id, this.clock, logootSOp)
+    source
+      .takeUntil(this.disposeSubject)
+      .subscribe((logootSOp: LogootSAdd | LogootSDel) => {
+        const richLogootSOp: RichLogootSOperation =
+          new RichLogootSOperation(this.id, this.clock, logootSOp)
 
-      this.updateState(richLogootSOp)
+        this.updateState(richLogootSOp)
 
-      this.stateSubject.next(this.state)
-      this.localRichLogootSOperationSubject.next(richLogootSOp)
+        this.stateSubject.next(this.state)
+        this.localRichLogootSOperationSubject.next(richLogootSOp)
 
-      this.clock++
-    })
+        this.clock++
+      })
   }
 
   set remoteQuerySyncSource (source: Observable<Map<number, number>>) {
-    this.remoteQuerySyncSubscription = source.subscribe((vector: Map<number, number>) => {
-        const missingRichLogootSOps: RichLogootSOperation[] = this.richLogootSOps.filter((richLogootSOperation: RichLogootSOperation) => {
-        const id: number = richLogootSOperation.id
-        const clock: number = richLogootSOperation.clock
-        const v = vector.get(id)
-        return v === undefined ? true : v < clock ? true : false
-      })
-      // TODO: Add sort function to apply LogootSAdd operations before LogootSDel ones
+    source
+      .takeUntil(this.disposeSubject)
+      .subscribe((vector: Map<number, number>) => {
+        const missingRichLogootSOps: RichLogootSOperation[] =
+          this.richLogootSOps
+            .filter((richLogootSOperation: RichLogootSOperation) => {
+              const id: number = richLogootSOperation.id
+              const clock: number = richLogootSOperation.clock
+              const v = vector.get(id)
+              return v === undefined ? true : v < clock ? true : false
+            })
+        // TODO: Add sort function to apply LogootSAdd operations before LogootSDel ones
 
-      const missingIntervals: Interval[] = []
-      vector.forEach((clock: number, id: number) => {
-        const v = this.vector.get(id)
-        if (v === undefined) {
-          const begin = 0
-          const end: number = clock
-          missingIntervals.push( new Interval(id, begin, end))
-        } else if (v < clock) {
-          const begin: number = v + 1
-          const end: number = clock
-          missingIntervals.push( new Interval(id, begin, end))
-        }
-      })
+        const missingIntervals: Interval[] = []
+        vector.forEach((clock: number, id: number) => {
+          const v = this.vector.get(id)
+          if (v === undefined) {
+            const begin = 0
+            const end: number = clock
+            missingIntervals.push( new Interval(id, begin, end))
+          } else if (v < clock) {
+            const begin: number = v + 1
+            const end: number = clock
+            missingIntervals.push( new Interval(id, begin, end))
+          }
+        })
 
-      const replySyncEvent: ReplySyncEvent = new ReplySyncEvent(missingRichLogootSOps, missingIntervals)
-      this.replySyncSubject.next(replySyncEvent)
-    })
+        const replySyncEvent: ReplySyncEvent =
+          new ReplySyncEvent(missingRichLogootSOps, missingIntervals)
+        this.replySyncSubject.next(replySyncEvent)
+      })
   }
 
   set remoteReplySyncSource (source: Observable<ReplySyncEvent>) {
-    this.remoteReplySyncSubscription = source.subscribe((replySyncEvent: ReplySyncEvent) => {
-      if (replySyncEvent.richLogootSOps.length > 0) {
-        this.applyRichLogootSOperations(replySyncEvent.richLogootSOps)
-        this.stateSubject.next(this.state)
-      }
+    source
+      .takeUntil(this.disposeSubject)
+      .subscribe((replySyncEvent: ReplySyncEvent) => {
+        if (replySyncEvent.richLogootSOps.length > 0) {
+          this.applyRichLogootSOperations(replySyncEvent.richLogootSOps)
+          this.stateSubject.next(this.state)
+        }
 
-      replySyncEvent.intervals.forEach((interval: Interval) => {
-        this.richLogootSOps
-          .filter((richLogootSOp: RichLogootSOperation) => {
-            const id: number = richLogootSOp.id
-            const clock: number = richLogootSOp.clock
-            return interval.id === id && interval.begin <= clock && clock <= interval.end
-          })
-          .forEach((richLogootSOp: RichLogootSOperation) => {
-            this.localRichLogootSOperationSubject.next(richLogootSOp)
-          })
+        replySyncEvent.intervals.forEach((interval: Interval) => {
+          this.richLogootSOps
+            .filter((richLogootSOp: RichLogootSOperation) => {
+              const id: number = richLogootSOp.id
+              const clock: number = richLogootSOp.clock
+              return interval.id === id && interval.begin <= clock && clock <= interval.end
+            })
+            .forEach((richLogootSOp: RichLogootSOperation) => {
+              this.localRichLogootSOperationSubject.next(richLogootSOp)
+            })
+        })
       })
-    })
   }
 
   set remoteRichLogootSOperationSource (source: Observable<RichLogootSOperation>) {
-    this.remoteRichLogootSOperationSubscription = source.subscribe((richLogootSOp: RichLogootSOperation) => {
-      this.applyRichLogootSOperations([richLogootSOp])
-      this.stateSubject.next(this.state)
-    })
+    source
+      .takeUntil(this.disposeSubject)
+      .subscribe((richLogootSOp: RichLogootSOperation) => {
+        this.applyRichLogootSOperations([richLogootSOp])
+        this.stateSubject.next(this.state)
+      })
   }
 
   private set storedStateSource (source: Observable<State>) {
-    this.storedStateSubscription = source.subscribe((state: State) => {
-      this.richLogootSOps = []
-      this.vector.clear()
-      this.applyRichLogootSOperations(state.richLogootSOps)
-      this.isReadySubject.next()
-    })
+    source
+      .takeUntil(this.disposeSubject)
+      .subscribe((state: State) => {
+        this.richLogootSOps = []
+        this.vector.clear()
+        this.applyRichLogootSOperations(state.richLogootSOps)
+        this.isReadySubject.next()
+      })
   }
 
   setJoinAndStateSources (joinSource: Observable<JoinEvent>, storedStateSource?: Observable<State>): void {
     let triggerQuerySyncObservable: Observable<JoinEvent> = joinSource
     if (storedStateSource) {
       this.storedStateSource = storedStateSource
-      triggerQuerySyncObservable = joinSource.zip(
-        this.isReadySubject,
-        (joinEvent: JoinEvent) => {
-          return joinEvent
-        }
-      )
+      triggerQuerySyncObservable =
+        joinSource
+          .takeUntil(this.disposeSubject)
+          .zip(this.isReadySubject,
+            (joinEvent: JoinEvent) => {
+              return joinEvent
+            }
+          )
     }
     triggerQuerySyncObservable
       .take(1)
@@ -173,11 +183,13 @@ export class SyncService {
   }
 
   private initPeriodicQuerySync (): void {
-    this.triggerQuerySyncSubscription = this.triggerQuerySyncSubject.subscribe(() => {
-      console.log('SyncService: performing a periodic querySync')
-      this.querySyncSubject.next(this.vector)
-      this.triggerPeriodicQuerySync()
-    })
+    this.triggerQuerySyncSubject
+      .takeUntil(this.disposeSubject)
+      .subscribe(() => {
+        console.log('SyncService: performing a periodic querySync')
+        this.querySyncSubject.next(this.vector)
+        this.triggerPeriodicQuerySync()
+      })
 
     this.triggerPeriodicQuerySync()
   }
@@ -194,21 +206,13 @@ export class SyncService {
 
   clean (): void {
     this.appliedOperationsSubject.complete()
+    this.disposeSubject.complete()
     this.isReadySubject.complete()
     this.localRichLogootSOperationSubject.complete()
     this.querySyncSubject.complete()
     this.remoteLogootSOperationSubject.complete()
     this.replySyncSubject.complete()
     this.stateSubject.complete()
-
-    this.localLogootSOperationSubscription.unsubscribe()
-    this.remoteQuerySyncSubscription.unsubscribe()
-    this.remoteReplySyncSubscription.unsubscribe()
-    this.remoteRichLogootSOperationSubscription.unsubscribe()
-    if (this.storedStateSubscription !== undefined) {
-      this.storedStateSubscription.unsubscribe()
-    }
-    this.triggerQuerySyncSubscription.unsubscribe()
   }
 
   private applyRichLogootSOperations (richLogootSOps: RichLogootSOperation[]): void {
@@ -273,5 +277,4 @@ export class SyncService {
     }
     return clock === v + 1
   }
-
 }
