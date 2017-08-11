@@ -80,7 +80,6 @@ test("richLogootSOperations-correct-send-and-delivery", (t: TestContext) => {
     let counter = 0
     t.plan(richLogootSOps.length)
     return syncMsgServiceOut.onRemoteRichLogootSOperation
-        .take(richLogootSOps.length)
         .map((actual: RichLogootSOperation): void => {
             const expected: RichLogootSOperation = richLogootSOps[counter]
             t.true(actual.equals(expected))
@@ -109,7 +108,6 @@ test("querySync-correct-send-and-delivery", (t: TestContext) => {
 
     t.plan(expectedVector.size)
     return syncMsgServiceOut.onRemoteQuerySync
-        .first()
         .map((actualVector: Map<number, number>): void => {
             actualVector.forEach((actual: number, key: number): void => {
                 t.is(actual, expectedVector.get(key))
@@ -126,7 +124,6 @@ test("replySync-correct-recipient", (t: TestContext) => {
     const replySyncSubject: Subject<ReplySyncEvent> = new Subject<ReplySyncEvent>()
     syncMsgService.replySyncSource = replySyncSubject.asObservable()
     syncMsgService.onRemoteQuerySync
-        .first()
         .subscribe((vector: Map<number, number>): void => {
             const replySyncEvent: ReplySyncEvent = new ReplySyncEvent([], [])
             replySyncSubject.next(replySyncEvent)
@@ -143,7 +140,6 @@ test("replySync-correct-recipient", (t: TestContext) => {
 
     t.plan(1)
     return syncMsgService.onMsgToSendTo
-        .first()
         .map((msg: SendToMessage): void => {
             t.is(msg.id, expected)
         })
