@@ -7,6 +7,7 @@ import { CollaboratorMsg } from '../../proto/collaborator_pb'
 export class CollaboratorsService implements MessageEmitter {
 
   private static ID: string = 'Collaborators'
+  static readonly DEFAULT_PSEUDO: string = 'Anonymous'
 
   private pseudonym: string
 
@@ -73,7 +74,8 @@ export class CollaboratorsService implements MessageEmitter {
       .takeUntil(this.disposeSubject)
       .subscribe((id: number) => {
         this.emitPseudo(this.pseudonym, id)
-        this.collaboratorJoinSubject.next(new Collaborator(id, 'Anonymous'))
+        const newCollaborator = new Collaborator(id, CollaboratorsService.DEFAULT_PSEUDO)
+        this.collaboratorJoinSubject.next(newCollaborator)
       })
   }
 
