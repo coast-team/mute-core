@@ -36,7 +36,8 @@
     ],
     "source": [
       "test"
-    ]
+    ],
+    "timeout": "5s"
   },
   "keywords": [],
   "contributors": [
