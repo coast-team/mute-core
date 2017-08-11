@@ -1,5 +1,7 @@
 # MUTE-core
 
+[![Build Status](https://travis-ci.org/coast-team/mute-core.svg?branch=master)](https://travis-ci.org/coast-team/mute-core)
+
 ## License
 
 **mute-core** is licensed under the GNU General Public License 3.
