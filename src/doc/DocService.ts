@@ -1,4 +1,4 @@
-import { Observable, Subject, Subscription } from 'rxjs'
+import { Observable, Subject } from 'rxjs'
 import {
   LogootSAdd,
   LogootSDel,
@@ -23,9 +23,6 @@ export class DocService {
   private localLogootSOperationSubject: Subject<LogootSAdd | LogootSDel>
   private remoteTextOperationsSubject: Subject<(TextInsert | TextDelete)[]>
 
-  private localOperationsSubscription: Subscription
-  private remoteLogootSOperationsSubscription: Subscription
-
   constructor (id: number) {
     this.doc = new LogootSRopes(id)
 
@@ -47,9 +44,11 @@ export class DocService {
   }
 
   set localTextOperationsSource (source: Observable<(TextDelete | TextInsert)[][]>) {
-    this.localOperationsSubscription = source.subscribe((textOperations: (TextDelete | TextInsert)[][]) => {
-      this.handleTextOperations(textOperations)
-    })
+    source
+      .takeUntil(this.disposeSubject)
+      .subscribe((textOperations: (TextDelete | TextInsert)[][]) => {
+        this.handleTextOperations(textOperations)
+      })
 
     source
       .takeUntil(this.disposeSubject)
@@ -61,17 +60,19 @@ export class DocService {
   }
 
   set remoteLogootSOperationSource (source: Observable<(LogootSAdd | LogootSDel)[]>) {
-    this.remoteLogootSOperationsSubscription = source.subscribe((logootSOps: (LogootSAdd | LogootSDel)[]) => {
-      const remoteTextOps: (TextInsert | TextDelete)[] =
-        logootSOps
-          .map((logootSOp: LogootSAdd | LogootSDel) => {
-            return this.handleRemoteOperation(logootSOp)
-          })
-          .reduce((acc: (TextInsert | TextDelete)[], textOps: (TextInsert | TextDelete)[]) => {
-            return acc.concat(textOps)
-          }, [])
-      this.remoteTextOperationsSubject.next(remoteTextOps)
-    })
+    source
+      .takeUntil(this.disposeSubject)
+      .subscribe((logootSOps: (LogootSAdd | LogootSDel)[]) => {
+        const remoteTextOps: (TextInsert | TextDelete)[] =
+          logootSOps
+            .map((logootSOp: LogootSAdd | LogootSDel) => {
+              return this.handleRemoteOperation(logootSOp)
+            })
+            .reduce((acc: (TextInsert | TextDelete)[], textOps: (TextInsert | TextDelete)[]) => {
+              return acc.concat(textOps)
+            }, [])
+        this.remoteTextOperationsSubject.next(remoteTextOps)
+      })
 
     source
       .takeUntil(this.disposeSubject)
@@ -107,9 +108,6 @@ export class DocService {
     this.docValueSubject.complete()
     this.localLogootSOperationSubject.complete()
     this.remoteTextOperationsSubject.complete()
-
-    this.localOperationsSubscription.unsubscribe()
-    this.remoteLogootSOperationsSubscription.unsubscribe()
   }
 
   handleTextOperations (array: any[][]): void {
