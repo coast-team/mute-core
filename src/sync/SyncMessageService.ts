@@ -37,7 +37,7 @@ export class SyncMessageService implements MessageEmitter {
       .takeUntil(this.onDispose)
       .subscribe((richLogootSOp: RichLogootSOperation) => {
         const richLogootSOpMsg = this.generateRichLogootSOpMsg(richLogootSOp)
-        const msg: BroadcastMessage = new BroadcastMessage(SyncMessageService.ID, Sync.encode(richLogootSOpMsg).finish())
+        const msg: BroadcastMessage = new BroadcastMessage(SyncMessageService.ID, richLogootSOpMsg)
         this.msgToBroadcastSubject.next(msg)
       })
   }
@@ -68,7 +68,7 @@ export class SyncMessageService implements MessageEmitter {
       .takeUntil(this.onDispose)
       .subscribe((vector: Map<number, number>) => {
         const querySyncMsg = this.generateQuerySyncMsg(vector)
-        const msg: SendRandomlyMessage = new SendRandomlyMessage(SyncMessageService.ID, Sync.encode(querySyncMsg).finish())
+        const msg: SendRandomlyMessage = new SendRandomlyMessage(SyncMessageService.ID, querySyncMsg)
         this.msgToSendRandomlySubject.next(msg)
       })
   }
@@ -83,7 +83,7 @@ export class SyncMessageService implements MessageEmitter {
       .takeUntil(this.onDispose)
       .subscribe(({ id, replySyncEvent}: { id: number, replySyncEvent: ReplySyncEvent }) => {
         const replySyncMsg = this.generateReplySyncMsg(replySyncEvent.richLogootSOps, replySyncEvent.intervals)
-        const msg: SendToMessage = new SendToMessage(SyncMessageService.ID, id, Sync.encode(replySyncMsg).finish())
+        const msg: SendToMessage = new SendToMessage(SyncMessageService.ID, id, replySyncMsg)
         this.msgToSendToSubject.next(msg)
       })
   }
@@ -157,10 +157,10 @@ export class SyncMessageService implements MessageEmitter {
     this.remoteReplySyncSubject.next(replySyncEvent)
   }
 
-  generateRichLogootSOpMsg (richLogootSOp: RichLogootSOperation): Sync {
+  generateRichLogootSOpMsg (richLogootSOp: RichLogootSOperation): Uint8Array {
     const richLogootSOperationMsg = this.serializeRichLogootSOperation(richLogootSOp)
     const msg = Sync.create({richLogootSOpMsg: richLogootSOperationMsg})
-    return msg
+    return Sync.encode(msg).finish()
   }
 
   // TODO: Watch this function
@@ -212,7 +212,7 @@ export class SyncMessageService implements MessageEmitter {
     return identifierIntervalMsg
   }
 
-  generateQuerySyncMsg (vector: Map<number, number>): Sync {
+  generateQuerySyncMsg (vector: Map<number, number>): Uint8Array {
     const querySyncMsg = QuerySync.create()
 
     vector.forEach((clock: number, id: number) => {
@@ -221,10 +221,10 @@ export class SyncMessageService implements MessageEmitter {
 
     const msg = Sync.create({querySync: querySyncMsg})
 
-    return msg
+    return Sync.encode(msg).finish()
   }
 
-  generateReplySyncMsg (richLogootSOps: RichLogootSOperation[], intervals: Interval[]): Sync {
+  generateReplySyncMsg (richLogootSOps: RichLogootSOperation[], intervals: Interval[]): Uint8Array {
     const replySyncMsg = ReplySync.create()
 
     replySyncMsg.richLogootSOpsMsg = (richLogootSOps.map((richLogootSOp: RichLogootSOperation) => {
@@ -239,7 +239,7 @@ export class SyncMessageService implements MessageEmitter {
 
     const msg = Sync.create({replySync: replySyncMsg})
 
-    return msg
+    return Sync.encode(msg).finish()
   }
 
 }
