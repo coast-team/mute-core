@@ -9,4 +9,10 @@ export class Interval {
     this.begin = begin
     this.end = end
   }
+
+  equals (aOther: Interval): boolean {
+    return this.id === aOther.id &&
+      this.begin === aOther.begin &&
+      this.end === aOther.end
+  }
 }
