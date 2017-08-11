@@ -87,13 +87,7 @@ export class SyncService {
       .takeUntil(this.disposeSubject)
       .subscribe((vector: Map<number, number>) => {
         const missingRichLogootSOps: RichLogootSOperation[] =
-          this.richLogootSOps
-          .filter((richLogootSOperation: RichLogootSOperation) => {
-            const id: number = richLogootSOperation.id
-            const clock: number = richLogootSOperation.clock
-            const v = vector.get(id)
-            return v === undefined ? true : v < clock ? true : false
-          })
+          this.computeMissingOps(vector)
         // TODO: Add sort function to apply LogootSAdd operations before LogootSDel ones
 
         const missingIntervals: Interval[] =
@@ -283,5 +277,15 @@ export class SyncService {
     })
 
     return missingIntervals
+  }
+
+  computeMissingOps (vector: Map<number, number>): RichLogootSOperation[] {
+    return this.richLogootSOps
+      .filter((richLogootSOperation: RichLogootSOperation) => {
+        const id: number = richLogootSOperation.id
+        const clock: number = richLogootSOperation.clock
+        const v = vector.get(id)
+        return v === undefined ? true : v < clock ? true : false
+      })
   }
 }
