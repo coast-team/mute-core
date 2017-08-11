@@ -5,7 +5,8 @@ import { Observable } from "rxjs"
 import { Collaborator, CollaboratorsService } from "../src/collaborators"
 import {
     BroadcastMessage,
-    NetworkMessage
+    NetworkMessage,
+    SendToMessage
 } from "../src/network"
 
 function disposeOf (collaboratorsService: CollaboratorsService, time: number): void {
@@ -62,5 +63,21 @@ test("peers-joining-correct-delivery", (t: TestContext) => {
             t.is(collaborator.pseudo, CollaboratorsService.DEFAULT_PSEUDO)
 
             counter++
+        })
+})
+
+test("send-pseudo-to-joining-peer", (t: TestContext) => {
+    const collaboratorsService = new CollaboratorsService()
+    disposeOf(collaboratorsService, 200)
+
+    const expectedId = 7
+    setTimeout(() => {
+        collaboratorsService.peerJoinSource = Observable.from([expectedId])
+    }, 0)
+
+    t.plan(1)
+    return collaboratorsService.onMsgToSendTo
+        .map((msg: SendToMessage): void => {
+            t.is(msg.id, expectedId)
         })
 })
