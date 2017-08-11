@@ -1,4 +1,4 @@
-import { Observable, Observer, Subject, Subscription } from 'rxjs'
+import { Observable, Subject } from 'rxjs'
 import { CollaboratorsService } from './collaborators/'
 import { DocService } from './doc/'
 import { BroadcastMessage, JoinEvent, MessageEmitter, NetworkMessage, SendRandomlyMessage, SendToMessage } from './network/'

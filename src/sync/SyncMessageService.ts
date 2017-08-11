@@ -1,5 +1,5 @@
 import { Identifier, IdentifierInterval, LogootSDel, LogootSAdd } from 'mute-structs'
-import { Observable, Subject, Subscription } from 'rxjs'
+import { Observable, Subject } from 'rxjs'
 
 import { Interval } from './Interval'
 import { BroadcastMessage, MessageEmitter, NetworkMessage, SendRandomlyMessage, SendToMessage } from '../network/'
