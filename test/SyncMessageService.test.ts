@@ -60,9 +60,9 @@ function generateVector (): Map<number, number> {
 
 test("richLogootSOperations-correct-send-and-delivery", (t: TestContext) => {
     const syncMsgServiceIn = new SyncMessageService()
-    disposeOf(syncMsgServiceIn, 1000)
+    disposeOf(syncMsgServiceIn, 200)
     const syncMsgServiceOut = new SyncMessageService()
-    disposeOf(syncMsgServiceOut, 1000)
+    disposeOf(syncMsgServiceOut, 200)
 
     // Simulate the network between the two instances of the service
     syncMsgServiceOut.messageSource =
@@ -90,9 +90,9 @@ test("richLogootSOperations-correct-send-and-delivery", (t: TestContext) => {
 
 test("querySync-correct-send-and-delivery", (t: TestContext) => {
     const syncMsgServiceIn = new SyncMessageService()
-    disposeOf(syncMsgServiceIn, 1000)
+    disposeOf(syncMsgServiceIn, 200)
     const syncMsgServiceOut = new SyncMessageService()
-    disposeOf(syncMsgServiceOut, 1000)
+    disposeOf(syncMsgServiceOut, 200)
 
 
     syncMsgServiceOut.messageSource =
@@ -117,7 +117,7 @@ test("querySync-correct-send-and-delivery", (t: TestContext) => {
 
 test("replySync-correct-recipient", (t: TestContext) => {
     const syncMsgService = new SyncMessageService()
-    disposeOf(syncMsgService, 1000)
+    disposeOf(syncMsgService, 200)
 
     // Simulate the generation of a ReplySyncEvent
     // when delivering a remote QuerySync
