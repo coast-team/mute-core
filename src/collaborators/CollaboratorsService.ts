@@ -1,4 +1,4 @@
-import { Observable, Subject, Subscription } from 'rxjs'
+import { Observable, Subject } from 'rxjs'
 
 import { BroadcastMessage, SendRandomlyMessage, SendToMessage, MessageEmitter, NetworkMessage } from '../network/'
 import { Collaborator } from './Collaborator'
@@ -14,18 +14,17 @@ export class CollaboratorsService implements MessageEmitter {
   private collaboratorJoinSubject: Subject<Collaborator>
   private collaboratorLeaveSubject: Subject<number>
 
+  private disposeSubject: Subject<void>
+
   private msgToBroadcastSubject: Subject<BroadcastMessage>
   private msgToSendRandomlySubject: Subject<SendRandomlyMessage>
   private msgToSendToSubject: Subject<SendToMessage>
-
-  private peerJoinSubscription: Subscription
-  private peerLeaveSubscription: Subscription
-  private pseudoSubscription: Subscription
 
   constructor () {
     this.collaboratorChangePseudoSubject = new Subject()
     this.collaboratorJoinSubject = new Subject()
     this.collaboratorLeaveSubject = new Subject()
+    this.disposeSubject = new Subject()
     this.msgToBroadcastSubject = new Subject()
     this.msgToSendRandomlySubject = new Subject()
     this.msgToSendToSubject = new Subject()
@@ -59,33 +58,40 @@ export class CollaboratorsService implements MessageEmitter {
 
   set messageSource (source: Observable<NetworkMessage>) {
     source
-    .filter((msg: NetworkMessage) => msg.service === CollaboratorsService.ID)
-    .subscribe((msg: NetworkMessage) => {
-      const collabMsg = CollaboratorMsg.decode(msg.content)
-      const id: number = msg.id
-      const pseudo: string = collabMsg.pseudo
-      this.collaboratorChangePseudoSubject.next(new Collaborator(id, pseudo))
-    })
+      .takeUntil(this.disposeSubject)
+      .filter((msg: NetworkMessage) => msg.service === CollaboratorsService.ID)
+      .subscribe((msg: NetworkMessage) => {
+        const collabMsg = CollaboratorMsg.decode(msg.content)
+        const id: number = msg.id
+        const pseudo: string = collabMsg.pseudo
+        this.collaboratorChangePseudoSubject.next(new Collaborator(id, pseudo))
+      })
   }
 
   set peerJoinSource (source: Observable<number>) {
-    this.peerJoinSubscription = source.subscribe((id: number) => {
-      this.emitPseudo(this.pseudonym, id)
-      this.collaboratorJoinSubject.next(new Collaborator(id, 'Anonymous'))
-    })
+    source
+      .takeUntil(this.disposeSubject)
+      .subscribe((id: number) => {
+        this.emitPseudo(this.pseudonym, id)
+        this.collaboratorJoinSubject.next(new Collaborator(id, 'Anonymous'))
+      })
   }
 
   set peerLeaveSource (source: Observable<number>) {
-    this.peerLeaveSubscription = source.subscribe((id: number) => {
-      this.collaboratorLeaveSubject.next(id)
-    })
+    source
+      .takeUntil(this.disposeSubject)
+      .subscribe((id: number) => {
+        this.collaboratorLeaveSubject.next(id)
+      })
   }
 
   set pseudoSource (source: Observable<String>) {
-    this.pseudoSubscription = source.subscribe((pseudo: string) => {
-      this.pseudonym = pseudo
-      this.emitPseudo(pseudo)
-    })
+    source
+      .takeUntil(this.disposeSubject)
+      .subscribe((pseudo: string) => {
+        this.pseudonym = pseudo
+        this.emitPseudo(pseudo)
+      })
   }
 
   emitPseudo (pseudo: string, id?: number): Uint8Array {
@@ -105,13 +111,10 @@ export class CollaboratorsService implements MessageEmitter {
     this.collaboratorChangePseudoSubject.complete()
     this.collaboratorJoinSubject.complete()
     this.collaboratorLeaveSubject.complete()
+    this.disposeSubject.complete()
     this.msgToBroadcastSubject.complete()
     this.msgToSendRandomlySubject.complete()
     this.msgToSendToSubject.complete()
-
-    this.peerJoinSubscription.unsubscribe()
-    this.peerLeaveSubscription.unsubscribe()
-    this.pseudoSubscription.unsubscribe()
   }
 
 }
