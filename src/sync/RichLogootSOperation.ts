@@ -1,13 +1,13 @@
-import { LogootSAdd, LogootSDel } from 'mute-structs'
+import { LogootSAdd, LogootSDel, LogootSOperation } from 'mute-structs'
 import { SafeAny } from 'safe-any'
 
 export class RichLogootSOperation {
 
   readonly id: number
   readonly clock: number
-  readonly logootSOp: LogootSAdd | LogootSDel
+  readonly logootSOp: LogootSOperation
 
-  constructor (id: number, clock: number, logootSOp: LogootSAdd | LogootSDel) {
+  constructor (id: number, clock: number, logootSOp: LogootSOperation) {
     this.id = id
     this.clock = clock
     this.logootSOp = logootSOp

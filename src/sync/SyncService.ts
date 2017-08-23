@@ -1,4 +1,4 @@
-import { LogootSDel, LogootSAdd } from 'mute-structs'
+import { LogootSOperation } from 'mute-structs'
 import { Observable, Subject } from 'rxjs'
 
 import { Interval } from './Interval'
@@ -22,7 +22,7 @@ export class SyncService {
   private isReadySubject: Subject<void>
   private localRichLogootSOperationSubject: Subject<RichLogootSOperation>
   private querySyncSubject: Subject<Map<number, number>>
-  private remoteLogootSOperationSubject: Subject<(LogootSAdd | LogootSDel)[]>
+  private remoteLogootSOperationSubject: Subject<LogootSOperation[]>
   private replySyncSubject: Subject<ReplySyncEvent>
   private stateSubject: Subject<State>
   private triggerQuerySyncSubject: Subject<void>
@@ -50,7 +50,7 @@ export class SyncService {
     return this.querySyncSubject.asObservable()
   }
 
-  get onRemoteLogootSOperation (): Observable<(LogootSAdd | LogootSDel)[]> {
+  get onRemoteLogootSOperation (): Observable<LogootSOperation[]> {
     return this.remoteLogootSOperationSubject.asObservable()
   }
 
@@ -66,10 +66,10 @@ export class SyncService {
     return new State(this.vector, this.richLogootSOps)
   }
 
-  set localLogootSOperationSource (source: Observable<LogootSAdd | LogootSDel>) {
+  set localLogootSOperationSource (source: Observable<LogootSOperation>) {
     source
       .takeUntil(this.disposeSubject)
-      .subscribe((logootSOp: LogootSAdd | LogootSDel) => {
+      .subscribe((logootSOp: LogootSOperation) => {
         const richLogootSOp: RichLogootSOperation =
           new RichLogootSOperation(this.id, this.clock, logootSOp)
 
@@ -208,7 +208,7 @@ export class SyncService {
       })
 
     if (newRichLogootSOps.length > 0) {
-      const logootSOperations: (LogootSAdd | LogootSDel)[] = []
+      const logootSOperations: LogootSOperation[] = []
       newRichLogootSOps
         .forEach((richLogootSOp) => {
           const id: number = richLogootSOp.id

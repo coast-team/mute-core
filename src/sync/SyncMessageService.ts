@@ -1,4 +1,9 @@
-import { Identifier, IdentifierInterval, LogootSDel, LogootSAdd } from 'mute-structs'
+import {
+  Identifier,
+  IdentifierInterval,
+  LogootSAdd,
+  LogootSDel,
+  LogootSOperation } from 'mute-structs'
 import { Observable, Subject } from 'rxjs'
 
 import { Interval } from './Interval'
@@ -166,7 +171,7 @@ export class SyncMessageService implements MessageEmitter {
   // TODO: Watch this function
   serializeRichLogootSOperation (richLogootSOp: RichLogootSOperation): RichLogootSOperationMsg {
     let richLogootSOperationMsg = RichLogootSOperationMsg.create({ id: richLogootSOp.id, clock: richLogootSOp.clock})
-    const logootSOp: LogootSAdd | LogootSDel = richLogootSOp.logootSOp
+    const logootSOp: LogootSOperation = richLogootSOp.logootSOp
     if (logootSOp instanceof LogootSDel) {
       richLogootSOperationMsg.logootSDelMsg = this.generateLogootSDelMsg(logootSOp)
     }
@@ -181,7 +186,7 @@ export class SyncMessageService implements MessageEmitter {
     const id: number = content.id
     const clock: number = content.clock
 
-    let logootSOp: LogootSAdd | LogootSDel
+    let logootSOp: LogootSOperation
     if (content.logootSAddMsg) {
       const logootSAddMsg = content.logootSAddMsg
       logootSOp = LogootSAdd.fromPlain(logootSAddMsg)
@@ -199,10 +204,13 @@ export class SyncMessageService implements MessageEmitter {
   }
 
   generateLogootSDelMsg (logootSDel: LogootSDel): LogootSDelMsg {
-    const lid: IdentifierIntervalMsg[] = logootSDel.lid.map( (id: any) => {
-      const identifierInterval: IdentifierIntervalMsg = this.generateIdentifierIntervalMsg(id)
-      return identifierInterval
-    })
+    const lid: IdentifierIntervalMsg[] =
+      logootSDel.lid
+        .map( (idInterval: IdentifierInterval) => {
+          const identifierInterval: IdentifierIntervalMsg =
+            this.generateIdentifierIntervalMsg(idInterval)
+          return identifierInterval
+        })
     const logootSDelMsg = LogootSDelMsg.create({lid})
     return logootSDelMsg
   }
