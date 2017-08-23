@@ -17,7 +17,6 @@ export class DocService {
 
   private docDigestSubject: Subject<number>
   private docTreeSubject: Subject<string>
-  private docValueSubject: Subject<string>
   private localLogootSOperationSubject: Subject<LogootSOperation>
   private remoteTextOperationsSubject: Subject<(TextOperation)[]>
   private updateSubject: Subject<void>
@@ -28,7 +27,6 @@ export class DocService {
     this.disposeSubject = new Subject<void>()
     this.docDigestSubject = new Subject()
     this.docTreeSubject = new Subject()
-    this.docValueSubject = new Subject()
     this.localLogootSOperationSubject = new Subject()
     this.remoteTextOperationsSubject = new Subject()
     this.updateSubject = new Subject()
@@ -47,7 +45,6 @@ export class DocService {
       .takeUntil(this.disposeSubject)
       .subscribe( (key: string) => {
         this.docID = key
-        this.docValueSubject.next(this.doc.str)
       })
   }
 
@@ -85,10 +82,6 @@ export class DocService {
     return this.docTreeSubject.asObservable()
   }
 
-  get onDocValue (): Observable<string> {
-    return this.docValueSubject.asObservable()
-  }
-
   get onLocalLogootSOperation (): Observable<LogootSOperation> {
     return this.localLogootSOperationSubject.asObservable()
   }
@@ -99,7 +92,6 @@ export class DocService {
 
   clean (): void {
     this.disposeSubject.complete()
-    this.docValueSubject.complete()
     this.localLogootSOperationSubject.complete()
     this.remoteTextOperationsSubject.complete()
     this.updateSubject.complete()
