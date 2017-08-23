@@ -20,6 +20,7 @@ export class DocService {
   private docValueSubject: Subject<string>
   private localLogootSOperationSubject: Subject<LogootSOperation>
   private remoteTextOperationsSubject: Subject<(TextOperation)[]>
+  private updateSubject: Subject<void>
 
   constructor (id: number) {
     this.doc = new LogootSRopes(id)
@@ -30,6 +31,15 @@ export class DocService {
     this.docValueSubject = new Subject()
     this.localLogootSOperationSubject = new Subject()
     this.remoteTextOperationsSubject = new Subject()
+    this.updateSubject = new Subject()
+
+    this.updateSubject
+      .takeUntil(this.disposeSubject)
+      .debounceTime(1000)
+      .subscribe(() => {
+        this.docTreeSubject.next(JSON.stringify(this.doc))
+        this.docDigestSubject.next(this.doc.digest())
+      })
   }
 
   set initSource (source: Observable<string>) {
@@ -46,14 +56,7 @@ export class DocService {
       .takeUntil(this.disposeSubject)
       .subscribe((textOperations: (TextOperation)[][]) => {
         this.handleTextOperations(textOperations)
-      })
-
-    source
-      .takeUntil(this.disposeSubject)
-      .debounceTime(1000)
-      .subscribe(() => {
-        this.docTreeSubject.next(JSON.stringify(this.doc))
-        this.docDigestSubject.next(this.doc.digest())
+        this.updateSubject.next()
       })
   }
 
@@ -70,14 +73,7 @@ export class DocService {
               return acc.concat(textOps)
             }, [])
         this.remoteTextOperationsSubject.next(remoteTextOps)
-      })
-
-    source
-      .takeUntil(this.disposeSubject)
-      .debounceTime(1000)
-      .subscribe(() => {
-        this.docTreeSubject.next(JSON.stringify(this.doc))
-        this.docDigestSubject.next(this.doc.digest())
+        this.updateSubject.next()
       })
   }
 
@@ -106,6 +102,7 @@ export class DocService {
     this.docValueSubject.complete()
     this.localLogootSOperationSubject.complete()
     this.remoteTextOperationsSubject.complete()
+    this.updateSubject.complete()
   }
 
   handleTextOperations (array: TextOperation[][]): void {
