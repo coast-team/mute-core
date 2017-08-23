@@ -5,7 +5,7 @@
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
   "dependencies": {
-    "mute-structs": "^0.2.3",
+    "mute-structs": "^0.3.0",
     "protobufjs": "^6.8.0",
     "rxjs": "^5.4.3",
     "safe-any": "^1.0.0"
