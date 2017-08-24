@@ -18,7 +18,7 @@ export class DocService {
   private docDigestSubject: Subject<number>
   private docTreeSubject: Subject<string>
   private localLogootSOperationSubject: Subject<LogootSOperation>
-  private remoteTextOperationsSubject: Subject<(TextOperation)[]>
+  private remoteTextOperationsSubject: Subject<TextOperation[]>
   private updateSubject: Subject<void>
 
   constructor (id: number) {
@@ -48,25 +48,25 @@ export class DocService {
       })
   }
 
-  set localTextOperationsSource (source: Observable<(TextOperation)[][]>) {
+  set localTextOperationsSource (source: Observable<TextOperation[][]>) {
     source
       .takeUntil(this.disposeSubject)
-      .subscribe((textOperations: (TextOperation)[][]) => {
+      .subscribe((textOperations: TextOperation[][]) => {
         this.handleTextOperations(textOperations)
         this.updateSubject.next()
       })
   }
 
-  set remoteLogootSOperationSource (source: Observable<(LogootSOperation)[]>) {
+  set remoteLogootSOperationSource (source: Observable<LogootSOperation[]>) {
     source
       .takeUntil(this.disposeSubject)
-      .subscribe((logootSOps: (LogootSOperation)[]) => {
-        const remoteTextOps: (TextOperation)[] =
+      .subscribe((logootSOps: LogootSOperation[]) => {
+        const remoteTextOps: TextOperation[] =
           logootSOps
             .map((logootSOp: LogootSOperation) => {
               return this.handleRemoteOperation(logootSOp)
             })
-            .reduce((acc: (TextOperation)[], textOps: (TextOperation)[]) => {
+            .reduce((acc: TextOperation[], textOps: TextOperation[]) => {
               return acc.concat(textOps)
             }, [])
         this.remoteTextOperationsSubject.next(remoteTextOps)
@@ -86,7 +86,7 @@ export class DocService {
     return this.localLogootSOperationSubject.asObservable()
   }
 
-  get onRemoteTextOperations (): Observable<(TextOperation)[]> {
+  get onRemoteTextOperations (): Observable<TextOperation[]> {
     return this.remoteTextOperationsSubject.asObservable()
   }
 
@@ -98,7 +98,7 @@ export class DocService {
   }
 
   handleTextOperations (array: TextOperation[][]): void {
-    array.forEach( (textOperations: TextOperation[]) => {
+    array.forEach((textOperations: TextOperation[]) => {
       textOperations.forEach( (textOperation: TextOperation) => {
         const logootSOperation: LogootSOperation = textOperation.applyTo(this.doc)
         this.localLogootSOperationSubject.next(logootSOperation)
@@ -107,7 +107,7 @@ export class DocService {
     // log.info('operation:doc', 'updated doc: ', this.doc)
   }
 
-  handleRemoteOperation (logootSOperation: LogootSOperation): (TextOperation)[] {
+  handleRemoteOperation (logootSOperation: LogootSOperation): TextOperation[] {
     const textOperations: TextOperation[] = logootSOperation.execute(this.doc)
     // log.info('operation:doc', 'updated doc: ', this.doc)
     return textOperations
