@@ -48,10 +48,10 @@ export class DocService {
       })
   }
 
-  set localTextOperationsSource (source: Observable<TextOperation[][]>) {
+  set localTextOperationsSource (source: Observable<TextOperation[]>) {
     source
       .takeUntil(this.disposeSubject)
-      .subscribe((textOperations: TextOperation[][]) => {
+      .subscribe((textOperations: TextOperation[]) => {
         this.handleTextOperations(textOperations)
         this.updateSubject.next()
       })
@@ -97,12 +97,10 @@ export class DocService {
     this.updateSubject.complete()
   }
 
-  handleTextOperations (array: TextOperation[][]): void {
-    array.forEach((textOperations: TextOperation[]) => {
-      textOperations.forEach( (textOperation: TextOperation) => {
-        const logootSOperation: LogootSOperation = textOperation.applyTo(this.doc)
-        this.localLogootSOperationSubject.next(logootSOperation)
-      })
+  handleTextOperations (textOperations: TextOperation[]): void {
+    textOperations.forEach( (textOperation: TextOperation) => {
+      const logootSOperation: LogootSOperation = textOperation.applyTo(this.doc)
+      this.localLogootSOperationSubject.next(logootSOperation)
     })
     // log.info('operation:doc', 'updated doc: ', this.doc)
   }
