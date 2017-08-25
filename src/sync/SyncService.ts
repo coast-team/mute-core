@@ -159,7 +159,6 @@ export class SyncService {
       .take(1)
       .subscribe((joinEvent: JoinEvent) => {
         if (!joinEvent.created) {
-          console.log('SyncService: performing querySync at init')
           this.querySyncSubject.next(this.vector)
         }
       })
@@ -169,7 +168,6 @@ export class SyncService {
     this.triggerQuerySyncSubject
       .takeUntil(this.disposeSubject)
       .subscribe(() => {
-        console.log('SyncService: performing a periodic querySync')
         this.querySyncSubject.next(this.vector)
         this.triggerPeriodicQuerySync()
       })
