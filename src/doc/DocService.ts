@@ -91,6 +91,7 @@ export class DocService {
   }
 
   clean (): void {
+    this.disposeSubject.next()
     this.disposeSubject.complete()
     this.localLogootSOperationSubject.complete()
     this.remoteTextOperationsSubject.complete()

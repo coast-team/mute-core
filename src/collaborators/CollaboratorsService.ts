@@ -113,6 +113,7 @@ export class CollaboratorsService implements MessageEmitter {
     this.collaboratorChangePseudoSubject.complete()
     this.collaboratorJoinSubject.complete()
     this.collaboratorLeaveSubject.complete()
+    this.disposeSubject.next()
     this.disposeSubject.complete()
     this.msgToBroadcastSubject.complete()
     this.msgToSendRandomlySubject.complete()

@@ -122,6 +122,7 @@ export class SyncMessageService implements MessageEmitter {
   }
 
   clean (): void {
+    this.disposeSubject.next()
     this.disposeSubject.complete()
     this.msgToBroadcastSubject.complete()
     this.msgToSendRandomlySubject.complete()

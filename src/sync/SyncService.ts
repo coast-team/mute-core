@@ -187,6 +187,7 @@ export class SyncService {
 
   clean (): void {
     this.appliedOperationsSubject.complete()
+    this.disposeSubject.next()
     this.disposeSubject.complete()
     this.isReadySubject.complete()
     this.localRichLogootSOperationSubject.complete()
