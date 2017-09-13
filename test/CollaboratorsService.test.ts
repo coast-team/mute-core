@@ -9,11 +9,7 @@ import {
     SendToMessage
 } from "../src/network"
 
-function disposeOf (collaboratorsService: CollaboratorsService, time: number): void {
-    setTimeout(() => {
-        collaboratorsService.clean()
-    }, time)
-}
+import {disposeOf} from "./Helpers"
 
 test("pseudos-correct-send-and-delivery", (t: TestContext) => {
     const collaboratorsServiceIn = new CollaboratorsService()

@@ -6,9 +6,10 @@ import {
   TextOperation
 } from 'mute-structs'
 
+import  { Disposable } from '../Disposable'
 import { JoinEvent } from '../network/'
 
-export class DocService {
+export class DocService implements Disposable {
 
   private disposeSubject: Subject<void>
 
@@ -90,7 +91,7 @@ export class DocService {
     return this.remoteTextOperationsSubject.asObservable()
   }
 
-  clean (): void {
+  dispose (): void {
     this.disposeSubject.next()
     this.disposeSubject.complete()
     this.localLogootSOperationSubject.complete()

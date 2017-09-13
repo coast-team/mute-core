@@ -6,11 +6,12 @@ import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichLogootSOperation } from './RichLogootSOperation'
 import { State } from './State'
 
+import { Disposable } from '../Disposable'
 import { JoinEvent } from '../network/'
 
 type Key = { id: number, clock: number }
 
-export class SyncService {
+export class SyncService implements Disposable {
 
   private id: number = -1
   private clock: number = 0
@@ -185,7 +186,7 @@ export class SyncService {
     }, defaultTime + random)
   }
 
-  clean (): void {
+  dispose (): void {
     this.appliedOperationsSubject.complete()
     this.disposeSubject.next()
     this.disposeSubject.complete()

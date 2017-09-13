@@ -3,8 +3,9 @@ import { Observable, Subject } from 'rxjs'
 import { BroadcastMessage, SendRandomlyMessage, SendToMessage, MessageEmitter, NetworkMessage } from '../network/'
 import { Collaborator } from './Collaborator'
 import { CollaboratorMsg } from '../../proto/collaborator_pb'
+import { Disposable } from '../Disposable'
 
-export class CollaboratorsService implements MessageEmitter {
+export class CollaboratorsService implements Disposable, MessageEmitter {
 
   private static ID: string = 'Collaborators'
   static readonly DEFAULT_PSEUDO: string = 'Anonymous'
@@ -109,7 +110,7 @@ export class CollaboratorsService implements MessageEmitter {
     return CollaboratorMsg.encode(collabMsg).finish()
   }
 
-  clean (): void {
+  dispose (): void {
     this.collaboratorChangePseudoSubject.complete()
     this.collaboratorJoinSubject.complete()
     this.collaboratorLeaveSubject.complete()

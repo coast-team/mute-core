@@ -10,11 +10,7 @@ import {Observable, Subject} from "rxjs"
 
 import {DocService} from "../src/doc"
 
-function disposeOf (docService: DocService, time: number): void {
-    setTimeout(() => {
-        docService.clean()
-    }, time)
-}
+import {disposeOf} from "./Helpers"
 
 function generateTextOperations (): TextOperation[] {
     const textOperations: TextOperation[] = []

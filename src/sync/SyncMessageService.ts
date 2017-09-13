@@ -6,6 +6,7 @@ import {
   LogootSOperation } from 'mute-structs'
 import { Observable, Subject } from 'rxjs'
 
+import { Disposable } from '../Disposable'
 import { Interval } from './Interval'
 import { BroadcastMessage, MessageEmitter, NetworkMessage, SendRandomlyMessage, SendToMessage } from '../network/'
 import { ReplySyncEvent } from './ReplySyncEvent'
@@ -13,7 +14,7 @@ import { RichLogootSOperation } from './RichLogootSOperation'
 
 import { Sync, QuerySync, ReplySync, LogootSAddMsg, LogootSDelMsg, RichLogootSOperationMsg, IntervalMsg, IdentifierMsg, IdentifierIntervalMsg } from '../../proto/sync_pb'
 
-export class SyncMessageService implements MessageEmitter {
+export class SyncMessageService implements Disposable, MessageEmitter {
 
   private static ID: string = 'SyncMessage'
 
@@ -121,7 +122,7 @@ export class SyncMessageService implements MessageEmitter {
     return this.remoteReplySyncSubject.asObservable()
   }
 
-  clean (): void {
+  dispose (): void {
     this.disposeSubject.next()
     this.disposeSubject.complete()
     this.msgToBroadcastSubject.complete()

@@ -1,10 +1,11 @@
 import { Observable, Subject } from 'rxjs'
 import { CollaboratorsService } from './collaborators/'
+import { Disposable } from './Disposable'
 import { DocService } from './doc/'
 import { BroadcastMessage, JoinEvent, MessageEmitter, NetworkMessage, SendRandomlyMessage, SendToMessage } from './network/'
 import { SyncService, SyncMessageService } from './sync/'
 
-export class MuteCore implements MessageEmitter {
+export class MuteCore implements Disposable, MessageEmitter {
 
   readonly collaboratorsService: CollaboratorsService
   readonly docService: DocService
@@ -69,10 +70,10 @@ export class MuteCore implements MessageEmitter {
     this.initSubject.next(key)
   }
 
-  clean (): void {
-    this.collaboratorsService.clean()
-    this.docService.clean()
-    this.syncService.clean()
-    this.syncMessageService.clean()
+  dispose (): void {
+    this.collaboratorsService.dispose()
+    this.docService.dispose()
+    this.syncService.dispose()
+    this.syncMessageService.dispose()
   }
 }

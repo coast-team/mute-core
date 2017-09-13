@@ -21,11 +21,7 @@ import {
     SyncMessageService
 } from "../src/sync"
 
-function disposeOf (syncMsgService: SyncMessageService, time: number): void {
-    setTimeout(() => {
-        syncMsgService.clean()
-    }, time)
-}
+import {disposeOf} from "./Helpers"
 
 function generateIntervals (): Interval[] {
     const intervals: Interval[] = []
