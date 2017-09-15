@@ -5,6 +5,7 @@ import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichLogootSOperation } from './RichLogootSOperation'
 import { State } from './State'
+import { StateVector } from './StateVector'
 
 import { Disposable } from '../Disposable'
 import { JoinEvent } from '../network/'
@@ -15,8 +16,8 @@ export class SyncService implements Disposable {
 
   private id: number = -1
   private clock: number = 0
-  private vector: Map<number, number> = new Map()
   private richLogootSOps: RichLogootSOperation[] = []
+  private vector: StateVector
 
   private appliedOperationsSubject: Subject<Key>
   private disposeSubject: Subject<void>
@@ -30,6 +31,7 @@ export class SyncService implements Disposable {
 
   constructor (id: number) {
     this.id = id
+    this.vector = new StateVector()
     this.appliedOperationsSubject = new Subject()
     this.disposeSubject = new Subject<void>()
     this.isReadySubject = new Subject<void>()
@@ -64,7 +66,7 @@ export class SyncService implements Disposable {
   }
 
   get state (): State {
-    return new State(this.vector, this.richLogootSOps)
+    return new State(this.vector.asMap(), this.richLogootSOps)
   }
 
   set localLogootSOperationSource (source: Observable<LogootSOperation>) {
@@ -160,7 +162,7 @@ export class SyncService implements Disposable {
       .take(1)
       .subscribe((joinEvent: JoinEvent) => {
         if (!joinEvent.created) {
-          this.querySyncSubject.next(this.vector)
+          this.querySyncSubject.next(this.vector.asMap())
         }
       })
   }
@@ -169,7 +171,7 @@ export class SyncService implements Disposable {
     this.triggerQuerySyncSubject
       .takeUntil(this.disposeSubject)
       .subscribe(() => {
-        this.querySyncSubject.next(this.vector)
+        this.querySyncSubject.next(this.vector.asMap())
         this.triggerPeriodicQuerySync()
       })
 
@@ -204,7 +206,7 @@ export class SyncService implements Disposable {
       richLogootSOps.filter((richLogootSOp: RichLogootSOperation) => {
         const id: number = richLogootSOp.id
         const clock: number = richLogootSOp.clock
-        return !this.isAlreadyApplied(id, clock)
+        return !this.vector.isAlreadyDelivered(id, clock)
       })
 
     if (newRichLogootSOps.length > 0) {
@@ -213,7 +215,7 @@ export class SyncService implements Disposable {
         .forEach((richLogootSOp) => {
           const id: number = richLogootSOp.id
           const clock: number = richLogootSOp.clock
-          if (this.isAppliable(id, clock)) {
+          if (this.vector.isDeliverable(id, clock)) {
             this.updateState(richLogootSOp)
             logootSOperations.push(richLogootSOp.logootSOp)
             // Notify that the operation has been delivered
@@ -228,7 +230,7 @@ export class SyncService implements Disposable {
               .take(1)
               .subscribe(() => {
                 console.log('SyncService: Delivering operation: ', { id, clock })
-                if (!this.isAlreadyApplied(id, clock)) {
+                if (!this.vector.isAlreadyDelivered(id, clock)) {
                   this.applyRichLogootSOperations([richLogootSOp])
                 }
               })
@@ -240,25 +242,9 @@ export class SyncService implements Disposable {
   }
 
   private updateState (richLogootSOp: RichLogootSOperation): void {
-    console.assert(this.isAppliable(richLogootSOp.id, richLogootSOp.clock))
+    console.assert(this.vector.isDeliverable(richLogootSOp.id, richLogootSOp.clock))
     this.vector.set(richLogootSOp.id, richLogootSOp.clock)
     this.richLogootSOps.push(richLogootSOp)
-  }
-
-  private isAlreadyApplied (id: number, clock: number): boolean {
-    const v = this.vector.get(id)
-    return v !== undefined && v >= clock
-  }
-
-  private isAppliable (id: number, clock: number): boolean {
-    if (this.isAlreadyApplied(id, clock)) {
-      return false
-    }
-    const v = this.vector.get(id)
-    if (v === undefined) {
-      return clock === 0
-    }
-    return clock === v + 1
   }
 
   computeMissingIntervals (vector: Map<number, number>): Interval[] {
