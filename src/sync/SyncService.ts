@@ -23,7 +23,7 @@ export class SyncService implements Disposable {
   private disposeSubject: Subject<void>
   private isReadySubject: Subject<void>
   private localRichLogootSOperationSubject: Subject<RichLogootSOperation>
-  private querySyncSubject: Subject<Map<number, number>>
+  private querySyncSubject: Subject<StateVector>
   private remoteLogootSOperationSubject: Subject<LogootSOperation[]>
   private replySyncSubject: Subject<ReplySyncEvent>
   private stateSubject: Subject<State>
@@ -49,7 +49,7 @@ export class SyncService implements Disposable {
     return this.localRichLogootSOperationSubject.asObservable()
   }
 
-  get onQuerySync (): Observable<Map<number, number>> {
+  get onQuerySync (): Observable<StateVector> {
     return this.querySyncSubject.asObservable()
   }
 
@@ -85,10 +85,10 @@ export class SyncService implements Disposable {
       })
   }
 
-  set remoteQuerySyncSource (source: Observable<Map<number, number>>) {
+  set remoteQuerySyncSource (source: Observable<StateVector>) {
     source
       .takeUntil(this.disposeSubject)
-      .subscribe((vector: Map<number, number>) => {
+      .subscribe((vector: StateVector) => {
         const missingRichLogootSOps: RichLogootSOperation[] =
           this.computeMissingOps(vector)
         // TODO: Add sort function to apply LogootSAdd operations before LogootSDel ones
@@ -162,7 +162,7 @@ export class SyncService implements Disposable {
       .take(1)
       .subscribe((joinEvent: JoinEvent) => {
         if (!joinEvent.created) {
-          this.querySyncSubject.next(this.vector.asMap())
+          this.querySyncSubject.next(this.vector)
         }
       })
   }
@@ -171,7 +171,7 @@ export class SyncService implements Disposable {
     this.triggerQuerySyncSubject
       .takeUntil(this.disposeSubject)
       .subscribe(() => {
-        this.querySyncSubject.next(this.vector.asMap())
+        this.querySyncSubject.next(this.vector)
         this.triggerPeriodicQuerySync()
       })
 

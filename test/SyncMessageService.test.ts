@@ -18,6 +18,7 @@ import {
     Interval,
     ReplySyncEvent,
     RichLogootSOperation,
+    StateVector,
     SyncMessageService
 } from "../src/sync"
 
@@ -62,13 +63,13 @@ function generateRichLogootSOps (): RichLogootSOperation[] {
     return [richLogootSOp1, richLogootSOp2, richLogootSOp3]
 }
 
-function generateVector (): Map<number, number> {
+function generateVector (): StateVector {
     const vector: Map<number, number> = new Map()
     vector.set(0, 42)
     vector.set(1, 10)
     vector.set(53, 1)
 
-    return vector
+    return new StateVector(vector)
 }
 
 test("richLogootSOperations-correct-send-and-delivery", (t: TestContext) => {
@@ -114,14 +115,14 @@ test("querySync-correct-send-and-delivery", (t: TestContext) => {
                 return new NetworkMessage(msg.service, 0, true, msg.content)
             })
 
-    const expectedVector: Map<number, number> = generateVector()
+    const expectedVector: StateVector = generateVector()
     setTimeout(() => {
         syncMsgServiceIn.querySyncSource = Observable.from([expectedVector])
     }, 0)
 
     t.plan(expectedVector.size)
     return syncMsgServiceOut.onRemoteQuerySync
-        .map((actualVector: Map<number, number>): void => {
+        .map((actualVector: StateVector): void => {
             actualVector.forEach((actual: number, key: number): void => {
                 t.is(actual, expectedVector.get(key))
             })
@@ -137,13 +138,13 @@ test("replySync-correct-recipient", (t: TestContext) => {
     const replySyncSubject: Subject<ReplySyncEvent> = new Subject<ReplySyncEvent>()
     syncMsgService.replySyncSource = replySyncSubject.asObservable()
     syncMsgService.onRemoteQuerySync
-        .subscribe((vector: Map<number, number>): void => {
+        .subscribe((vector: StateVector): void => {
             const replySyncEvent: ReplySyncEvent = generateReplySync()
             replySyncSubject.next(replySyncEvent)
         })
 
     const expected = 42
-    const vector: Map<number, number> = generateVector()
+    const vector: StateVector = generateVector()
     const querySyncMsg = syncMsgService.generateQuerySyncMsg(vector)
     const msgSubject: Subject<NetworkMessage> = new Subject<NetworkMessage>()
     syncMsgService.messageSource = msgSubject.asObservable()
@@ -170,7 +171,7 @@ test("replySync-correct-send-and-delivery", (t: TestContext) => {
     syncMsgServiceIn.replySyncSource = replySyncSubject.asObservable()
     const expected: ReplySyncEvent = generateReplySync()
     syncMsgServiceIn.onRemoteQuerySync
-        .subscribe((vector: Map<number, number>): void => {
+        .subscribe((vector: StateVector): void => {
             replySyncSubject.next(expected)
         })
 
@@ -180,7 +181,7 @@ test("replySync-correct-send-and-delivery", (t: TestContext) => {
                 return new NetworkMessage(msg.service, 0, true, msg.content)
             })
 
-    const vector: Map<number, number> = generateVector()
+    const vector: StateVector = generateVector()
     const querySyncMsg = syncMsgServiceIn.generateQuerySyncMsg(vector)
     const msgSubject: Subject<NetworkMessage> = new Subject<NetworkMessage>()
     syncMsgServiceIn.messageSource = msgSubject.asObservable()

@@ -11,6 +11,7 @@ import { Interval } from './Interval'
 import { BroadcastMessage, MessageEmitter, NetworkMessage, SendRandomlyMessage, SendToMessage } from '../network/'
 import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichLogootSOperation } from './RichLogootSOperation'
+import { StateVector } from './StateVector'
 
 import { Sync, QuerySync, ReplySync, LogootSAddMsg, LogootSDelMsg, RichLogootSOperationMsg, IntervalMsg, IdentifierMsg, IdentifierIntervalMsg } from '../../proto/sync_pb'
 
@@ -22,7 +23,7 @@ export class SyncMessageService implements Disposable, MessageEmitter {
   private msgToBroadcastSubject: Subject<BroadcastMessage>
   private msgToSendRandomlySubject: Subject<SendRandomlyMessage>
   private msgToSendToSubject: Subject<SendToMessage>
-  private remoteQuerySyncSubject: Subject<Map<number, number>>
+  private remoteQuerySyncSubject: Subject<StateVector>
   private remoteQuerySyncIdSubject: Subject<number>
   private remoteRichLogootSOperationSubject: Subject<RichLogootSOperation>
   private remoteReplySyncSubject: Subject<ReplySyncEvent>
@@ -69,10 +70,10 @@ export class SyncMessageService implements Disposable, MessageEmitter {
       })
   }
 
-  set querySyncSource (source: Observable<Map<number, number>>) {
+  set querySyncSource (source: Observable<StateVector>) {
     source
       .takeUntil(this.onDispose)
-      .subscribe((vector: Map<number, number>) => {
+      .subscribe((vector: StateVector) => {
         const querySyncMsg = this.generateQuerySyncMsg(vector)
         const msg: SendRandomlyMessage = new SendRandomlyMessage(SyncMessageService.ID, querySyncMsg)
         this.msgToSendRandomlySubject.next(msg)
@@ -114,7 +115,7 @@ export class SyncMessageService implements Disposable, MessageEmitter {
     return this.remoteRichLogootSOperationSubject.asObservable()
   }
 
-  get onRemoteQuerySync (): Observable<Map<number, number>> {
+  get onRemoteQuerySync (): Observable<StateVector> {
     return this.remoteQuerySyncSubject.asObservable()
   }
 
@@ -142,11 +143,12 @@ export class SyncMessageService implements Disposable, MessageEmitter {
   }
 
   handleQuerySyncMsg (content: QuerySync): void {
-    const vector: Map<number, number> = new Map()
+    const map: Map<number, number> = new Map()
     Object.keys(content.vector).forEach((key: string) => {
       const newKey = parseInt(key, 10)
-      vector.set(newKey, content.vector[key])
+      map.set(newKey, content.vector[key])
     })
+    const vector: StateVector = new StateVector(map)
     this.remoteQuerySyncSubject.next(vector)
   }
 
@@ -222,7 +224,7 @@ export class SyncMessageService implements Disposable, MessageEmitter {
     return identifierIntervalMsg
   }
 
-  generateQuerySyncMsg (vector: Map<number, number>): Uint8Array {
+  generateQuerySyncMsg (vector: StateVector): Uint8Array {
     const querySyncMsg = QuerySync.create()
 
     vector.forEach((clock: number, id: number) => {
