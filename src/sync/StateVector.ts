@@ -7,6 +7,11 @@ export class StateVector {
     private vector: Map<number, number>
 
     constructor (otherMap?: Map<number, number>) {
+        if (otherMap) {
+            otherMap.forEach((value: number) => {
+                console.assert(value >= 0, "Each value of a state vector must be positive")
+            })
+        }
         this.vector = new Map(otherMap)
     }
 
