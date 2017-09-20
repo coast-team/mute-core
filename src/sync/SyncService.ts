@@ -265,7 +265,7 @@ export class SyncService implements Disposable {
     return missingIntervals
   }
 
-  computeMissingOps (vector: Map<number, number>): RichLogootSOperation[] {
+  computeMissingOps (vector: StateVector): RichLogootSOperation[] {
     return this.richLogootSOps
       .filter((richLogootSOperation: RichLogootSOperation) => {
         const id: number = richLogootSOperation.id
