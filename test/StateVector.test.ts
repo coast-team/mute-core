@@ -1,3 +1,4 @@
+import {AssertionError} from "assert"
 import test from "ava"
 
 import {StateVector} from "../src/sync"
@@ -57,7 +58,7 @@ test("set-error-missing-values-of-new-entry", (t) => {
 
     const error = t.throws(() => {
         vector.set(key, 42)
-    }, Error)
+    }, AssertionError)
 
     t.is(vector.size, expectedSize)
 })
@@ -73,7 +74,7 @@ test("set-error-replaying-previous-entry", (t) => {
 
     const error = t.throws(() => {
         vector.set(key, currentValue - 1)
-    }, Error)
+    }, AssertionError)
 
     t.is(vector.size, expectedSize)
     t.is(vector.get(key), currentValue)
@@ -90,7 +91,7 @@ test("set-error-replaying-last-entry", (t) => {
 
     const error = t.throws(() => {
         vector.set(key, currentValue)
-    }, Error)
+    }, AssertionError)
 
     t.is(vector.size, expectedSize)
     t.is(vector.get(key), currentValue)
@@ -107,7 +108,7 @@ test("set-error-missing-values-of-known-entry", (t) => {
 
     const error = t.throws(() => {
         vector.set(key, currentValue + 2)
-    }, Error)
+    }, AssertionError)
 
     t.is(vector.size, expectedSize)
     t.is(vector.get(key), currentValue)
