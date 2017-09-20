@@ -3,6 +3,8 @@ import test from "ava"
 
 import {StateVector} from "../src/sync"
 
+import {generateVector} from "./Helpers"
+
 test("constructor-without-parameter", (t) => {
     const vector = new StateVector()
     t.is(vector.size, 0)
@@ -36,14 +38,10 @@ test("set-adding-new-entry", (t) => {
 })
 
 test("set-updating-entry", (t) => {
-    const key = 42
-    const currentValue = 5
-    const map = new Map<number, number>()
-    map.set(key, currentValue)
-
-    const expectedSize = map.size
-    const expectedValue = currentValue + 1
-    const vector = new StateVector(map)
+    const vector = generateVector()
+    const key = 0
+    const expectedSize = vector.size
+    const expectedValue = vector.get(0) + 1
 
     vector.set(key, expectedValue)
 
@@ -64,13 +62,10 @@ test("set-error-missing-values-of-new-entry", (t) => {
 })
 
 test("set-error-replaying-previous-entry", (t) => {
-    const key = 42
-    const currentValue = 5
-    const map = new Map<number, number>()
-    map.set(key, currentValue)
-
-    const expectedSize = map.size
-    const vector = new StateVector(map)
+    const vector = generateVector()
+    const key = 0
+    const currentValue = vector.get(key)
+    const expectedSize = vector.size
 
     const error = t.throws(() => {
         vector.set(key, currentValue - 1)
@@ -81,13 +76,10 @@ test("set-error-replaying-previous-entry", (t) => {
 })
 
 test("set-error-replaying-last-entry", (t) => {
-    const key = 42
-    const currentValue = 5
-    const map = new Map<number, number>()
-    map.set(key, currentValue)
-
-    const expectedSize = map.size
-    const vector = new StateVector(map)
+    const vector = generateVector()
+    const key = 0
+    const currentValue = vector.get(key)
+    const expectedSize = vector.size
 
     const error = t.throws(() => {
         vector.set(key, currentValue)
@@ -98,13 +90,10 @@ test("set-error-replaying-last-entry", (t) => {
 })
 
 test("set-error-missing-values-of-known-entry", (t) => {
-    const key = 42
-    const currentValue = 5
-    const map = new Map<number, number>()
-    map.set(key, currentValue)
-
-    const expectedSize = map.size
-    const vector = new StateVector(map)
+    const vector = generateVector()
+    const key = 0
+    const currentValue = vector.get(key)
+    const expectedSize = vector.size
 
     const error = t.throws(() => {
         vector.set(key, currentValue + 2)
