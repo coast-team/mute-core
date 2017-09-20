@@ -22,7 +22,7 @@ import {
     SyncMessageService
 } from "../src/sync"
 
-import {disposeOf} from "./Helpers"
+import {disposeOf, generateVector} from "./Helpers"
 
 function generateIntervals (): Interval[] {
     const intervals: Interval[] = []
@@ -61,15 +61,6 @@ function generateRichLogootSOps (): RichLogootSOperation[] {
         new RichLogootSOperation(replicaNumber, clock + 2, deleteOp1)
 
     return [richLogootSOp1, richLogootSOp2, richLogootSOp3]
-}
-
-function generateVector (): StateVector {
-    const vector: Map<number, number> = new Map()
-    vector.set(0, 42)
-    vector.set(1, 10)
-    vector.set(53, 1)
-
-    return new StateVector(vector)
 }
 
 test("richLogootSOperations-correct-send-and-delivery", (t: TestContext) => {
