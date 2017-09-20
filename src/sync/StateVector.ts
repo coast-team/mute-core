@@ -63,6 +63,10 @@ export class StateVector {
         return clock === v + 1
     }
 
+    forEach (f: (clock?: number, id?: number) => void): void {
+        this.vector.forEach(f)
+    }
+
     asMap (): Map<number, number> {
         return new Map(this.vector)
     }
