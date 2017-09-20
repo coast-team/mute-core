@@ -94,7 +94,7 @@ export class SyncService implements Disposable {
         // TODO: Add sort function to apply LogootSAdd operations before LogootSDel ones
 
         const missingIntervals: Interval[] =
-          this.computeMissingIntervals(vector)
+          this.vector.computeMissingIntervals(vector)
 
         const replySyncEvent: ReplySyncEvent =
           new ReplySyncEvent(missingRichLogootSOps, missingIntervals)
@@ -245,24 +245,6 @@ export class SyncService implements Disposable {
     console.assert(this.vector.isDeliverable(richLogootSOp.id, richLogootSOp.clock))
     this.vector.set(richLogootSOp.id, richLogootSOp.clock)
     this.richLogootSOps.push(richLogootSOp)
-  }
-
-  computeMissingIntervals (vector: StateVector): Interval[] {
-    const missingIntervals: Interval[] = []
-    vector.forEach((clock: number, id: number) => {
-      const v = this.vector.get(id)
-      if (v === undefined) {
-        const begin = 0
-        const end: number = clock
-        missingIntervals.push( new Interval(id, begin, end))
-      } else if (v < clock) {
-        const begin: number = v + 1
-        const end: number = clock
-        missingIntervals.push( new Interval(id, begin, end))
-      }
-    })
-
-    return missingIntervals
   }
 
   computeMissingOps (vector: StateVector): RichLogootSOperation[] {

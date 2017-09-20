@@ -1,3 +1,5 @@
+import {Interval} from "./Interval"
+
 /**
  * Keep track of the messages delivered by peers
  * Allow to maintain the causal delivery per peer
@@ -74,5 +76,27 @@ export class StateVector {
 
     asMap (): Map<number, number> {
         return new Map(this.vector)
+    }
+
+    /**
+     * Compute the intervals representing the messages known by other but not by this
+     * @param other
+     */
+    computeMissingIntervals (other: StateVector): Interval[] {
+        const missingIntervals: Interval[] = []
+        other.vector.forEach((clock: number, id: number) => {
+            const v = this.get(id)
+            if (v === undefined) {
+                const begin = 0
+                const end: number = clock
+                missingIntervals.push(new Interval(id, begin, end))
+            } else if (v < clock) {
+                const begin: number = v + 1
+                const end: number = clock
+                missingIntervals.push(new Interval(id, begin, end))
+            }
+        })
+
+        return missingIntervals
     }
 }
