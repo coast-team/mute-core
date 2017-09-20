@@ -247,7 +247,7 @@ export class SyncService implements Disposable {
     this.richLogootSOps.push(richLogootSOp)
   }
 
-  computeMissingIntervals (vector: Map<number, number>): Interval[] {
+  computeMissingIntervals (vector: StateVector): Interval[] {
     const missingIntervals: Interval[] = []
     vector.forEach((clock: number, id: number) => {
       const v = this.vector.get(id)
