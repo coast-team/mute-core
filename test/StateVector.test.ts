@@ -1,9 +1,16 @@
 import {AssertionError} from "assert"
 import test from "ava"
+import {AssertContext} from "ava"
 
 import {StateVector} from "../src/sync"
 
 import {generateVector} from "./Helpers"
+
+function isAlreadyDeliveredMacro (t: AssertContext,
+    vector: StateVector, key: number, value: number, expected: boolean): void {
+
+    t.is(vector.isAlreadyDelivered(key, value), expected)
+}
 
 test("constructor-without-parameter", (t) => {
     const vector = new StateVector()
@@ -102,3 +109,14 @@ test("set-error-missing-values-of-known-entry", (t) => {
     t.is(vector.size, expectedSize)
     t.is(vector.get(key), currentValue)
 })
+
+// generateVector() returns the following StateVector:
+//      { 0 -> 42, 1 -> 10, 53 -> 1}
+test("isAlreadyDelivered-known-entry-previously-delivered-message",
+    isAlreadyDeliveredMacro, generateVector(), 0, 41, true)
+test("isAlreadyDelivered-known-entry-last-message-delivered",
+    isAlreadyDeliveredMacro, generateVector(), 0, 42, true)
+test("isAlreadyDelivered-known-entry-message-not-yet-delivered",
+    isAlreadyDeliveredMacro, generateVector(), 0, 43, false)
+test("isAlreadyDelivered-new-entry",
+    isAlreadyDeliveredMacro, new StateVector(), 0, 0, false)
