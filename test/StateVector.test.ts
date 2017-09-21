@@ -12,6 +12,12 @@ function isAlreadyDeliveredMacro (t: AssertContext,
     t.is(vector.isAlreadyDelivered(key, value), expected)
 }
 
+function isDeliverableMacro (t: AssertContext,
+    vector: StateVector, key: number, value: number, expected: boolean): void {
+
+    t.is(vector.isDeliverable(key, value), expected)
+}
+
 test("constructor-without-parameter", (t) => {
     const vector = new StateVector()
     t.is(vector.size, 0)
@@ -120,3 +126,16 @@ test("isAlreadyDelivered-known-entry-message-not-yet-delivered",
     isAlreadyDeliveredMacro, generateVector(), 0, 43, false)
 test("isAlreadyDelivered-new-entry",
     isAlreadyDeliveredMacro, new StateVector(), 0, 0, false)
+
+test("isDeliverable-known-entry-previously-delivered-message",
+    isDeliverableMacro, generateVector(), 0, 41, false)
+test("isDeliverable-known-entry-last-message-delivered",
+    isDeliverableMacro, generateVector(), 0, 42, false)
+test("isDeliverable-known-entry-next-message-to-deliver",
+    isDeliverableMacro, generateVector(), 0, 43, true)
+test("isDeliverable-known-entry-future-message",
+    isDeliverableMacro, generateVector(), 0, 44, false)
+test("isDeliverable-new-entry-first-message",
+    isDeliverableMacro, new StateVector(), 0, 0, true)
+test("isDeliverable-new-entry-second-message",
+    isDeliverableMacro, new StateVector(), 0, 1, false)
