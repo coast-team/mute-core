@@ -35,3 +35,32 @@ test("deliver-buffered-operation-when-deliverable", (t: TestContext) => {
         })
 })
 
+test.failing("deliver-buffered-operations-in-correct-order", (t: TestContext) => {
+    const syncService = new SyncService(0)
+    disposeOf(syncService, 200)
+
+    const richLogootSOps: RichLogootSOperation[] = generateRichLogootSOps()
+    const [firstRichLogootSOp, ...tailRichLogootSOps] = richLogootSOps
+
+    const remoteRichLogootSOpSubject = new Subject<RichLogootSOperation>()
+    syncService.remoteRichLogootSOperationSource = remoteRichLogootSOpSubject
+
+    tailRichLogootSOps
+        .forEach((richLogootSOp: RichLogootSOperation) => {
+            remoteRichLogootSOpSubject.next(richLogootSOp)
+        })
+    setTimeout(() => {
+        remoteRichLogootSOpSubject.next(firstRichLogootSOp)
+    }, 100)
+
+    let counter = 0
+    t.plan(richLogootSOps.length * 2)
+    return syncService.onRemoteLogootSOperation
+        .map((actualLogootSOps: LogootSOperation[]) => {
+            const expectedLogootSOp: LogootSOperation =
+                richLogootSOps[counter].logootSOp
+            t.is(actualLogootSOps.length, 1)
+            t.deepEqual(actualLogootSOps, [expectedLogootSOp])
+            counter++
+        })
+})
