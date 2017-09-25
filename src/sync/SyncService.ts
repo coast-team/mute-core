@@ -211,6 +211,7 @@ export class SyncService implements Disposable {
 
     if (newRichLogootSOps.length > 0) {
       const logootSOperations: LogootSOperation[] = []
+      const appliedOperations: Key[] = []
       newRichLogootSOps
         .forEach((richLogootSOp) => {
           const id: number = richLogootSOp.id
@@ -218,9 +219,8 @@ export class SyncService implements Disposable {
           if (this.vector.isDeliverable(id, clock)) {
             this.updateState(richLogootSOp)
             logootSOperations.push(richLogootSOp.logootSOp)
-            // Notify that the operation has been delivered
-            this.appliedOperationsSubject.next({ id , clock })
-          } else {
+            appliedOperations.push({ id, clock })
+          } else if (!this.vector.isAlreadyDelivered(id, clock)){
             // Deliver operation once the previous one will be applied
             console.log('SyncService: Buffering operation: ', { id, clock })
             this.appliedOperationsSubject
@@ -238,6 +238,9 @@ export class SyncService implements Disposable {
         })
 
       this.remoteLogootSOperationSubject.next(logootSOperations)
+      appliedOperations.forEach((appliedOperation: Key) => {
+        this.appliedOperationsSubject.next(appliedOperation)
+      })
     }
   }
 

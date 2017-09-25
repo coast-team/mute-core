@@ -35,7 +35,7 @@ test("deliver-buffered-operation-when-deliverable", (t: TestContext) => {
         })
 })
 
-test.failing("deliver-buffered-operations-in-correct-order", (t: TestContext) => {
+test("deliver-buffered-operations-in-correct-order", (t: TestContext) => {
     const syncService = new SyncService(0)
     disposeOf(syncService, 200)
 
