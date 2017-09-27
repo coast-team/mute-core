@@ -1,1 +1,1 @@
-export { DocService } from './DocService'
+export { DocService, Position } from './DocService'

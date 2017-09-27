@@ -9,6 +9,11 @@ import {
 import  { Disposable } from '../Disposable'
 import { JoinEvent } from '../network/'
 
+export interface Position {
+  id: Identifier
+  index: number
+}
+
 export class DocService implements Disposable {
 
   private disposeSubject: Subject<void>
