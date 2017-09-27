@@ -61,7 +61,7 @@ export class SyncMessageService implements Disposable, MessageEmitter {
             break
           case 'querySync':
             this.remoteQuerySyncIdSubject.next(msg.id) // Register the id of the peer
-            this.handleQuerySyncMsg(content.querySync as sync.QuerySync)
+            this.handleQuerySyncMsg(content.querySync as sync.QuerySyncMsg)
             break
           case 'replySync':
             this.handleReplySyncMsg(content.replySync as sync.ReplySync)
@@ -142,7 +142,7 @@ export class SyncMessageService implements Disposable, MessageEmitter {
     this.remoteRichLogootSOperationSubject.next(richLogootSOp)
   }
 
-  handleQuerySyncMsg (content: sync.QuerySync): void {
+  handleQuerySyncMsg (content: sync.QuerySyncMsg): void {
     const map: Map<number, number> = new Map()
     Object.keys(content.vector).forEach((key: string) => {
       const newKey = parseInt(key, 10)
@@ -203,7 +203,7 @@ export class SyncMessageService implements Disposable, MessageEmitter {
   }
 
   generateQuerySyncMsg (vector: StateVector): Uint8Array {
-    const querySyncMsg = sync.QuerySync.create()
+    const querySyncMsg = sync.QuerySyncMsg.create()
 
     vector.forEach((clock: number, id: number) => {
       querySyncMsg.vector[id] = clock

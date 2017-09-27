@@ -25,7 +25,7 @@ $root.sync = (function() {
          * @memberof sync
          * @interface ISyncMsg
          * @property {sync.IRichLogootSOperationMsg} [richLogootSOpMsg] SyncMsg richLogootSOpMsg
-         * @property {sync.IQuerySync} [querySync] SyncMsg querySync
+         * @property {sync.IQuerySyncMsg} [querySync] SyncMsg querySync
          * @property {sync.IReplySync} [replySync] SyncMsg replySync
          */
 
@@ -53,7 +53,7 @@ $root.sync = (function() {
 
         /**
          * SyncMsg querySync.
-         * @member {(sync.IQuerySync|null|undefined)}querySync
+         * @member {(sync.IQuerySyncMsg|null|undefined)}querySync
          * @memberof sync.SyncMsg
          * @instance
          */
@@ -108,7 +108,7 @@ $root.sync = (function() {
             if (message.richLogootSOpMsg != null && message.hasOwnProperty("richLogootSOpMsg"))
                 $root.sync.RichLogootSOperationMsg.encode(message.richLogootSOpMsg, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
             if (message.querySync != null && message.hasOwnProperty("querySync"))
-                $root.sync.QuerySync.encode(message.querySync, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                $root.sync.QuerySyncMsg.encode(message.querySync, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
             if (message.replySync != null && message.hasOwnProperty("replySync"))
                 $root.sync.ReplySync.encode(message.replySync, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
             return writer;
@@ -136,7 +136,7 @@ $root.sync = (function() {
                     message.richLogootSOpMsg = $root.sync.RichLogootSOperationMsg.decode(reader, reader.uint32());
                     break;
                 case 2:
-                    message.querySync = $root.sync.QuerySync.decode(reader, reader.uint32());
+                    message.querySync = $root.sync.QuerySyncMsg.decode(reader, reader.uint32());
                     break;
                 case 3:
                     message.replySync = $root.sync.ReplySync.decode(reader, reader.uint32());
@@ -752,23 +752,23 @@ $root.sync = (function() {
         return IdentifierIntervalMsg;
     })();
 
-    sync.QuerySync = (function() {
+    sync.QuerySyncMsg = (function() {
 
         /**
-         * Properties of a QuerySync.
+         * Properties of a QuerySyncMsg.
          * @memberof sync
-         * @interface IQuerySync
-         * @property {Object.<string,number>} [vector] QuerySync vector
+         * @interface IQuerySyncMsg
+         * @property {Object.<string,number>} [vector] QuerySyncMsg vector
          */
 
         /**
-         * Constructs a new QuerySync.
+         * Constructs a new QuerySyncMsg.
          * @memberof sync
-         * @classdesc Represents a QuerySync.
+         * @classdesc Represents a QuerySyncMsg.
          * @constructor
-         * @param {sync.IQuerySync=} [properties] Properties to set
+         * @param {sync.IQuerySyncMsg=} [properties] Properties to set
          */
-        function QuerySync(properties) {
+        function QuerySyncMsg(properties) {
             this.vector = {};
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
@@ -777,35 +777,35 @@ $root.sync = (function() {
         }
 
         /**
-         * QuerySync vector.
+         * QuerySyncMsg vector.
          * @member {Object.<string,number>}vector
-         * @memberof sync.QuerySync
+         * @memberof sync.QuerySyncMsg
          * @instance
          */
-        QuerySync.prototype.vector = $util.emptyObject;
+        QuerySyncMsg.prototype.vector = $util.emptyObject;
 
         /**
-         * Creates a new QuerySync instance using the specified properties.
+         * Creates a new QuerySyncMsg instance using the specified properties.
          * @function create
-         * @memberof sync.QuerySync
+         * @memberof sync.QuerySyncMsg
          * @static
-         * @param {sync.IQuerySync=} [properties] Properties to set
-         * @returns {sync.QuerySync} QuerySync instance
+         * @param {sync.IQuerySyncMsg=} [properties] Properties to set
+         * @returns {sync.QuerySyncMsg} QuerySyncMsg instance
          */
-        QuerySync.create = function create(properties) {
-            return new QuerySync(properties);
+        QuerySyncMsg.create = function create(properties) {
+            return new QuerySyncMsg(properties);
         };
 
         /**
-         * Encodes the specified QuerySync message. Does not implicitly {@link sync.QuerySync.verify|verify} messages.
+         * Encodes the specified QuerySyncMsg message. Does not implicitly {@link sync.QuerySyncMsg.verify|verify} messages.
          * @function encode
-         * @memberof sync.QuerySync
+         * @memberof sync.QuerySyncMsg
          * @static
-         * @param {sync.IQuerySync} message QuerySync message or plain object to encode
+         * @param {sync.IQuerySyncMsg} message QuerySyncMsg message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        QuerySync.encode = function encode(message, writer) {
+        QuerySyncMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
             if (message.vector != null && message.hasOwnProperty("vector"))
@@ -815,20 +815,20 @@ $root.sync = (function() {
         };
 
         /**
-         * Decodes a QuerySync message from the specified reader or buffer.
+         * Decodes a QuerySyncMsg message from the specified reader or buffer.
          * @function decode
-         * @memberof sync.QuerySync
+         * @memberof sync.QuerySyncMsg
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {sync.QuerySync} QuerySync
+         * @returns {sync.QuerySyncMsg} QuerySyncMsg
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        QuerySync.decode = function decode(reader, length) {
+        QuerySyncMsg.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.QuerySync(), key;
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.QuerySyncMsg(), key;
             while (reader.pos < end) {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
@@ -848,7 +848,7 @@ $root.sync = (function() {
             return message;
         };
 
-        return QuerySync;
+        return QuerySyncMsg;
     })();
 
     sync.ReplySync = (function() {

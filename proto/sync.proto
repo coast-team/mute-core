@@ -4,7 +4,7 @@ syntax = "proto3";
 message SyncMsg {
   oneof type {
     RichLogootSOperationMsg richLogootSOpMsg = 1;
-    QuerySync querySync = 2;
+    QuerySyncMsg querySync = 2;
     ReplySync replySync = 3;
   }
 }
@@ -38,7 +38,7 @@ message IdentifierIntervalMsg {
   int32 end = 3;
 }
 
-message QuerySync {
+message QuerySyncMsg {
   map<int32, int32> vector = 1;
 }
 

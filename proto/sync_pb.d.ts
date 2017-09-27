@@ -10,7 +10,7 @@ export namespace sync {
         richLogootSOpMsg?: sync.IRichLogootSOperationMsg;
 
         /** SyncMsg querySync */
-        querySync?: sync.IQuerySync;
+        querySync?: sync.IQuerySyncMsg;
 
         /** SyncMsg replySync */
         replySync?: sync.IReplySync;
@@ -29,7 +29,7 @@ export namespace sync {
         public richLogootSOpMsg?: (sync.IRichLogootSOperationMsg|null);
 
         /** SyncMsg querySync. */
-        public querySync?: (sync.IQuerySync|null);
+        public querySync?: (sync.IQuerySyncMsg|null);
 
         /** SyncMsg replySync. */
         public replySync?: (sync.IReplySync|null);
@@ -333,49 +333,49 @@ export namespace sync {
         public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): sync.IdentifierIntervalMsg;
     }
 
-    /** Properties of a QuerySync. */
-    interface IQuerySync {
+    /** Properties of a QuerySyncMsg. */
+    interface IQuerySyncMsg {
 
-        /** QuerySync vector */
+        /** QuerySyncMsg vector */
         vector?: { [k: string]: number };
     }
 
-    /** Represents a QuerySync. */
-    class QuerySync {
+    /** Represents a QuerySyncMsg. */
+    class QuerySyncMsg {
 
         /**
-         * Constructs a new QuerySync.
+         * Constructs a new QuerySyncMsg.
          * @param [properties] Properties to set
          */
-        constructor(properties?: sync.IQuerySync);
+        constructor(properties?: sync.IQuerySyncMsg);
 
-        /** QuerySync vector. */
+        /** QuerySyncMsg vector. */
         public vector: { [k: string]: number };
 
         /**
-         * Creates a new QuerySync instance using the specified properties.
+         * Creates a new QuerySyncMsg instance using the specified properties.
          * @param [properties] Properties to set
-         * @returns QuerySync instance
+         * @returns QuerySyncMsg instance
          */
-        public static create(properties?: sync.IQuerySync): sync.QuerySync;
+        public static create(properties?: sync.IQuerySyncMsg): sync.QuerySyncMsg;
 
         /**
-         * Encodes the specified QuerySync message. Does not implicitly {@link sync.QuerySync.verify|verify} messages.
-         * @param message QuerySync message or plain object to encode
+         * Encodes the specified QuerySyncMsg message. Does not implicitly {@link sync.QuerySyncMsg.verify|verify} messages.
+         * @param message QuerySyncMsg message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: sync.IQuerySync, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: sync.IQuerySyncMsg, writer?: $protobuf.Writer): $protobuf.Writer;
 
         /**
-         * Decodes a QuerySync message from the specified reader or buffer.
+         * Decodes a QuerySyncMsg message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
          * @param [length] Message length if known beforehand
-         * @returns QuerySync
+         * @returns QuerySyncMsg
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): sync.QuerySync;
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): sync.QuerySyncMsg;
     }
 
     /** Properties of a ReplySync. */
