@@ -13,7 +13,7 @@ export namespace sync {
         querySync?: sync.IQuerySyncMsg;
 
         /** SyncMsg replySync */
-        replySync?: sync.IReplySync;
+        replySync?: sync.IReplySyncMsg;
     }
 
     /** Represents a SyncMsg. */
@@ -32,7 +32,7 @@ export namespace sync {
         public querySync?: (sync.IQuerySyncMsg|null);
 
         /** SyncMsg replySync. */
-        public replySync?: (sync.IReplySync|null);
+        public replySync?: (sync.IReplySyncMsg|null);
 
         /** SyncMsg type. */
         public type?: string;
@@ -378,55 +378,55 @@ export namespace sync {
         public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): sync.QuerySyncMsg;
     }
 
-    /** Properties of a ReplySync. */
-    interface IReplySync {
+    /** Properties of a ReplySyncMsg. */
+    interface IReplySyncMsg {
 
-        /** ReplySync richLogootSOpsMsg */
+        /** ReplySyncMsg richLogootSOpsMsg */
         richLogootSOpsMsg?: sync.IRichLogootSOperationMsg[];
 
-        /** ReplySync intervals */
+        /** ReplySyncMsg intervals */
         intervals?: sync.IIntervalMsg[];
     }
 
-    /** Represents a ReplySync. */
-    class ReplySync {
+    /** Represents a ReplySyncMsg. */
+    class ReplySyncMsg {
 
         /**
-         * Constructs a new ReplySync.
+         * Constructs a new ReplySyncMsg.
          * @param [properties] Properties to set
          */
-        constructor(properties?: sync.IReplySync);
+        constructor(properties?: sync.IReplySyncMsg);
 
-        /** ReplySync richLogootSOpsMsg. */
+        /** ReplySyncMsg richLogootSOpsMsg. */
         public richLogootSOpsMsg: sync.IRichLogootSOperationMsg[];
 
-        /** ReplySync intervals. */
+        /** ReplySyncMsg intervals. */
         public intervals: sync.IIntervalMsg[];
 
         /**
-         * Creates a new ReplySync instance using the specified properties.
+         * Creates a new ReplySyncMsg instance using the specified properties.
          * @param [properties] Properties to set
-         * @returns ReplySync instance
+         * @returns ReplySyncMsg instance
          */
-        public static create(properties?: sync.IReplySync): sync.ReplySync;
+        public static create(properties?: sync.IReplySyncMsg): sync.ReplySyncMsg;
 
         /**
-         * Encodes the specified ReplySync message. Does not implicitly {@link sync.ReplySync.verify|verify} messages.
-         * @param message ReplySync message or plain object to encode
+         * Encodes the specified ReplySyncMsg message. Does not implicitly {@link sync.ReplySyncMsg.verify|verify} messages.
+         * @param message ReplySyncMsg message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: sync.IReplySync, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: sync.IReplySyncMsg, writer?: $protobuf.Writer): $protobuf.Writer;
 
         /**
-         * Decodes a ReplySync message from the specified reader or buffer.
+         * Decodes a ReplySyncMsg message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
          * @param [length] Message length if known beforehand
-         * @returns ReplySync
+         * @returns ReplySyncMsg
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): sync.ReplySync;
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): sync.ReplySyncMsg;
     }
 
     /** Properties of an IntervalMsg. */

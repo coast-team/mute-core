@@ -5,7 +5,7 @@ message SyncMsg {
   oneof type {
     RichLogootSOperationMsg richLogootSOpMsg = 1;
     QuerySyncMsg querySync = 2;
-    ReplySync replySync = 3;
+    ReplySyncMsg replySync = 3;
   }
 }
 
@@ -42,7 +42,7 @@ message QuerySyncMsg {
   map<int32, int32> vector = 1;
 }
 
-message ReplySync {
+message ReplySyncMsg {
   repeated RichLogootSOperationMsg richLogootSOpsMsg = 1;
   repeated IntervalMsg intervals = 2;
 }

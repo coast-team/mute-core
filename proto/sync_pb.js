@@ -26,7 +26,7 @@ $root.sync = (function() {
          * @interface ISyncMsg
          * @property {sync.IRichLogootSOperationMsg} [richLogootSOpMsg] SyncMsg richLogootSOpMsg
          * @property {sync.IQuerySyncMsg} [querySync] SyncMsg querySync
-         * @property {sync.IReplySync} [replySync] SyncMsg replySync
+         * @property {sync.IReplySyncMsg} [replySync] SyncMsg replySync
          */
 
         /**
@@ -61,7 +61,7 @@ $root.sync = (function() {
 
         /**
          * SyncMsg replySync.
-         * @member {(sync.IReplySync|null|undefined)}replySync
+         * @member {(sync.IReplySyncMsg|null|undefined)}replySync
          * @memberof sync.SyncMsg
          * @instance
          */
@@ -110,7 +110,7 @@ $root.sync = (function() {
             if (message.querySync != null && message.hasOwnProperty("querySync"))
                 $root.sync.QuerySyncMsg.encode(message.querySync, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
             if (message.replySync != null && message.hasOwnProperty("replySync"))
-                $root.sync.ReplySync.encode(message.replySync, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                $root.sync.ReplySyncMsg.encode(message.replySync, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
             return writer;
         };
 
@@ -139,7 +139,7 @@ $root.sync = (function() {
                     message.querySync = $root.sync.QuerySyncMsg.decode(reader, reader.uint32());
                     break;
                 case 3:
-                    message.replySync = $root.sync.ReplySync.decode(reader, reader.uint32());
+                    message.replySync = $root.sync.ReplySyncMsg.decode(reader, reader.uint32());
                     break;
                 default:
                     reader.skipType(tag & 7);
@@ -851,24 +851,24 @@ $root.sync = (function() {
         return QuerySyncMsg;
     })();
 
-    sync.ReplySync = (function() {
+    sync.ReplySyncMsg = (function() {
 
         /**
-         * Properties of a ReplySync.
+         * Properties of a ReplySyncMsg.
          * @memberof sync
-         * @interface IReplySync
-         * @property {Array.<sync.IRichLogootSOperationMsg>} [richLogootSOpsMsg] ReplySync richLogootSOpsMsg
-         * @property {Array.<sync.IIntervalMsg>} [intervals] ReplySync intervals
+         * @interface IReplySyncMsg
+         * @property {Array.<sync.IRichLogootSOperationMsg>} [richLogootSOpsMsg] ReplySyncMsg richLogootSOpsMsg
+         * @property {Array.<sync.IIntervalMsg>} [intervals] ReplySyncMsg intervals
          */
 
         /**
-         * Constructs a new ReplySync.
+         * Constructs a new ReplySyncMsg.
          * @memberof sync
-         * @classdesc Represents a ReplySync.
+         * @classdesc Represents a ReplySyncMsg.
          * @constructor
-         * @param {sync.IReplySync=} [properties] Properties to set
+         * @param {sync.IReplySyncMsg=} [properties] Properties to set
          */
-        function ReplySync(properties) {
+        function ReplySyncMsg(properties) {
             this.richLogootSOpsMsg = [];
             this.intervals = [];
             if (properties)
@@ -878,43 +878,43 @@ $root.sync = (function() {
         }
 
         /**
-         * ReplySync richLogootSOpsMsg.
+         * ReplySyncMsg richLogootSOpsMsg.
          * @member {Array.<sync.IRichLogootSOperationMsg>}richLogootSOpsMsg
-         * @memberof sync.ReplySync
+         * @memberof sync.ReplySyncMsg
          * @instance
          */
-        ReplySync.prototype.richLogootSOpsMsg = $util.emptyArray;
+        ReplySyncMsg.prototype.richLogootSOpsMsg = $util.emptyArray;
 
         /**
-         * ReplySync intervals.
+         * ReplySyncMsg intervals.
          * @member {Array.<sync.IIntervalMsg>}intervals
-         * @memberof sync.ReplySync
+         * @memberof sync.ReplySyncMsg
          * @instance
          */
-        ReplySync.prototype.intervals = $util.emptyArray;
+        ReplySyncMsg.prototype.intervals = $util.emptyArray;
 
         /**
-         * Creates a new ReplySync instance using the specified properties.
+         * Creates a new ReplySyncMsg instance using the specified properties.
          * @function create
-         * @memberof sync.ReplySync
+         * @memberof sync.ReplySyncMsg
          * @static
-         * @param {sync.IReplySync=} [properties] Properties to set
-         * @returns {sync.ReplySync} ReplySync instance
+         * @param {sync.IReplySyncMsg=} [properties] Properties to set
+         * @returns {sync.ReplySyncMsg} ReplySyncMsg instance
          */
-        ReplySync.create = function create(properties) {
-            return new ReplySync(properties);
+        ReplySyncMsg.create = function create(properties) {
+            return new ReplySyncMsg(properties);
         };
 
         /**
-         * Encodes the specified ReplySync message. Does not implicitly {@link sync.ReplySync.verify|verify} messages.
+         * Encodes the specified ReplySyncMsg message. Does not implicitly {@link sync.ReplySyncMsg.verify|verify} messages.
          * @function encode
-         * @memberof sync.ReplySync
+         * @memberof sync.ReplySyncMsg
          * @static
-         * @param {sync.IReplySync} message ReplySync message or plain object to encode
+         * @param {sync.IReplySyncMsg} message ReplySyncMsg message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        ReplySync.encode = function encode(message, writer) {
+        ReplySyncMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
             if (message.richLogootSOpsMsg != null && message.richLogootSOpsMsg.length)
@@ -927,20 +927,20 @@ $root.sync = (function() {
         };
 
         /**
-         * Decodes a ReplySync message from the specified reader or buffer.
+         * Decodes a ReplySyncMsg message from the specified reader or buffer.
          * @function decode
-         * @memberof sync.ReplySync
+         * @memberof sync.ReplySyncMsg
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {sync.ReplySync} ReplySync
+         * @returns {sync.ReplySyncMsg} ReplySyncMsg
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        ReplySync.decode = function decode(reader, length) {
+        ReplySyncMsg.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.ReplySync();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.ReplySyncMsg();
             while (reader.pos < end) {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
@@ -962,7 +962,7 @@ $root.sync = (function() {
             return message;
         };
 
-        return ReplySync;
+        return ReplySyncMsg;
     })();
 
     sync.IntervalMsg = (function() {

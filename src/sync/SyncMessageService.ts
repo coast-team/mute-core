@@ -64,7 +64,7 @@ export class SyncMessageService implements Disposable, MessageEmitter {
             this.handleQuerySyncMsg(content.querySync as sync.QuerySyncMsg)
             break
           case 'replySync':
-            this.handleReplySyncMsg(content.replySync as sync.ReplySync)
+            this.handleReplySyncMsg(content.replySync as sync.ReplySyncMsg)
             break
         }
       })
@@ -152,7 +152,7 @@ export class SyncMessageService implements Disposable, MessageEmitter {
     this.remoteQuerySyncSubject.next(vector)
   }
 
-  handleReplySyncMsg (content: sync.ReplySync): void {
+  handleReplySyncMsg (content: sync.ReplySyncMsg): void {
     const richLogootSOpsList = content.richLogootSOpsMsg
     const richLogootSOps: RichLogootSOperation[] = richLogootSOpsList.map((richLogootSOpMsg) => {
       return this.deserializeRichLogootSOperation(richLogootSOpMsg as sync.RichLogootSOperationMsg)
@@ -215,7 +215,7 @@ export class SyncMessageService implements Disposable, MessageEmitter {
   }
 
   generateReplySyncMsg (richLogootSOps: RichLogootSOperation[], intervals: Interval[]): Uint8Array {
-    const replySyncMsg = sync.ReplySync.create()
+    const replySyncMsg = sync.ReplySyncMsg.create()
 
     replySyncMsg.richLogootSOpsMsg = (richLogootSOps.map((richLogootSOp: RichLogootSOperation) => {
       return this.serializeRichLogootSOperation(richLogootSOp)
