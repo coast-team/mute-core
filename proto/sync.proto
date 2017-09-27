@@ -1,3 +1,4 @@
+package sync;
 syntax = "proto3";
 
 message Sync {
