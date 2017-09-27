@@ -177,10 +177,10 @@ export class SyncMessageService implements Disposable, MessageEmitter {
     let richLogootSOperationMsg = RichLogootSOperationMsg.create({ id: richLogootSOp.id, clock: richLogootSOp.clock})
     const logootSOp: LogootSOperation = richLogootSOp.logootSOp
     if (logootSOp instanceof LogootSDel) {
-      richLogootSOperationMsg.logootSDelMsg = this.generateLogootSDelMsg(logootSOp)
+      richLogootSOperationMsg.logootSDelMsg = LogootSDelMsg.create(logootSOp)
     }
     else if (logootSOp instanceof LogootSAdd) {
-      richLogootSOperationMsg.logootSAddMsg = this.generateLogootSAddMsg(logootSOp)
+      richLogootSOperationMsg.logootSAddMsg = LogootSAddMsg.create(logootSOp)
     }
 
     return richLogootSOperationMsg
@@ -200,28 +200,6 @@ export class SyncMessageService implements Disposable, MessageEmitter {
     }
 
     return new RichLogootSOperation(id, clock, logootSOp)
-  }
-
-  generateLogootSAddMsg (logootSAdd: LogootSAdd): LogootSAddMsg {
-    const identifier = IdentifierMsg.create({base: logootSAdd.id.base, last: logootSAdd.id.last})
-    return LogootSAddMsg.create({id: identifier, content: logootSAdd.content})
-  }
-
-  generateLogootSDelMsg (logootSDel: LogootSDel): LogootSDelMsg {
-    const lid: IdentifierIntervalMsg[] =
-      logootSDel.lid
-        .map( (idInterval: IdentifierInterval) => {
-          const identifierInterval: IdentifierIntervalMsg =
-            this.generateIdentifierIntervalMsg(idInterval)
-          return identifierInterval
-        })
-    const logootSDelMsg = LogootSDelMsg.create({lid})
-    return logootSDelMsg
-  }
-
-  generateIdentifierIntervalMsg (id: IdentifierInterval): IdentifierIntervalMsg {
-    const identifierIntervalMsg = IdentifierIntervalMsg.create({base: id.base, begin: id.begin, end: id.end})
-    return identifierIntervalMsg
   }
 
   generateQuerySyncMsg (vector: StateVector): Uint8Array {
