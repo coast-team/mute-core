@@ -54,7 +54,7 @@ export class SyncMessageService implements Disposable, MessageEmitter {
       .takeUntil(this.onDispose)
       .filter((msg: NetworkMessage) => msg.service === SyncMessageService.ID)
       .subscribe((msg: NetworkMessage) => {
-        const content = sync.Sync.decode(msg.content)
+        const content = sync.SyncMsg.decode(msg.content)
         switch (content.type) {
           case 'richLogootSOpMsg':
             this.handleRichLogootSOpMsg(content.richLogootSOpMsg as sync.RichLogootSOperationMsg)
@@ -168,8 +168,8 @@ export class SyncMessageService implements Disposable, MessageEmitter {
 
   generateRichLogootSOpMsg (richLogootSOp: RichLogootSOperation): Uint8Array {
     const richLogootSOperationMsg = this.serializeRichLogootSOperation(richLogootSOp)
-    const msg = sync.Sync.create({richLogootSOpMsg: richLogootSOperationMsg})
-    return sync.Sync.encode(msg).finish()
+    const msg = sync.SyncMsg.create({richLogootSOpMsg: richLogootSOperationMsg})
+    return sync.SyncMsg.encode(msg).finish()
   }
 
   // TODO: Watch this function
@@ -209,9 +209,9 @@ export class SyncMessageService implements Disposable, MessageEmitter {
       querySyncMsg.vector[id] = clock
     })
 
-    const msg = sync.Sync.create({querySync: querySyncMsg})
+    const msg = sync.SyncMsg.create({querySync: querySyncMsg})
 
-    return sync.Sync.encode(msg).finish()
+    return sync.SyncMsg.encode(msg).finish()
   }
 
   generateReplySyncMsg (richLogootSOps: RichLogootSOperation[], intervals: Interval[]): Uint8Array {
@@ -227,9 +227,9 @@ export class SyncMessageService implements Disposable, MessageEmitter {
     })
     replySyncMsg.intervals = intervalsMsg
 
-    const msg = sync.Sync.create({replySync: replySyncMsg})
+    const msg = sync.SyncMsg.create({replySync: replySyncMsg})
 
-    return sync.Sync.encode(msg).finish()
+    return sync.SyncMsg.encode(msg).finish()
   }
 
 }

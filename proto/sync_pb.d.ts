@@ -3,64 +3,64 @@ import * as $protobuf from "protobufjs";
 /** Namespace sync. */
 export namespace sync {
 
-    /** Properties of a Sync. */
-    interface ISync {
+    /** Properties of a SyncMsg. */
+    interface ISyncMsg {
 
-        /** Sync richLogootSOpMsg */
+        /** SyncMsg richLogootSOpMsg */
         richLogootSOpMsg?: sync.IRichLogootSOperationMsg;
 
-        /** Sync querySync */
+        /** SyncMsg querySync */
         querySync?: sync.IQuerySync;
 
-        /** Sync replySync */
+        /** SyncMsg replySync */
         replySync?: sync.IReplySync;
     }
 
-    /** Represents a Sync. */
-    class Sync {
+    /** Represents a SyncMsg. */
+    class SyncMsg {
 
         /**
-         * Constructs a new Sync.
+         * Constructs a new SyncMsg.
          * @param [properties] Properties to set
          */
-        constructor(properties?: sync.ISync);
+        constructor(properties?: sync.ISyncMsg);
 
-        /** Sync richLogootSOpMsg. */
+        /** SyncMsg richLogootSOpMsg. */
         public richLogootSOpMsg?: (sync.IRichLogootSOperationMsg|null);
 
-        /** Sync querySync. */
+        /** SyncMsg querySync. */
         public querySync?: (sync.IQuerySync|null);
 
-        /** Sync replySync. */
+        /** SyncMsg replySync. */
         public replySync?: (sync.IReplySync|null);
 
-        /** Sync type. */
+        /** SyncMsg type. */
         public type?: string;
 
         /**
-         * Creates a new Sync instance using the specified properties.
+         * Creates a new SyncMsg instance using the specified properties.
          * @param [properties] Properties to set
-         * @returns Sync instance
+         * @returns SyncMsg instance
          */
-        public static create(properties?: sync.ISync): sync.Sync;
+        public static create(properties?: sync.ISyncMsg): sync.SyncMsg;
 
         /**
-         * Encodes the specified Sync message. Does not implicitly {@link sync.Sync.verify|verify} messages.
-         * @param message Sync message or plain object to encode
+         * Encodes the specified SyncMsg message. Does not implicitly {@link sync.SyncMsg.verify|verify} messages.
+         * @param message SyncMsg message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: sync.ISync, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: sync.ISyncMsg, writer?: $protobuf.Writer): $protobuf.Writer;
 
         /**
-         * Decodes a Sync message from the specified reader or buffer.
+         * Decodes a SyncMsg message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
          * @param [length] Message length if known beforehand
-         * @returns Sync
+         * @returns SyncMsg
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): sync.Sync;
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): sync.SyncMsg;
     }
 
     /** Properties of a RichLogootSOperationMsg. */

@@ -18,25 +18,25 @@ $root.sync = (function() {
      */
     var sync = {};
 
-    sync.Sync = (function() {
+    sync.SyncMsg = (function() {
 
         /**
-         * Properties of a Sync.
+         * Properties of a SyncMsg.
          * @memberof sync
-         * @interface ISync
-         * @property {sync.IRichLogootSOperationMsg} [richLogootSOpMsg] Sync richLogootSOpMsg
-         * @property {sync.IQuerySync} [querySync] Sync querySync
-         * @property {sync.IReplySync} [replySync] Sync replySync
+         * @interface ISyncMsg
+         * @property {sync.IRichLogootSOperationMsg} [richLogootSOpMsg] SyncMsg richLogootSOpMsg
+         * @property {sync.IQuerySync} [querySync] SyncMsg querySync
+         * @property {sync.IReplySync} [replySync] SyncMsg replySync
          */
 
         /**
-         * Constructs a new Sync.
+         * Constructs a new SyncMsg.
          * @memberof sync
-         * @classdesc Represents a Sync.
+         * @classdesc Represents a SyncMsg.
          * @constructor
-         * @param {sync.ISync=} [properties] Properties to set
+         * @param {sync.ISyncMsg=} [properties] Properties to set
          */
-        function Sync(properties) {
+        function SyncMsg(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -44,65 +44,65 @@ $root.sync = (function() {
         }
 
         /**
-         * Sync richLogootSOpMsg.
+         * SyncMsg richLogootSOpMsg.
          * @member {(sync.IRichLogootSOperationMsg|null|undefined)}richLogootSOpMsg
-         * @memberof sync.Sync
+         * @memberof sync.SyncMsg
          * @instance
          */
-        Sync.prototype.richLogootSOpMsg = null;
+        SyncMsg.prototype.richLogootSOpMsg = null;
 
         /**
-         * Sync querySync.
+         * SyncMsg querySync.
          * @member {(sync.IQuerySync|null|undefined)}querySync
-         * @memberof sync.Sync
+         * @memberof sync.SyncMsg
          * @instance
          */
-        Sync.prototype.querySync = null;
+        SyncMsg.prototype.querySync = null;
 
         /**
-         * Sync replySync.
+         * SyncMsg replySync.
          * @member {(sync.IReplySync|null|undefined)}replySync
-         * @memberof sync.Sync
+         * @memberof sync.SyncMsg
          * @instance
          */
-        Sync.prototype.replySync = null;
+        SyncMsg.prototype.replySync = null;
 
         // OneOf field names bound to virtual getters and setters
         var $oneOfFields;
 
         /**
-         * Sync type.
+         * SyncMsg type.
          * @member {string|undefined} type
-         * @memberof sync.Sync
+         * @memberof sync.SyncMsg
          * @instance
          */
-        Object.defineProperty(Sync.prototype, "type", {
+        Object.defineProperty(SyncMsg.prototype, "type", {
             get: $util.oneOfGetter($oneOfFields = ["richLogootSOpMsg", "querySync", "replySync"]),
             set: $util.oneOfSetter($oneOfFields)
         });
 
         /**
-         * Creates a new Sync instance using the specified properties.
+         * Creates a new SyncMsg instance using the specified properties.
          * @function create
-         * @memberof sync.Sync
+         * @memberof sync.SyncMsg
          * @static
-         * @param {sync.ISync=} [properties] Properties to set
-         * @returns {sync.Sync} Sync instance
+         * @param {sync.ISyncMsg=} [properties] Properties to set
+         * @returns {sync.SyncMsg} SyncMsg instance
          */
-        Sync.create = function create(properties) {
-            return new Sync(properties);
+        SyncMsg.create = function create(properties) {
+            return new SyncMsg(properties);
         };
 
         /**
-         * Encodes the specified Sync message. Does not implicitly {@link sync.Sync.verify|verify} messages.
+         * Encodes the specified SyncMsg message. Does not implicitly {@link sync.SyncMsg.verify|verify} messages.
          * @function encode
-         * @memberof sync.Sync
+         * @memberof sync.SyncMsg
          * @static
-         * @param {sync.ISync} message Sync message or plain object to encode
+         * @param {sync.ISyncMsg} message SyncMsg message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        Sync.encode = function encode(message, writer) {
+        SyncMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
             if (message.richLogootSOpMsg != null && message.hasOwnProperty("richLogootSOpMsg"))
@@ -115,20 +115,20 @@ $root.sync = (function() {
         };
 
         /**
-         * Decodes a Sync message from the specified reader or buffer.
+         * Decodes a SyncMsg message from the specified reader or buffer.
          * @function decode
-         * @memberof sync.Sync
+         * @memberof sync.SyncMsg
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {sync.Sync} Sync
+         * @returns {sync.SyncMsg} SyncMsg
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Sync.decode = function decode(reader, length) {
+        SyncMsg.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Sync();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.SyncMsg();
             while (reader.pos < end) {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
@@ -149,7 +149,7 @@ $root.sync = (function() {
             return message;
         };
 
-        return Sync;
+        return SyncMsg;
     })();
 
     sync.RichLogootSOperationMsg = (function() {
