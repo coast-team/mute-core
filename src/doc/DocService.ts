@@ -121,9 +121,8 @@ export class DocService implements Disposable {
   positionFromIndex (index: number): Position | null {
     const respIntnode = this.doc.searchNode(index)
     if (respIntnode !== null) {
-      const base = respIntnode.node.block.idInterval.base
-      const last = respIntnode.node.actualBegin + respIntnode.i
-      const id = new Identifier(base, last)
+      const offset = respIntnode.node.actualBegin + respIntnode.i
+      const id = Identifier.generateWithSameBase(respIntnode.node.getIdBegin(), offset)
       return {
         id,
         index: respIntnode.i,
