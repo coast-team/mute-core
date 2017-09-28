@@ -24,8 +24,14 @@ message LogootSAddMsg {
 }
 
 message IdentifierMsg {
-  repeated int32 base = 1;
-  int32 last = 2;
+  repeated IdentifierTupleMsg tuples = 1;
+}
+
+message IdentifierTupleMsg {
+  int32 random = 1;
+  int32 replicaNumber = 2;
+  int32 clock = 3;
+  int32 offset = 4;
 }
 
 message LogootSDelMsg {
@@ -33,9 +39,8 @@ message LogootSDelMsg {
 }
 
 message IdentifierIntervalMsg {
-  repeated int32 base = 1;
-  int32 begin = 2;
-  int32 end = 3;
+  IdentifierMsg idBegin = 1;
+  int32 end = 2;
 }
 
 message QuerySyncMsg {
