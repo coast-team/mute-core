@@ -1,4 +1,6 @@
-import { Observable, Subject } from 'rxjs'
+import { Subject } from 'rxjs/Subject'
+import { Observable } from 'rxjs/Observable'
+import { takeUntil, debounceTime } from 'rxjs/operators'
 import {
   LogootSOperation,
   LogootSRopes,
@@ -37,9 +39,10 @@ export class DocService implements Disposable {
     this.remoteTextOperationsSubject = new Subject()
     this.updateSubject = new Subject()
 
-    this.updateSubject
-      .takeUntil(this.disposeSubject)
-      .debounceTime(1000)
+    this.updateSubject.pipe(
+      takeUntil(this.disposeSubject),
+      debounceTime(1000)
+    )
       .subscribe(() => {
         this.docTreeSubject.next(JSON.stringify(this.doc))
         this.docDigestSubject.next(this.doc.digest())
@@ -47,16 +50,14 @@ export class DocService implements Disposable {
   }
 
   set initSource (source: Observable<string>) {
-    source
-      .takeUntil(this.disposeSubject)
+    source.pipe(takeUntil(this.disposeSubject))
       .subscribe( (key: string) => {
         this.docID = key
       })
   }
 
   set localTextOperationsSource (source: Observable<TextOperation[]>) {
-    source
-      .takeUntil(this.disposeSubject)
+    source.pipe(takeUntil(this.disposeSubject))
       .subscribe((textOperations: TextOperation[]) => {
         this.handleTextOperations(textOperations)
         this.updateSubject.next()
@@ -64,8 +65,7 @@ export class DocService implements Disposable {
   }
 
   set remoteLogootSOperationSource (source: Observable<LogootSOperation[]>) {
-    source
-      .takeUntil(this.disposeSubject)
+    source.pipe(takeUntil(this.disposeSubject))
       .subscribe((logootSOps: LogootSOperation[]) => {
         const remoteTextOps: TextOperation[] =
           logootSOps

@@ -4,7 +4,10 @@ import {
   LogootSAdd,
   LogootSDel,
   LogootSOperation } from 'mute-structs'
-import { Observable, Subject } from 'rxjs'
+import { Subject } from 'rxjs/Subject'
+import { Observable } from 'rxjs/Observable'
+import { zip } from 'rxjs/observable/zip'
+import { takeUntil, filter } from 'rxjs/operators'
 
 import { Disposable } from '../Disposable'
 import { Interval } from './Interval'
@@ -40,8 +43,7 @@ export class SyncMessageService implements Disposable, MessageEmitter {
   }
 
   set localRichLogootSOperationSource (source: Observable<RichLogootSOperation>) {
-    source
-      .takeUntil(this.onDispose)
+    source.pipe(takeUntil(this.onDispose))
       .subscribe((richLogootSOp: RichLogootSOperation) => {
         const richLogootSOpMsg = this.generateRichLogootSOpMsg(richLogootSOp)
         const msg: BroadcastMessage = new BroadcastMessage(SyncMessageService.ID, richLogootSOpMsg)
@@ -50,9 +52,10 @@ export class SyncMessageService implements Disposable, MessageEmitter {
   }
 
   set messageSource (source: Observable<NetworkMessage>) {
-    source
-      .takeUntil(this.onDispose)
-      .filter((msg: NetworkMessage) => msg.service === SyncMessageService.ID)
+    source.pipe(
+      takeUntil(this.onDispose),
+      filter((msg: NetworkMessage) => msg.service === SyncMessageService.ID)
+    )
       .subscribe((msg: NetworkMessage) => {
         const content = sync.SyncMsg.decode(msg.content)
         switch (content.type) {
@@ -71,8 +74,7 @@ export class SyncMessageService implements Disposable, MessageEmitter {
   }
 
   set querySyncSource (source: Observable<StateVector>) {
-    source
-      .takeUntil(this.onDispose)
+    source.pipe(takeUntil(this.onDispose))      
       .subscribe((vector: StateVector) => {
         const querySyncMsg = this.generateQuerySyncMsg(vector)
         const msg: SendRandomlyMessage = new SendRandomlyMessage(SyncMessageService.ID, querySyncMsg)
@@ -81,18 +83,17 @@ export class SyncMessageService implements Disposable, MessageEmitter {
   }
 
   set replySyncSource (source: Observable<ReplySyncEvent>) {
-    Observable.zip(
+    zip(
       source,
       this.remoteQuerySyncIdSubject.asObservable(),
       (replySyncEvent: ReplySyncEvent, id: number) => {
         return { id, replySyncEvent }
-      })
-      .takeUntil(this.onDispose)
-      .subscribe(({ id, replySyncEvent}: { id: number, replySyncEvent: ReplySyncEvent }) => {
-        const replySyncMsg = this.generateReplySyncMsg(replySyncEvent.richLogootSOps, replySyncEvent.intervals)
-        const msg: SendToMessage = new SendToMessage(SyncMessageService.ID, id, replySyncMsg)
-        this.msgToSendToSubject.next(msg)
-      })
+      }).pipe(takeUntil(this.onDispose))
+        .subscribe(({ id, replySyncEvent}: { id: number, replySyncEvent: ReplySyncEvent }) => {
+          const replySyncMsg = this.generateReplySyncMsg(replySyncEvent.richLogootSOps, replySyncEvent.intervals)
+          const msg: SendToMessage = new SendToMessage(SyncMessageService.ID, id, replySyncMsg)
+          this.msgToSendToSubject.next(msg)
+        })
   }
 
   get onDispose(): Observable<void> {

@@ -1,4 +1,4 @@
-import { Observable, Observer } from 'rxjs'
+import { Observable } from 'rxjs/Observable'
 
 import { BroadcastMessage } from './BroadcastMessage'
 import { SendRandomlyMessage } from './SendRandomlyMessage'

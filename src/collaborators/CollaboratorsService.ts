@@ -1,4 +1,6 @@
-import { Observable, Subject } from 'rxjs'
+import { Observable } from 'rxjs/Observable'
+import { Subject } from 'rxjs/Subject'
+import { filter, takeUntil } from 'rxjs/operators'
 
 import { BroadcastMessage, SendRandomlyMessage, SendToMessage, MessageEmitter, NetworkMessage } from '../network/'
 import { Collaborator } from './Collaborator'
@@ -59,9 +61,10 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
   set leaveSource (source: Observable<void>) {}
 
   set messageSource (source: Observable<NetworkMessage>) {
-    source
-      .takeUntil(this.disposeSubject)
-      .filter((msg: NetworkMessage) => msg.service === CollaboratorsService.ID)
+    source.pipe(
+      takeUntil(this.disposeSubject),
+      filter((msg: NetworkMessage) => msg.service === CollaboratorsService.ID)
+    )
       .subscribe((msg: NetworkMessage) => {
         const collabMsg = CollaboratorMsg.decode(msg.content)
         const id: number = msg.id
@@ -71,8 +74,7 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
   }
 
   set peerJoinSource (source: Observable<number>) {
-    source
-      .takeUntil(this.disposeSubject)
+    source.pipe(takeUntil(this.disposeSubject))
       .subscribe((id: number) => {
         this.emitPseudo(this.pseudonym, id)
         const newCollaborator = new Collaborator(id, CollaboratorsService.DEFAULT_PSEUDO)
@@ -81,16 +83,14 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
   }
 
   set peerLeaveSource (source: Observable<number>) {
-    source
-      .takeUntil(this.disposeSubject)
+    source.pipe(takeUntil(this.disposeSubject))
       .subscribe((id: number) => {
         this.collaboratorLeaveSubject.next(id)
       })
   }
 
   set pseudoSource (source: Observable<String>) {
-    source
-      .takeUntil(this.disposeSubject)
+    source.pipe(takeUntil(this.disposeSubject))
       .subscribe((pseudo: string) => {
         this.pseudonym = pseudo
         this.emitPseudo(pseudo)

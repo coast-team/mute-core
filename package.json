@@ -7,15 +7,15 @@
   "dependencies": {
     "mute-structs": "^0.3.3",
     "protobufjs": "^6.8.0",
-    "rxjs": "^5.4.3",
-    "safe-any": "^1.0.0"
+    "rxjs": "^5.5.2",
+    "safe-any": "^1.0.2"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/coast-team/mute-core"
   },
   "devDependencies": {
-    "@types/node": "^8.0.28",
+    "@types/node": "^8.0.50",
     "ava": "^0.22.0",
     "tslint": "^3.15.1",
     "typescript": "^2.5.2"

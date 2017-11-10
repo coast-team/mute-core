@@ -1,4 +1,6 @@
-import { Observable, Subject } from 'rxjs'
+import { Subject } from 'rxjs/Subject'
+import { Observable } from 'rxjs/Observable'
+import { merge } from 'rxjs/observable/merge'
 import { CollaboratorsService } from './collaborators/'
 import { Disposable } from './Disposable'
 import { DocService } from './doc/'
@@ -46,21 +48,21 @@ export class MuteCore implements Disposable, MessageEmitter {
   }
 
   get onMsgToBroadcast (): Observable<BroadcastMessage> {
-    return Observable.merge(
+    return merge(
       this.collaboratorsService.onMsgToBroadcast,
       this.syncMessageService.onMsgToBroadcast
     )
   }
 
   get onMsgToSendRandomly (): Observable<SendRandomlyMessage> {
-    return Observable.merge(
+    return merge(
       this.collaboratorsService.onMsgToSendRandomly,
       this.syncMessageService.onMsgToSendRandomly
     )
   }
 
   get onMsgToSendTo (): Observable<SendToMessage> {
-    return Observable.merge(
+    return merge(
       this.collaboratorsService.onMsgToSendTo,
       this.syncMessageService.onMsgToSendTo
     )
