@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@types/node": "^8.0.51",
-    "ava": "^0.22.0",
+    "ava": "^0.23.0",
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "tslint": "^5.8.0",
