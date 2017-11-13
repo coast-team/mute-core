@@ -32,8 +32,8 @@
     "postbuildesm": "mkdir dist/esm/proto && npm run --silent protobasicconf -- -w es6 | babel -o dist/esm/proto/index.js",
     "check": "tsc --noEmit",
     "lint": "tslint --project tsconfig.json",
-    "test:unit": "npm run build && ava",
-    "test": "npm run test:unit --",
+    "pretest": "rm -rf .ava && tsc -p tsconfig.ava.json && mkdir .ava/src/proto && npm run protobasicconf -- -w commonjs -o .ava/src/proto/index.js",
+    "test": "ava",
     "protobasicconf": "pbjs -t static-module --no-verify --no-delimited --no-convert src/proto/index.proto",
     "proto": "npm run protobasicconf -- -w es6 -o src/proto/index.js",
     "postproto": "pbts -o src/proto/index.d.ts src/proto/index.js"
@@ -55,7 +55,7 @@
   },
   "ava": {
     "files": [
-      "dist/test/**/*.test.js"
+      ".ava/test/**/*.test.js"
     ],
     "source": [
       "test"

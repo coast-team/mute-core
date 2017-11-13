@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "lib": ["dom", "es2015", "es2016"],
+    "outDir": ".ava",
+    "sourceMap": true,
+    "target": "ES5",
+    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "pretty": true
+  },
+  "include": [
+    "test/**/*"
+  ]
+}
