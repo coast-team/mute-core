@@ -1,5 +1,6 @@
-package sync;
 syntax = "proto3";
+
+package sync;
 
 message SyncMsg {
   oneof type {
