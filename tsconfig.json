@@ -1,21 +1,20 @@
 {
   "compilerOptions": {
-    "allowJs": false,
     "declaration": true,
-    "lib": ["dom", "es6"],
-    "module": "commonjs",
-    "noEmitHelpers": false,
+    "declarationDir": "dist/types",
+    "lib": ["dom", "es2015", "es2016"],
     "sourceMap": true,
     "target": "ES5",
-
-    "outDir": "./dist",
-
+    "moduleResolution": "node",
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny" : false,
     "noImplicitReturns": true,
     "noImplicitThis": true,
-    "strictNullChecks": false,
-
     "pretty": true
-  }
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "src/proto"
+  ]
 }

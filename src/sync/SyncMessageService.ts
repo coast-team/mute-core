@@ -11,12 +11,11 @@ import { Subject } from 'rxjs/Subject'
 
 import { Disposable } from '../Disposable'
 import { BroadcastMessage, MessageEmitter, NetworkMessage, SendRandomlyMessage, SendToMessage } from '../network/'
+import { sync } from '../proto'
 import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichLogootSOperation } from './RichLogootSOperation'
 import { StateVector } from './StateVector'
-
-import { sync } from '../../proto/sync_pb'
 
 export class SyncMessageService implements Disposable, MessageEmitter {
 

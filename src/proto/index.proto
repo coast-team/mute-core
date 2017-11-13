@@ -1,0 +1,4 @@
+syntax = "proto3";
+
+import "sync.proto";
+import "collaborator.proto";

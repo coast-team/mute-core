@@ -1,22 +1,20 @@
 /*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins*/
-"use strict";
-
-var $protobuf = require("protobufjs/minimal");
+import * as $protobuf from "protobufjs/minimal";
 
 // Common aliases
-var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
+const $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
 
 // Exported root namespace
-var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
+const $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
-$root.sync = (function() {
+export const sync = $root.sync = (() => {
 
     /**
      * Namespace sync.
      * @exports sync
      * @namespace
      */
-    var sync = {};
+    const sync = {};
 
     sync.SyncMsg = (function() {
 
@@ -38,7 +36,7 @@ $root.sync = (function() {
          */
         function SyncMsg(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -68,7 +66,7 @@ $root.sync = (function() {
         SyncMsg.prototype.replySync = null;
 
         // OneOf field names bound to virtual getters and setters
-        var $oneOfFields;
+        let $oneOfFields;
 
         /**
          * SyncMsg type.
@@ -128,9 +126,9 @@ $root.sync = (function() {
         SyncMsg.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.SyncMsg();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.SyncMsg();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.richLogootSOpMsg = $root.sync.RichLogootSOperationMsg.decode(reader, reader.uint32());
@@ -173,7 +171,7 @@ $root.sync = (function() {
          */
         function RichLogootSOperationMsg(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -211,7 +209,7 @@ $root.sync = (function() {
         RichLogootSOperationMsg.prototype.logootSDelMsg = null;
 
         // OneOf field names bound to virtual getters and setters
-        var $oneOfFields;
+        let $oneOfFields;
 
         /**
          * RichLogootSOperationMsg type.
@@ -273,9 +271,9 @@ $root.sync = (function() {
         RichLogootSOperationMsg.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.RichLogootSOperationMsg();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.RichLogootSOperationMsg();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.id = reader.int32();
@@ -319,7 +317,7 @@ $root.sync = (function() {
          */
         function LogootSAddMsg(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -385,9 +383,9 @@ $root.sync = (function() {
         LogootSAddMsg.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.LogootSAddMsg();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.LogootSAddMsg();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.id = $root.sync.IdentifierMsg.decode(reader, reader.uint32());
@@ -426,7 +424,7 @@ $root.sync = (function() {
         function IdentifierMsg(properties) {
             this.base = [];
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -473,7 +471,7 @@ $root.sync = (function() {
                 writer = $Writer.create();
             if (message.base != null && message.base.length) {
                 writer.uint32(/* id 1, wireType 2 =*/10).fork();
-                for (var i = 0; i < message.base.length; ++i)
+                for (let i = 0; i < message.base.length; ++i)
                     writer.int32(message.base[i]);
                 writer.ldelim();
             }
@@ -496,15 +494,15 @@ $root.sync = (function() {
         IdentifierMsg.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.IdentifierMsg();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.IdentifierMsg();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     if (!(message.base && message.base.length))
                         message.base = [];
                     if ((tag & 7) === 2) {
-                        var end2 = reader.uint32() + reader.pos;
+                        let end2 = reader.uint32() + reader.pos;
                         while (reader.pos < end2)
                             message.base.push(reader.int32());
                     } else
@@ -543,7 +541,7 @@ $root.sync = (function() {
         function LogootSDelMsg(properties) {
             this.lid = [];
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -581,7 +579,7 @@ $root.sync = (function() {
             if (!writer)
                 writer = $Writer.create();
             if (message.lid != null && message.lid.length)
-                for (var i = 0; i < message.lid.length; ++i)
+                for (let i = 0; i < message.lid.length; ++i)
                     $root.sync.IdentifierIntervalMsg.encode(message.lid[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
             return writer;
         };
@@ -600,9 +598,9 @@ $root.sync = (function() {
         LogootSDelMsg.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.LogootSDelMsg();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.LogootSDelMsg();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     if (!(message.lid && message.lid.length))
@@ -641,7 +639,7 @@ $root.sync = (function() {
         function IdentifierIntervalMsg(properties) {
             this.base = [];
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -696,7 +694,7 @@ $root.sync = (function() {
                 writer = $Writer.create();
             if (message.base != null && message.base.length) {
                 writer.uint32(/* id 1, wireType 2 =*/10).fork();
-                for (var i = 0; i < message.base.length; ++i)
+                for (let i = 0; i < message.base.length; ++i)
                     writer.int32(message.base[i]);
                 writer.ldelim();
             }
@@ -721,15 +719,15 @@ $root.sync = (function() {
         IdentifierIntervalMsg.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.IdentifierIntervalMsg();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.IdentifierIntervalMsg();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     if (!(message.base && message.base.length))
                         message.base = [];
                     if ((tag & 7) === 2) {
-                        var end2 = reader.uint32() + reader.pos;
+                        let end2 = reader.uint32() + reader.pos;
                         while (reader.pos < end2)
                             message.base.push(reader.int32());
                     } else
@@ -771,7 +769,7 @@ $root.sync = (function() {
         function QuerySyncMsg(properties) {
             this.vector = {};
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -809,7 +807,7 @@ $root.sync = (function() {
             if (!writer)
                 writer = $Writer.create();
             if (message.vector != null && message.hasOwnProperty("vector"))
-                for (var keys = Object.keys(message.vector), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(message.vector), i = 0; i < keys.length; ++i)
                     writer.uint32(/* id 1, wireType 2 =*/10).fork().uint32(/* id 1, wireType 0 =*/8).int32(keys[i]).uint32(/* id 2, wireType 0 =*/16).int32(message.vector[keys[i]]).ldelim();
             return writer;
         };
@@ -828,9 +826,9 @@ $root.sync = (function() {
         QuerySyncMsg.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.QuerySyncMsg(), key;
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.QuerySyncMsg(), key;
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     reader.skip().pos++;
@@ -872,7 +870,7 @@ $root.sync = (function() {
             this.richLogootSOpsMsg = [];
             this.intervals = [];
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -918,10 +916,10 @@ $root.sync = (function() {
             if (!writer)
                 writer = $Writer.create();
             if (message.richLogootSOpsMsg != null && message.richLogootSOpsMsg.length)
-                for (var i = 0; i < message.richLogootSOpsMsg.length; ++i)
+                for (let i = 0; i < message.richLogootSOpsMsg.length; ++i)
                     $root.sync.RichLogootSOperationMsg.encode(message.richLogootSOpsMsg[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
             if (message.intervals != null && message.intervals.length)
-                for (var i = 0; i < message.intervals.length; ++i)
+                for (let i = 0; i < message.intervals.length; ++i)
                     $root.sync.IntervalMsg.encode(message.intervals[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
             return writer;
         };
@@ -940,9 +938,9 @@ $root.sync = (function() {
         ReplySyncMsg.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.ReplySyncMsg();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.ReplySyncMsg();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     if (!(message.richLogootSOpsMsg && message.richLogootSOpsMsg.length))
@@ -985,7 +983,7 @@ $root.sync = (function() {
          */
         function IntervalMsg(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -1061,9 +1059,9 @@ $root.sync = (function() {
         IntervalMsg.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.IntervalMsg();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.IntervalMsg();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.id = reader.int32();
@@ -1088,4 +1086,108 @@ $root.sync = (function() {
     return sync;
 })();
 
-module.exports = $root;
+export const collaborator = $root.collaborator = (() => {
+
+    /**
+     * Namespace collaborator.
+     * @exports collaborator
+     * @namespace
+     */
+    const collaborator = {};
+
+    collaborator.CollaboratorMsg = (function() {
+
+        /**
+         * Properties of a CollaboratorMsg.
+         * @memberof collaborator
+         * @interface ICollaboratorMsg
+         * @property {string} [pseudo] CollaboratorMsg pseudo
+         */
+
+        /**
+         * Constructs a new CollaboratorMsg.
+         * @memberof collaborator
+         * @classdesc Represents a CollaboratorMsg.
+         * @constructor
+         * @param {collaborator.ICollaboratorMsg=} [properties] Properties to set
+         */
+        function CollaboratorMsg(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * CollaboratorMsg pseudo.
+         * @member {string}pseudo
+         * @memberof collaborator.CollaboratorMsg
+         * @instance
+         */
+        CollaboratorMsg.prototype.pseudo = "";
+
+        /**
+         * Creates a new CollaboratorMsg instance using the specified properties.
+         * @function create
+         * @memberof collaborator.CollaboratorMsg
+         * @static
+         * @param {collaborator.ICollaboratorMsg=} [properties] Properties to set
+         * @returns {collaborator.CollaboratorMsg} CollaboratorMsg instance
+         */
+        CollaboratorMsg.create = function create(properties) {
+            return new CollaboratorMsg(properties);
+        };
+
+        /**
+         * Encodes the specified CollaboratorMsg message. Does not implicitly {@link collaborator.CollaboratorMsg.verify|verify} messages.
+         * @function encode
+         * @memberof collaborator.CollaboratorMsg
+         * @static
+         * @param {collaborator.ICollaboratorMsg} message CollaboratorMsg message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        CollaboratorMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.pseudo != null && message.hasOwnProperty("pseudo"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.pseudo);
+            return writer;
+        };
+
+        /**
+         * Decodes a CollaboratorMsg message from the specified reader or buffer.
+         * @function decode
+         * @memberof collaborator.CollaboratorMsg
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {collaborator.CollaboratorMsg} CollaboratorMsg
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        CollaboratorMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.collaborator.CollaboratorMsg();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1:
+                    message.pseudo = reader.string();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        return CollaboratorMsg;
+    })();
+
+    return collaborator;
+})();
+
+export { $root as default };

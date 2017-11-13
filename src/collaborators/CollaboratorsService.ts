@@ -2,9 +2,9 @@ import { Observable } from 'rxjs/Observable'
 import { filter, takeUntil } from 'rxjs/operators'
 import { Subject } from 'rxjs/Subject'
 
-import { CollaboratorMsg } from '../../proto/collaborator_pb'
 import { Disposable } from '../Disposable'
 import { BroadcastMessage, MessageEmitter, NetworkMessage, SendRandomlyMessage, SendToMessage } from '../network/'
+import { collaborator } from '../proto'
 import { Collaborator } from './Collaborator'
 
 export class CollaboratorsService implements Disposable, MessageEmitter {
@@ -66,7 +66,7 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
       filter((msg: NetworkMessage) => msg.service === CollaboratorsService.ID),
     )
       .subscribe((msg: NetworkMessage) => {
-        const collabMsg = CollaboratorMsg.decode(msg.content)
+        const collabMsg = collaborator.CollaboratorMsg.decode(msg.content)
         const id: number = msg.id
         const pseudo: string = collabMsg.pseudo
         this.collaboratorChangePseudoSubject.next(new Collaborator(id, pseudo))
@@ -98,20 +98,20 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
   }
 
   emitPseudo (pseudo: string, id?: number): Uint8Array {
-    const collabMsg = CollaboratorMsg.create({pseudo})
+    const collabMsg = collaborator.CollaboratorMsg.create({pseudo})
 
     if (id) {
       const msg: SendToMessage = new SendToMessage(
-        CollaboratorsService.ID, id, CollaboratorMsg.encode(collabMsg).finish(),
+        CollaboratorsService.ID, id, collaborator.CollaboratorMsg.encode(collabMsg).finish(),
       )
       this.msgToSendToSubject.next(msg)
     } else {
       const msg: BroadcastMessage = new BroadcastMessage(
-        CollaboratorsService.ID, CollaboratorMsg.encode(collabMsg).finish(),
+        CollaboratorsService.ID, collaborator.CollaboratorMsg.encode(collabMsg).finish(),
       )
       this.msgToBroadcastSubject.next(msg)
     }
-    return CollaboratorMsg.encode(collabMsg).finish()
+    return collaborator.CollaboratorMsg.encode(collabMsg).finish()
   }
 
   dispose (): void {

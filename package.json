@@ -1,34 +1,57 @@
 {
   "name": "mute-core",
-  "version": "0.3.4",
   "description": "",
-  "main": "./dist/src/index.js",
-  "types": "./dist/src/index.d.ts",
+  "version": "0.3.4",
+  "main": "./dist/commonjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/coast-team/mute-core"
+  },
+  "keywords": [
+    "crdt",
+    "data-structures",
+    "sync",
+    "collaboration"
+  ],
+  "author": "Matthieu Nicolas <matthieu.nicolas@inria.fr",
+  "contributors": [
+    "Philippe Kalitine <philippe.kalitine@gmail.com> (http://philippe.kalitine.name/)",
+    "Quentin Tardivon"
+  ],
+  "license": "GPL-3.0",
+  "scripts": {
+    "prebuild": "rm -rf dist",
+    "build": "tsc --outDir dist/commonjs && tsc -m es6 --types --outDir dist/esm",
+    "postbuild": "mkdir dist/types/proto && cp src/proto/index.d.ts dist/types/proto/ && npm run postbuildcommonjs && npm run postbuildesm",
+    "postbuildcommonjs": "mkdir dist/commonjs/proto && npm run protobasicconf -- -w commonjs -o dist/commonjs/proto/index.js",
+    "postbuildesm": "mkdir dist/esm/proto && npm run --silent protobasicconf -- -w es6 | babel -o dist/esm/proto/index.js",
+    "check": "tsc --noEmit",
+    "lint": "tslint --project tsconfig.json",
+    "test:unit": "npm run build && ava",
+    "test": "npm run test:unit --",
+    "protobasicconf": "pbjs -t static-module --no-verify --no-delimited --no-convert src/proto/index.proto",
+    "proto": "npm run protobasicconf -- -w es6 -o src/proto/index.js",
+    "postproto": "pbts -o src/proto/index.d.ts src/proto/index.js"
+  },
   "dependencies": {
     "mute-structs": "^0.3.3",
     "protobufjs": "^6.8.0",
     "rxjs": "^5.5.2",
     "safe-any": "^1.0.2"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/coast-team/mute-core"
-  },
   "devDependencies": {
     "@types/node": "^8.0.51",
     "ava": "^0.22.0",
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
     "tslint": "^5.8.0",
     "tslint-eslint-rules": "^4.1.1",
     "typescript": "~2.4.2"
-  },
-  "scripts": {
-    "build": "tsc; cp -r proto/ dist/proto/",
-    "clean": "rm -rf dist",
-    "check": "tsc --noEmit",
-    "lint": "tslint --project tsconfig.json",
-    "test:unit": "npm run build && ava",
-    "test": "npm run test:unit --",
-    "proto": "pbjs -t static-module -w commonjs --no-verify --no-delimited --no-convert proto/collaborator.proto -o proto/collaborator_pb.js && pbts -o proto/collaborator_pb.d.ts proto/collaborator_pb.js && pbjs -t static-module -w commonjs --no-verify --no-delimited --no-convert proto/sync.proto -o proto/sync_pb.js && pbts -o proto/sync_pb.d.ts proto/sync_pb.js"
   },
   "ava": {
     "files": [
@@ -38,11 +61,5 @@
       "test"
     ],
     "timeout": "5s"
-  },
-  "keywords": [],
-  "contributors": [
-    "Philippe Kalitine <philippe.kalitine@gmail.com> (http://philippe.kalitine.name/)",
-    "Matthieu Nicolas <matthieu.nicolas@inria.fr>"
-  ],
-  "license": "GPL-3.0"
+  }
 }

@@ -1,4 +1,5 @@
 syntax = "proto3";
+package collaborator;
 
 message CollaboratorMsg {
   string pseudo = 1;
