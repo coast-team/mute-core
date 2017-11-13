@@ -4,14 +4,14 @@ import {
   LogootSAdd,
   LogootSDel,
   LogootSOperation } from 'mute-structs'
-import { Subject } from 'rxjs/Subject'
 import { Observable } from 'rxjs/Observable'
 import { zip } from 'rxjs/observable/zip'
-import { takeUntil, filter } from 'rxjs/operators'
+import { filter, takeUntil } from 'rxjs/operators'
+import { Subject } from 'rxjs/Subject'
 
 import { Disposable } from '../Disposable'
-import { Interval } from './Interval'
 import { BroadcastMessage, MessageEmitter, NetworkMessage, SendRandomlyMessage, SendToMessage } from '../network/'
+import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichLogootSOperation } from './RichLogootSOperation'
 import { StateVector } from './StateVector'
@@ -54,27 +54,27 @@ export class SyncMessageService implements Disposable, MessageEmitter {
   set messageSource (source: Observable<NetworkMessage>) {
     source.pipe(
       takeUntil(this.onDispose),
-      filter((msg: NetworkMessage) => msg.service === SyncMessageService.ID)
+      filter((msg: NetworkMessage) => msg.service === SyncMessageService.ID),
     )
       .subscribe((msg: NetworkMessage) => {
         const content = sync.SyncMsg.decode(msg.content)
         switch (content.type) {
-          case 'richLogootSOpMsg':
-            this.handleRichLogootSOpMsg(content.richLogootSOpMsg as sync.RichLogootSOperationMsg)
-            break
-          case 'querySync':
-            this.remoteQuerySyncIdSubject.next(msg.id) // Register the id of the peer
-            this.handleQuerySyncMsg(content.querySync as sync.QuerySyncMsg)
-            break
-          case 'replySync':
-            this.handleReplySyncMsg(content.replySync as sync.ReplySyncMsg)
-            break
+        case 'richLogootSOpMsg':
+          this.handleRichLogootSOpMsg(content.richLogootSOpMsg as sync.RichLogootSOperationMsg)
+          break
+        case 'querySync':
+          this.remoteQuerySyncIdSubject.next(msg.id) // Register the id of the peer
+          this.handleQuerySyncMsg(content.querySync as sync.QuerySyncMsg)
+          break
+        case 'replySync':
+          this.handleReplySyncMsg(content.replySync as sync.ReplySyncMsg)
+          break
         }
       })
   }
 
   set querySyncSource (source: Observable<StateVector>) {
-    source.pipe(takeUntil(this.onDispose))      
+    source.pipe(takeUntil(this.onDispose))
       .subscribe((vector: StateVector) => {
         const querySyncMsg = this.generateQuerySyncMsg(vector)
         const msg: SendRandomlyMessage = new SendRandomlyMessage(SyncMessageService.ID, querySyncMsg)
@@ -96,19 +96,19 @@ export class SyncMessageService implements Disposable, MessageEmitter {
         })
   }
 
-  get onDispose(): Observable<void> {
+  get onDispose (): Observable<void> {
     return this.disposeSubject.asObservable()
   }
 
-  get onMsgToBroadcast(): Observable<BroadcastMessage> {
+  get onMsgToBroadcast (): Observable<BroadcastMessage> {
     return this.msgToBroadcastSubject.asObservable()
   }
 
-  get onMsgToSendRandomly(): Observable<SendRandomlyMessage> {
+  get onMsgToSendRandomly (): Observable<SendRandomlyMessage> {
     return this.msgToSendRandomlySubject.asObservable()
   }
 
-  get onMsgToSendTo(): Observable<SendToMessage> {
+  get onMsgToSendTo (): Observable<SendToMessage> {
     return this.msgToSendToSubject.asObservable()
   }
 
@@ -175,12 +175,13 @@ export class SyncMessageService implements Disposable, MessageEmitter {
 
   // TODO: Watch this function
   serializeRichLogootSOperation (richLogootSOp: RichLogootSOperation): sync.RichLogootSOperationMsg {
-    let richLogootSOperationMsg = sync.RichLogootSOperationMsg.create({ id: richLogootSOp.id, clock: richLogootSOp.clock})
+    const richLogootSOperationMsg = sync.RichLogootSOperationMsg.create({
+      id: richLogootSOp.id, clock: richLogootSOp.clock},
+    )
     const logootSOp: LogootSOperation = richLogootSOp.logootSOp
     if (logootSOp instanceof LogootSDel) {
       richLogootSOperationMsg.logootSDelMsg = sync.LogootSDelMsg.create(logootSOp)
-    }
-    else if (logootSOp instanceof LogootSAdd) {
+    } else if (logootSOp instanceof LogootSAdd) {
       richLogootSOperationMsg.logootSAddMsg = sync.LogootSAddMsg.create(logootSOp)
     }
 

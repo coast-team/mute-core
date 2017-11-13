@@ -5,4 +5,3 @@ export { State } from './State'
 export { StateVector } from './StateVector'
 export { SyncService } from './SyncService'
 export { SyncMessageService } from './SyncMessageService'
-

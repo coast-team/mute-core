@@ -5,7 +5,7 @@ export class NetworkMessage extends AbstractMessage {
     service: string,
     readonly id: number,
     readonly isBroadcast: boolean,
-    content: Uint8Array
+    content: Uint8Array,
   ) {
     super(service, content)
   }

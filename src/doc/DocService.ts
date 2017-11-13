@@ -1,14 +1,14 @@
-import { Subject } from 'rxjs/Subject'
-import { Observable } from 'rxjs/Observable'
-import { takeUntil, debounceTime } from 'rxjs/operators'
 import {
+  Identifier,
   LogootSOperation,
   LogootSRopes,
-  Identifier,
-  TextOperation
+  TextOperation,
 } from 'mute-structs'
+import { Observable } from 'rxjs/Observable'
+import { debounceTime, takeUntil } from 'rxjs/operators'
+import { Subject } from 'rxjs/Subject'
 
-import  { Disposable } from '../Disposable'
+import { Disposable } from '../Disposable'
 import { JoinEvent } from '../network/'
 
 export interface Position {
@@ -41,7 +41,7 @@ export class DocService implements Disposable {
 
     this.updateSubject.pipe(
       takeUntil(this.disposeSubject),
-      debounceTime(1000)
+      debounceTime(1000),
     )
       .subscribe(() => {
         this.docTreeSubject.next(JSON.stringify(this.doc))
@@ -119,14 +119,14 @@ export class DocService implements Disposable {
   }
 
   positionFromIndex (index: number): Position | null {
-    let respIntnode = this.doc.searchNode(index)
+    const respIntnode = this.doc.searchNode(index)
     if (respIntnode !== null) {
       const base = respIntnode.node.block.idInterval.base
       const last = respIntnode.node.actualBegin + respIntnode.i
       const id = new Identifier(base, last)
       return {
         id,
-        index: respIntnode.i
+        index: respIntnode.i,
       }
     }
     return null

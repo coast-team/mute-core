@@ -1,11 +1,17 @@
-import { Subject } from 'rxjs/Subject'
 import { Observable } from 'rxjs/Observable'
 import { merge } from 'rxjs/observable/merge'
+import { Subject } from 'rxjs/Subject'
 import { CollaboratorsService } from './collaborators/'
 import { Disposable } from './Disposable'
 import { DocService } from './doc/'
-import { BroadcastMessage, JoinEvent, MessageEmitter, NetworkMessage, SendRandomlyMessage, SendToMessage } from './network/'
-import { SyncService, SyncMessageService } from './sync/'
+import {
+  BroadcastMessage,
+  JoinEvent,
+  MessageEmitter,
+  NetworkMessage,
+  SendRandomlyMessage,
+  SendToMessage } from './network/'
+import { SyncMessageService, SyncService } from './sync/'
 
 export class MuteCore implements Disposable, MessageEmitter {
 
@@ -50,21 +56,21 @@ export class MuteCore implements Disposable, MessageEmitter {
   get onMsgToBroadcast (): Observable<BroadcastMessage> {
     return merge(
       this.collaboratorsService.onMsgToBroadcast,
-      this.syncMessageService.onMsgToBroadcast
+      this.syncMessageService.onMsgToBroadcast,
     )
   }
 
   get onMsgToSendRandomly (): Observable<SendRandomlyMessage> {
     return merge(
       this.collaboratorsService.onMsgToSendRandomly,
-      this.syncMessageService.onMsgToSendRandomly
+      this.syncMessageService.onMsgToSendRandomly,
     )
   }
 
   get onMsgToSendTo (): Observable<SendToMessage> {
     return merge(
       this.collaboratorsService.onMsgToSendTo,
-      this.syncMessageService.onMsgToSendTo
+      this.syncMessageService.onMsgToSendTo,
     )
   }
 

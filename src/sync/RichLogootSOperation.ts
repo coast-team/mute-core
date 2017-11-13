@@ -3,16 +3,6 @@ import { SafeAny } from 'safe-any'
 
 export class RichLogootSOperation {
 
-  readonly id: number
-  readonly clock: number
-  readonly logootSOp: LogootSOperation
-
-  constructor (id: number, clock: number, logootSOp: LogootSOperation) {
-    this.id = id
-    this.clock = clock
-    this.logootSOp = logootSOp
-  }
-
   static fromPlain (o: SafeAny<RichLogootSOperation>): RichLogootSOperation | null {
     if (typeof o === 'object' && o !== null &&
         typeof o.id === 'number' && Number.isInteger(o.id) &&
@@ -30,6 +20,16 @@ export class RichLogootSOperation {
     }
 
     return null
+  }
+
+  readonly id: number
+  readonly clock: number
+  readonly logootSOp: LogootSOperation
+
+  constructor (id: number, clock: number, logootSOp: LogootSOperation) {
+    this.id = id
+    this.clock = clock
+    this.logootSOp = logootSOp
   }
 
   equals (aOther: RichLogootSOperation): boolean {

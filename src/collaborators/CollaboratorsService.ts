@@ -1,16 +1,16 @@
 import { Observable } from 'rxjs/Observable'
-import { Subject } from 'rxjs/Subject'
 import { filter, takeUntil } from 'rxjs/operators'
+import { Subject } from 'rxjs/Subject'
 
-import { BroadcastMessage, SendRandomlyMessage, SendToMessage, MessageEmitter, NetworkMessage } from '../network/'
-import { Collaborator } from './Collaborator'
 import { CollaboratorMsg } from '../../proto/collaborator_pb'
 import { Disposable } from '../Disposable'
+import { BroadcastMessage, MessageEmitter, NetworkMessage, SendRandomlyMessage, SendToMessage } from '../network/'
+import { Collaborator } from './Collaborator'
 
 export class CollaboratorsService implements Disposable, MessageEmitter {
 
-  private static ID: string = 'Collaborators'
   static readonly DEFAULT_PSEUDO: string = 'Anonymous'
+  private static ID: string = 'Collaborators'
 
   private pseudonym: string
 
@@ -63,7 +63,7 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
   set messageSource (source: Observable<NetworkMessage>) {
     source.pipe(
       takeUntil(this.disposeSubject),
-      filter((msg: NetworkMessage) => msg.service === CollaboratorsService.ID)
+      filter((msg: NetworkMessage) => msg.service === CollaboratorsService.ID),
     )
       .subscribe((msg: NetworkMessage) => {
         const collabMsg = CollaboratorMsg.decode(msg.content)
@@ -89,7 +89,7 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
       })
   }
 
-  set pseudoSource (source: Observable<String>) {
+  set pseudoSource (source: Observable<string>) {
     source.pipe(takeUntil(this.disposeSubject))
       .subscribe((pseudo: string) => {
         this.pseudonym = pseudo
@@ -101,10 +101,14 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
     const collabMsg = CollaboratorMsg.create({pseudo})
 
     if (id) {
-      const msg: SendToMessage = new SendToMessage(CollaboratorsService.ID, id, CollaboratorMsg.encode(collabMsg).finish())
+      const msg: SendToMessage = new SendToMessage(
+        CollaboratorsService.ID, id, CollaboratorMsg.encode(collabMsg).finish(),
+      )
       this.msgToSendToSubject.next(msg)
     } else {
-      const msg: BroadcastMessage = new BroadcastMessage(CollaboratorsService.ID, CollaboratorMsg.encode(collabMsg).finish())
+      const msg: BroadcastMessage = new BroadcastMessage(
+        CollaboratorsService.ID, CollaboratorMsg.encode(collabMsg).finish(),
+      )
       this.msgToBroadcastSubject.next(msg)
     }
     return CollaboratorMsg.encode(collabMsg).finish()
