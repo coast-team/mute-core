@@ -40,12 +40,12 @@
   },
   "dependencies": {
     "mute-structs": "^0.4.0-0",
-    "protobufjs": "^6.8.0",
-    "rxjs": "^5.5.2",
+    "protobufjs": "^6.8.4",
+    "rxjs": "^5.5.6",
     "safe-any": "^1.0.2"
   },
   "devDependencies": {
-    "@types/node": "^8.0.51",
+    "@types/node": "^8.5.7",
     "ava": "^0.23.0",
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.6.1",
