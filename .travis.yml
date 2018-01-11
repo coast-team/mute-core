@@ -4,6 +4,8 @@ node_js:
 - '8'
 - '7'
 - '6'
+before_deploy:
+  - "npm run build"
 deploy:
   provider: npm
   email: nicolasmatthieu57@gmail.com
