@@ -5,14 +5,14 @@ import {Observable, Subject} from 'rxjs'
 import { filter, map } from 'rxjs/operators'
 
 import {ReplySyncEvent, RichLogootSOperation, SyncService} from '../src/sync'
-import {disposeOf, generateRichLogootSOps} from './Helpers'
+import {disposeOf, generateSequentialRichLogootSOps} from './Helpers'
 
 test('deliver-buffered-operation-when-deliverable', (t: TestContext) => {
   const syncService = new SyncService(0)
   disposeOf(syncService, 200)
 
   const [firstRichLogootSOp, secondRichLogootSOp]: RichLogootSOperation[] =
-        generateRichLogootSOps()
+        generateSequentialRichLogootSOps()
 
   const remoteRichLogootSOpSubject = new Subject<RichLogootSOperation>()
   syncService.remoteRichLogootSOperationSource = remoteRichLogootSOpSubject
@@ -37,11 +37,11 @@ test('deliver-buffered-operation-when-deliverable', (t: TestContext) => {
   )
 })
 
-test('deliver-buffered-operations-in-correct-order', (t: TestContext) => {
+test('deliver-operations-in-sequential-order', (t: TestContext) => {
   const syncService = new SyncService(0)
   disposeOf(syncService, 200)
 
-  const richLogootSOps: RichLogootSOperation[] = generateRichLogootSOps()
+  const richLogootSOps: RichLogootSOperation[] = generateSequentialRichLogootSOps()
   const [firstRichLogootSOp, ...tailRichLogootSOps] = richLogootSOps
 
   const remoteRichLogootSOpSubject = new Subject<RichLogootSOperation>()

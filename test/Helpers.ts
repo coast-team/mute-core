@@ -15,7 +15,7 @@ export function disposeOf (disposable: Disposable, time: number): void {
   }, time)
 }
 
-export function generateRichLogootSOps (): RichLogootSOperation[] {
+export function generateSequentialRichLogootSOps (): RichLogootSOperation[] {
   const replicaNumber = 0
   const clock = 0
   const tuple1 = new IdentifierTuple(0, replicaNumber, clock, 0)

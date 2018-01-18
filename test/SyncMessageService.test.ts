@@ -23,7 +23,7 @@ import {
     SyncMessageService,
 } from '../src/sync'
 
-import {disposeOf, generateRichLogootSOps, generateVector} from './Helpers'
+import {disposeOf, generateSequentialRichLogootSOps, generateVector} from './Helpers'
 
 function generateIntervals (): Interval[] {
   const intervals: Interval[] = []
@@ -35,7 +35,7 @@ function generateIntervals (): Interval[] {
 }
 
 function generateReplySync (): ReplySyncEvent {
-  const richLogootSOps: RichLogootSOperation[] = generateRichLogootSOps()
+  const richLogootSOps: RichLogootSOperation[] = generateSequentialRichLogootSOps()
   const intervals: Interval[] = generateIntervals()
 
   return new ReplySyncEvent(richLogootSOps, intervals)
@@ -55,7 +55,7 @@ test('richLogootSOperations-correct-send-and-delivery', (t: TestContext) => {
           }),
         )
 
-  const richLogootSOps: RichLogootSOperation[] = generateRichLogootSOps()
+  const richLogootSOps: RichLogootSOperation[] = generateSequentialRichLogootSOps()
   setTimeout(() => {
     syncMsgServiceIn.localRichLogootSOperationSource = from(richLogootSOps)
   }, 0)
