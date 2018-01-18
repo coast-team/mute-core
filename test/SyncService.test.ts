@@ -38,7 +38,7 @@ test('deliver-operations-in-sequential-order', (t: TestContext) => {
   )
 })
 
-test.failing('deliver-operations-in-causal-order', (t: TestContext) => {
+test('deliver-operations-in-causal-order', (t: TestContext) => {
   const syncService = new SyncService(0)
   disposeOf(syncService, 200)
 
