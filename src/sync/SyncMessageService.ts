@@ -1,4 +1,5 @@
 import {
+  Dot,
   Identifier,
   IdentifierInterval,
   LogootSAdd,
@@ -175,8 +176,10 @@ export class SyncMessageService implements Disposable, MessageEmitter {
   // TODO: Watch this function
   serializeRichLogootSOperation (richLogootSOp: RichLogootSOperation): sync.RichLogootSOperationMsg {
     const richLogootSOperationMsg = sync.RichLogootSOperationMsg.create({
-      id: richLogootSOp.id, clock: richLogootSOp.clock},
-    )
+      id: richLogootSOp.id,
+      clock: richLogootSOp.clock,
+      dependencies: richLogootSOp.dependencies,
+    })
     const logootSOp: LogootSOperation = richLogootSOp.logootSOp
     if (logootSOp instanceof LogootSDel) {
       richLogootSOperationMsg.logootSDelMsg = sync.LogootSDelMsg.create(logootSOp)
@@ -190,6 +193,7 @@ export class SyncMessageService implements Disposable, MessageEmitter {
   deserializeRichLogootSOperation (content: sync.RichLogootSOperationMsg): RichLogootSOperation {
     const id: number = content.id
     const clock: number = content.clock
+    const dependencies: Dot[] = content.dependencies
 
     let logootSOp: LogootSOperation
     if (content.logootSAddMsg) {
@@ -200,7 +204,7 @@ export class SyncMessageService implements Disposable, MessageEmitter {
       logootSOp = LogootSDel.fromPlain(logootSDelMsg)
     }
 
-    return new RichLogootSOperation(id, clock, logootSOp)
+    return new RichLogootSOperation(id, clock, logootSOp, dependencies)
   }
 
   generateQuerySyncMsg (vector: StateVector): Uint8Array {
