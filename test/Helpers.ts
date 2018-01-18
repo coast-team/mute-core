@@ -39,6 +39,26 @@ export function generateSequentialRichLogootSOps (): RichLogootSOperation[] {
   return [richLogootSOp1, richLogootSOp2, richLogootSOp3]
 }
 
+export function generateCausalRichLogootSOps (): RichLogootSOperation[] {
+  const replicaNumberA = 0
+  const clockA = 0
+  const tuple1 = new IdentifierTuple(0, replicaNumberA, clockA, 0)
+
+  const id1 = new Identifier([tuple1])
+  const insertOp1: LogootSAdd = new LogootSAdd(id1, 'hello')
+  const richLogootSOp1 =
+      new RichLogootSOperation(replicaNumberA, clockA, insertOp1)
+
+  const replicaNumberB = 2
+  const clockB = 0
+  const id2 = Identifier.fromBase(id1, 4) // 'o'
+  const idInterval1 = new IdentifierInterval(id2, 4) // 'o'
+  const deleteOp1: LogootSDel = new LogootSDel([idInterval1])
+  const richLogootSOp2 = new RichLogootSOperation(replicaNumberB, clockB, deleteOp1)
+
+  return [richLogootSOp1, richLogootSOp2]
+}
+
 export function generateVector (): StateVector {
   const vector: Map<number, number> = new Map()
   vector.set(0, 42)
