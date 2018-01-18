@@ -12,8 +12,6 @@ import { StateVector } from './StateVector'
 import { Disposable } from '../Disposable'
 import { JoinEvent } from '../network/'
 
-interface Key { id: number, clock: number }
-
 export class SyncService implements Disposable {
 
   private id: number = -1
@@ -21,7 +19,7 @@ export class SyncService implements Disposable {
   private richLogootSOps: RichLogootSOperation[] = []
   private vector: StateVector
 
-  private appliedOperationsSubject: Subject<Key>
+  private appliedOperationsSubject: Subject<void>
   private disposeSubject: Subject<void>
   private isReadySubject: Subject<void>
   private localRichLogootSOperationSubject: Subject<RichLogootSOperation>
@@ -213,7 +211,6 @@ export class SyncService implements Disposable {
 
     if (newRichLogootSOps.length > 0) {
       const logootSOperations: LogootSOperation[] = []
-      const appliedOperations: Key[] = []
       newRichLogootSOps
         .forEach((richLogootSOp) => {
           const id: number = richLogootSOp.id
@@ -221,30 +218,38 @@ export class SyncService implements Disposable {
           if (this.vector.isDeliverable(id, clock)) {
             this.updateState(richLogootSOp)
             logootSOperations.push(richLogootSOp.logootSOp)
-            appliedOperations.push({ id, clock })
-          } else if (!this.vector.isAlreadyDelivered(id, clock)) {
-            // Deliver operation once the previous one will be applied
-            console.log('SyncService: Buffering operation: ', { id, clock })
-            this.appliedOperationsSubject.pipe(
-              filter(({ id, clock}: Key) => {
-                return richLogootSOp.id === id && richLogootSOp.clock === (clock + 1)
-              }),
-              take(1),
-            )
-              .subscribe(() => {
-                console.log('SyncService: Delivering operation: ', { id, clock })
-                if (!this.vector.isAlreadyDelivered(id, clock)) {
-                  this.applyRichLogootSOperations([richLogootSOp])
-                }
-              })
+          } else {
+            this.bufferOperation(richLogootSOp)
           }
         })
 
-      this.remoteLogootSOperationSubject.next(logootSOperations)
-      appliedOperations.forEach((appliedOperation: Key) => {
-        this.appliedOperationsSubject.next(appliedOperation)
-      })
+      if (logootSOperations.length > 0) {
+        this.remoteLogootSOperationSubject.next(logootSOperations)
+        this.appliedOperationsSubject.next()
+      }
     }
+  }
+
+  private bufferOperation (richLogootSOp: RichLogootSOperation): void {
+    // Will deliver operation once the previous one will be applied
+    const id: number = richLogootSOp.id
+    const clock: number = richLogootSOp.clock
+    console.log('SyncService: Buffering operation: ', { id, clock })
+    const stopSubject: Subject<void> = new Subject()
+    this.appliedOperationsSubject.pipe(
+      takeUntil(stopSubject),
+      filter(() => {
+        const currentClock = this.vector.get(id)
+        return currentClock !== undefined && currentClock + 1 === clock
+      }),
+    ).subscribe(() => {
+      stopSubject.next()
+      stopSubject.complete()
+      console.log('SyncService: Delivering operation: ', { id, clock })
+      if (!this.vector.isAlreadyDelivered(id, clock)) {
+        this.applyRichLogootSOperations([richLogootSOp])
+      }
+    })
   }
 
   private updateState (richLogootSOp: RichLogootSOperation): void {
