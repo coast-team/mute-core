@@ -283,7 +283,7 @@ export class SyncService implements Disposable {
     return logootSDel.lid.map((idInterval: IdentifierInterval) => {
       const dependencyId = idInterval.idBegin.replicaNumber
       const dependencyClock = this.vector.get(dependencyId)
-      return new Dot(dependencyId, dependencyClock)
+      return { replicaNumber: dependencyId, clock: dependencyClock }
     })
   }
 }

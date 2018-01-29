@@ -39,7 +39,7 @@
     "postproto": "pbts -o src/proto/index.d.ts src/proto/index.js"
   },
   "dependencies": {
-    "mute-structs": "^0.4.1",
+    "mute-structs": "^0.4.2",
     "protobufjs": "^6.8.4",
     "rxjs": "^5.5.6",
     "safe-any": "^1.0.2"

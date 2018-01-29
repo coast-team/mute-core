@@ -1,4 +1,4 @@
-import { Dot, IdentifierInterval, LogootSAdd, LogootSDel, LogootSOperation } from 'mute-structs'
+import { Dot, IdentifierInterval, isDot, LogootSAdd, LogootSDel, LogootSOperation } from 'mute-structs'
 import { SafeAny } from 'safe-any'
 
 export class RichLogootSOperation {
@@ -8,7 +8,7 @@ export class RichLogootSOperation {
         typeof o.id === 'number' && Number.isInteger(o.id) &&
         typeof o.clock === 'number' && Number.isInteger(o.clock) &&
         o.dependencies instanceof Array &&
-        o.dependencies.every((dot: SafeAny<Dot>) => o instanceof Dot)
+        o.dependencies.every(isDot)
       ) {
 
       const logootSAdd: LogootSAdd | null = LogootSAdd.fromPlain(o.logootSOp)
