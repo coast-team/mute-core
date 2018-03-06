@@ -25,7 +25,7 @@
   ],
   "license": "GPL-3.0",
   "scripts": {
-    "prebuild": "rm -rf dist",
+    "prebuild": "rm -rf dist && npm run proto",
     "build": "tsc --outDir dist/commonjs && tsc -m es6 --types --outDir dist/esm",
     "postbuild": "mkdir dist/types/proto && cp src/proto/index.d.ts dist/types/proto/ && npm run postbuildcommonjs && npm run postbuildesm",
     "postbuildcommonjs": "mkdir dist/commonjs/proto && npm run protobasicconf -- -w commonjs -o dist/commonjs/proto/index.js",
