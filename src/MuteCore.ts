@@ -1,7 +1,8 @@
 import { Observable } from 'rxjs/Observable'
 import { merge } from 'rxjs/observable/merge'
 import { Subject } from 'rxjs/Subject'
-import { CollaboratorsService } from './collaborators/'
+
+import { CollaboratorsService, ICollaborator } from './collaborators/'
 import { Disposable } from './Disposable'
 import { DocService } from './doc/'
 import {
@@ -11,7 +12,7 @@ import {
   NetworkMessage,
   SendRandomlyMessage,
   SendToMessage } from './network/'
-import { SyncMessageService, SyncService } from './sync/'
+import { SyncMessageService, SyncService } from './sync'
 
 export class MuteCore implements Disposable, MessageEmitter {
 
@@ -22,12 +23,12 @@ export class MuteCore implements Disposable, MessageEmitter {
 
   private initSubject: Subject<string>
 
-  constructor (id: number) {
+  constructor (me: ICollaborator) {
     this.initSubject = new Subject<string>()
 
-    this.collaboratorsService = new CollaboratorsService()
-    this.docService = new DocService(id)
-    this.syncService = new SyncService(id)
+    this.collaboratorsService = new CollaboratorsService(me)
+    this.docService = new DocService(me.id)
+    this.syncService = new SyncService(me.id)
     this.syncMessageService = new SyncMessageService()
 
     this.docService.initSource = this.initSubject

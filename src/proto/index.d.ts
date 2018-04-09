@@ -541,48 +541,69 @@ export namespace sync {
 /** Namespace collaborator. */
 export namespace collaborator {
 
-    /** Properties of a CollaboratorMsg. */
-    interface ICollaboratorMsg {
+    /** Properties of a Collaborator. */
+    interface ICollaborator {
 
-        /** CollaboratorMsg pseudo */
-        pseudo?: string;
+        /** Collaborator displayName */
+        displayName?: string;
+
+        /** Collaborator login */
+        login?: string;
+
+        /** Collaborator email */
+        email?: string;
+
+        /** Collaborator avatar */
+        avatar?: string;
     }
 
-    /** Represents a CollaboratorMsg. */
-    class CollaboratorMsg {
+    /** Represents a Collaborator. */
+    class Collaborator {
 
         /**
-         * Constructs a new CollaboratorMsg.
+         * Constructs a new Collaborator.
          * @param [properties] Properties to set
          */
-        constructor(properties?: collaborator.ICollaboratorMsg);
+        constructor(properties?: collaborator.ICollaborator);
 
-        /** CollaboratorMsg pseudo. */
-        public pseudo: string;
+        /** Collaborator displayName. */
+        public displayName: string;
+
+        /** Collaborator login. */
+        public login: string;
+
+        /** Collaborator email. */
+        public email: string;
+
+        /** Collaborator avatar. */
+        public avatar: string;
+
+        /** Collaborator type. */
+        public type?: string;
 
         /**
-         * Creates a new CollaboratorMsg instance using the specified properties.
+         * Creates a new Collaborator instance using the specified properties.
          * @param [properties] Properties to set
-         * @returns CollaboratorMsg instance
+         * @returns Collaborator instance
          */
-        public static create(properties?: collaborator.ICollaboratorMsg): collaborator.CollaboratorMsg;
+        public static create(properties?: collaborator.ICollaborator): collaborator.Collaborator;
 
         /**
-         * Encodes the specified CollaboratorMsg message. Does not implicitly {@link collaborator.CollaboratorMsg.verify|verify} messages.
-         * @param message CollaboratorMsg message or plain object to encode
+         * Encodes the specified Collaborator message. Does not implicitly {@link collaborator.Collaborator.verify|verify} messages.
+         * @param message Collaborator message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: collaborator.ICollaboratorMsg, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: collaborator.ICollaborator, writer?: $protobuf.Writer): $protobuf.Writer;
 
         /**
-         * Decodes a CollaboratorMsg message from the specified reader or buffer.
+         * Decodes a Collaborator message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
          * @param [length] Message length if known beforehand
-         * @returns CollaboratorMsg
+         * @returns Collaborator
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): collaborator.CollaboratorMsg;
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): collaborator.Collaborator;
     }
 }

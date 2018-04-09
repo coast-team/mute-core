@@ -1,4 +1,4 @@
-export { Collaborator, CollaboratorsService } from './collaborators/'
+export { ICollaborator, CollaboratorsService } from './collaborators/'
 export { DocService, Position } from './doc/'
 export {
   BroadcastMessage,

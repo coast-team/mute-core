@@ -2,6 +2,11 @@ syntax = "proto3";
 
 package collaborator;
 
-message CollaboratorMsg {
-  string pseudo = 1;
+message Collaborator {
+  oneof type {
+    string displayName = 2;
+    string login = 3;
+    string email = 4;
+    string avatar = 5;
+  }
 }

@@ -1,2 +1,2 @@
-export { Collaborator } from './Collaborator'
 export { CollaboratorsService } from './CollaboratorsService'
+export { ICollaborator } from './ICollaborator'

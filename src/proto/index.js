@@ -1181,23 +1181,26 @@ export const collaborator = $root.collaborator = (() => {
      */
     const collaborator = {};
 
-    collaborator.CollaboratorMsg = (function() {
+    collaborator.Collaborator = (function() {
 
         /**
-         * Properties of a CollaboratorMsg.
+         * Properties of a Collaborator.
          * @memberof collaborator
-         * @interface ICollaboratorMsg
-         * @property {string} [pseudo] CollaboratorMsg pseudo
+         * @interface ICollaborator
+         * @property {string} [displayName] Collaborator displayName
+         * @property {string} [login] Collaborator login
+         * @property {string} [email] Collaborator email
+         * @property {string} [avatar] Collaborator avatar
          */
 
         /**
-         * Constructs a new CollaboratorMsg.
+         * Constructs a new Collaborator.
          * @memberof collaborator
-         * @classdesc Represents a CollaboratorMsg.
+         * @classdesc Represents a Collaborator.
          * @constructor
-         * @param {collaborator.ICollaboratorMsg=} [properties] Properties to set
+         * @param {collaborator.ICollaborator=} [properties] Properties to set
          */
-        function CollaboratorMsg(properties) {
+        function Collaborator(properties) {
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -1205,62 +1208,115 @@ export const collaborator = $root.collaborator = (() => {
         }
 
         /**
-         * CollaboratorMsg pseudo.
-         * @member {string}pseudo
-         * @memberof collaborator.CollaboratorMsg
+         * Collaborator displayName.
+         * @member {string}displayName
+         * @memberof collaborator.Collaborator
          * @instance
          */
-        CollaboratorMsg.prototype.pseudo = "";
+        Collaborator.prototype.displayName = "";
 
         /**
-         * Creates a new CollaboratorMsg instance using the specified properties.
-         * @function create
-         * @memberof collaborator.CollaboratorMsg
-         * @static
-         * @param {collaborator.ICollaboratorMsg=} [properties] Properties to set
-         * @returns {collaborator.CollaboratorMsg} CollaboratorMsg instance
+         * Collaborator login.
+         * @member {string}login
+         * @memberof collaborator.Collaborator
+         * @instance
          */
-        CollaboratorMsg.create = function create(properties) {
-            return new CollaboratorMsg(properties);
+        Collaborator.prototype.login = "";
+
+        /**
+         * Collaborator email.
+         * @member {string}email
+         * @memberof collaborator.Collaborator
+         * @instance
+         */
+        Collaborator.prototype.email = "";
+
+        /**
+         * Collaborator avatar.
+         * @member {string}avatar
+         * @memberof collaborator.Collaborator
+         * @instance
+         */
+        Collaborator.prototype.avatar = "";
+
+        // OneOf field names bound to virtual getters and setters
+        let $oneOfFields;
+
+        /**
+         * Collaborator type.
+         * @member {string|undefined} type
+         * @memberof collaborator.Collaborator
+         * @instance
+         */
+        Object.defineProperty(Collaborator.prototype, "type", {
+            get: $util.oneOfGetter($oneOfFields = ["displayName", "login", "email", "avatar"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Creates a new Collaborator instance using the specified properties.
+         * @function create
+         * @memberof collaborator.Collaborator
+         * @static
+         * @param {collaborator.ICollaborator=} [properties] Properties to set
+         * @returns {collaborator.Collaborator} Collaborator instance
+         */
+        Collaborator.create = function create(properties) {
+            return new Collaborator(properties);
         };
 
         /**
-         * Encodes the specified CollaboratorMsg message. Does not implicitly {@link collaborator.CollaboratorMsg.verify|verify} messages.
+         * Encodes the specified Collaborator message. Does not implicitly {@link collaborator.Collaborator.verify|verify} messages.
          * @function encode
-         * @memberof collaborator.CollaboratorMsg
+         * @memberof collaborator.Collaborator
          * @static
-         * @param {collaborator.ICollaboratorMsg} message CollaboratorMsg message or plain object to encode
+         * @param {collaborator.ICollaborator} message Collaborator message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        CollaboratorMsg.encode = function encode(message, writer) {
+        Collaborator.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.pseudo != null && message.hasOwnProperty("pseudo"))
-                writer.uint32(/* id 1, wireType 2 =*/10).string(message.pseudo);
+            if (message.displayName != null && message.hasOwnProperty("displayName"))
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.displayName);
+            if (message.login != null && message.hasOwnProperty("login"))
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.login);
+            if (message.email != null && message.hasOwnProperty("email"))
+                writer.uint32(/* id 4, wireType 2 =*/34).string(message.email);
+            if (message.avatar != null && message.hasOwnProperty("avatar"))
+                writer.uint32(/* id 5, wireType 2 =*/42).string(message.avatar);
             return writer;
         };
 
         /**
-         * Decodes a CollaboratorMsg message from the specified reader or buffer.
+         * Decodes a Collaborator message from the specified reader or buffer.
          * @function decode
-         * @memberof collaborator.CollaboratorMsg
+         * @memberof collaborator.Collaborator
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {collaborator.CollaboratorMsg} CollaboratorMsg
+         * @returns {collaborator.Collaborator} Collaborator
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        CollaboratorMsg.decode = function decode(reader, length) {
+        Collaborator.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.collaborator.CollaboratorMsg();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.collaborator.Collaborator();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 switch (tag >>> 3) {
-                case 1:
-                    message.pseudo = reader.string();
+                case 2:
+                    message.displayName = reader.string();
+                    break;
+                case 3:
+                    message.login = reader.string();
+                    break;
+                case 4:
+                    message.email = reader.string();
+                    break;
+                case 5:
+                    message.avatar = reader.string();
                     break;
                 default:
                     reader.skipType(tag & 7);
@@ -1270,7 +1326,7 @@ export const collaborator = $root.collaborator = (() => {
             return message;
         };
 
-        return CollaboratorMsg;
+        return Collaborator;
     })();
 
     return collaborator;
