@@ -1,16 +1,21 @@
+import { LogootSAdd, LogootSDel, LogootSOperation } from 'mute-structs'
 import { Observable } from 'rxjs/Observable'
 import { merge } from 'rxjs/observable/merge'
+import { tap } from 'rxjs/operators'
 import { Subject } from 'rxjs/Subject'
 import { CollaboratorsService } from './collaborators/'
 import { Disposable } from './Disposable'
 import { DocService } from './doc/'
+import { LocalOperation } from './logs/LocalOperation'
+import { RemoteOperation } from './logs/RemoteOperation'
 import {
   BroadcastMessage,
   JoinEvent,
   MessageEmitter,
   NetworkMessage,
   SendRandomlyMessage,
-  SendToMessage } from './network/'
+  SendToMessage,
+} from './network/'
 import { SyncMessageService, SyncService } from './sync/'
 
 export class MuteCore implements Disposable, MessageEmitter {
@@ -21,6 +26,8 @@ export class MuteCore implements Disposable, MessageEmitter {
   readonly syncMessageService: SyncMessageService
 
   private initSubject: Subject<string>
+  private localOperation: Subject<LocalOperation>
+  private remoteOperation: Subject<RemoteOperation>
 
   constructor (id: number) {
     this.initSubject = new Subject<string>()
@@ -31,9 +38,19 @@ export class MuteCore implements Disposable, MessageEmitter {
     this.syncMessageService = new SyncMessageService()
 
     this.docService.initSource = this.initSubject
-    this.docService.remoteLogootSOperationSource = this.syncService.onRemoteLogootSOperation
+    this.docService.remoteLogootSOperationSource = this.syncService.onRemoteLogootSOperation.pipe(
+      tap((operations: LogootSOperation[]) => {
+        operations.forEach((operation: LogootSOperation) => {
+          this.logRemoteOperation(id, operation)
+        })
+      }),
+    )
 
-    this.syncService.localLogootSOperationSource = this.docService.onLocalLogootSOperation
+    this.syncService.localLogootSOperationSource = this.docService.onLocalLogootSOperation.pipe(
+      tap((operation: LogootSOperation) => {
+        this.logLocalOperation(id, operation)
+      }),
+    )
     this.syncService.remoteQuerySyncSource = this.syncMessageService.onRemoteQuerySync
     this.syncService.remoteReplySyncSource = this.syncMessageService.onRemoteReplySync
     this.syncService.remoteRichLogootSOperationSource = this.syncMessageService.onRemoteRichLogootSOperation
@@ -74,6 +91,14 @@ export class MuteCore implements Disposable, MessageEmitter {
     )
   }
 
+  get onLocalOperation (): Observable<LocalOperation> {
+    return this.localOperation.asObservable()
+  }
+
+  get onRemoteOperation (): Observable<RemoteOperation> {
+    return this.remoteOperation.asObservable()
+  }
+
   init (key: string): void {
     this.initSubject.next(key)
   }
@@ -83,5 +108,47 @@ export class MuteCore implements Disposable, MessageEmitter {
     this.docService.dispose()
     this.syncService.dispose()
     this.syncMessageService.dispose()
+  }
+
+  logLocalOperation (id: number, ope: LogootSOperation): void {
+    if (ope instanceof LogootSAdd) {
+      const o = ope as LogootSAdd
+      this.localOperation.next({
+        type: 'localInsertion',
+        siteId: id,
+        clock: this.syncService.getClock,
+        operation: o,
+        context: this.syncService.getVector,
+      })
+    } else if (ope instanceof LogootSDel) {
+      const o = ope as LogootSDel
+      this.localOperation.next({
+        type: 'localDeletion',
+        siteId: id,
+        clock: this.syncService.getClock,
+        operation: o,
+        context: this.syncService.getVector,
+      })
+    }
+  }
+
+  logRemoteOperation (id: number, ope: LogootSOperation): void {
+    if (ope instanceof LogootSAdd) {
+      const o = ope as LogootSAdd
+      this.remoteOperation.next({
+        type: 'remoteInsertion',
+        siteId: id,
+        operation: o,
+        context: this.syncService.getVector,
+      })
+    } else if (ope instanceof LogootSDel) {
+      const o = ope as LogootSDel
+      this.remoteOperation.next({
+        type: 'remoteDeletion',
+        siteId: id,
+        operation: o,
+        context: this.syncService.getVector,
+      })
+    }
   }
 }
