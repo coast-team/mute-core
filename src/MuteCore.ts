@@ -16,7 +16,7 @@ import {
   SendRandomlyMessage,
   SendToMessage,
 } from './network/'
-import { SyncMessageService, SyncService } from './sync/'
+import { RichLogootSOperation, SyncMessageService, SyncService } from './sync/'
 
 export class MuteCore implements Disposable, MessageEmitter {
 
@@ -40,13 +40,7 @@ export class MuteCore implements Disposable, MessageEmitter {
     this.syncMessageService = new SyncMessageService()
 
     this.docService.initSource = this.initSubject
-    this.docService.remoteLogootSOperationSource = this.syncService.onRemoteLogootSOperation.pipe(
-      tap((operations: LogootSOperation[]) => {
-        operations.forEach((operation: LogootSOperation) => {
-          this.logRemoteOperation(id, operation)
-        })
-      }),
-    )
+    this.docService.remoteLogootSOperationSource = this.syncService.onRemoteLogootSOperation
 
     this.syncService.localLogootSOperationSource = this.docService.onLocalLogootSOperation.pipe(
       tap((operation: LogootSOperation) => {
@@ -55,7 +49,11 @@ export class MuteCore implements Disposable, MessageEmitter {
     )
     this.syncService.remoteQuerySyncSource = this.syncMessageService.onRemoteQuerySync
     this.syncService.remoteReplySyncSource = this.syncMessageService.onRemoteReplySync
-    this.syncService.remoteRichLogootSOperationSource = this.syncMessageService.onRemoteRichLogootSOperation
+    this.syncService.remoteRichLogootSOperationSource = this.syncMessageService.onRemoteRichLogootSOperation.pipe(
+      tap((operation: RichLogootSOperation) => {
+        this.logRemoteOperation(id, operation.logootSOp)
+      }),
+    )
     // this.syncService.storedStateSource = this.syncStorage.onStoredState
 
     this.syncMessageService.localRichLogootSOperationSource = this.syncService.onLocalRichLogootSOperation
