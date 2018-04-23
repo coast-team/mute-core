@@ -31,6 +31,8 @@ export class MuteCore implements Disposable, MessageEmitter {
 
   constructor (id: number) {
     this.initSubject = new Subject<string>()
+    this.localOperation = new Subject<LocalOperation>()
+    this.remoteOperation = new Subject<RemoteOperation>()
 
     this.collaboratorsService = new CollaboratorsService()
     this.docService = new DocService(id)
