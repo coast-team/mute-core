@@ -51,7 +51,7 @@ export class MuteCore implements Disposable, MessageEmitter {
     this.syncService.remoteReplySyncSource = this.syncMessageService.onRemoteReplySync
     this.syncService.remoteRichLogootSOperationSource = this.syncMessageService.onRemoteRichLogootSOperation.pipe(
       tap((operation: RichLogootSOperation) => {
-        this.logRemoteOperation(id, operation.logootSOp)
+        this.logRemoteOperation(id, operation)
       }),
     )
     // this.syncService.storedStateSource = this.syncStorage.onStoredState
@@ -132,12 +132,15 @@ export class MuteCore implements Disposable, MessageEmitter {
     }
   }
 
-  logRemoteOperation (id: number, ope: LogootSOperation): void {
+  logRemoteOperation (id: number, operation: RichLogootSOperation): void {
+    const ope = operation.logootSOp
     if (ope instanceof LogootSAdd) {
       const o = ope as LogootSAdd
       this.remoteOperation.next({
         type: 'remoteInsertion',
         siteId: id,
+        remoteSiteId: operation.id,
+        remoteClock: operation.clock,
         operation: o,
         context: this.syncService.getVector,
       })
@@ -146,6 +149,8 @@ export class MuteCore implements Disposable, MessageEmitter {
       this.remoteOperation.next({
         type: 'remoteDeletion',
         siteId: id,
+        remoteSiteId: operation.id,
+        remoteClock: operation.clock,
         operation: o,
         context: this.syncService.getVector,
       })
