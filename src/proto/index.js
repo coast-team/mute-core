@@ -22,15 +22,16 @@ export const sync = $root.sync = (() => {
          * Properties of a SyncMsg.
          * @memberof sync
          * @interface ISyncMsg
-         * @property {sync.IRichLogootSOperationMsg} [richLogootSOpMsg] SyncMsg richLogootSOpMsg
-         * @property {sync.IQuerySyncMsg} [querySync] SyncMsg querySync
-         * @property {sync.IReplySyncMsg} [replySync] SyncMsg replySync
+         * @property {sync.IRichLogootSOperationMsg|null} [richLogootSOpMsg] SyncMsg richLogootSOpMsg
+         * @property {sync.IQuerySyncMsg|null} [querySync] SyncMsg querySync
+         * @property {sync.IReplySyncMsg|null} [replySync] SyncMsg replySync
          */
 
         /**
          * Constructs a new SyncMsg.
          * @memberof sync
          * @classdesc Represents a SyncMsg.
+         * @implements ISyncMsg
          * @constructor
          * @param {sync.ISyncMsg=} [properties] Properties to set
          */
@@ -43,7 +44,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * SyncMsg richLogootSOpMsg.
-         * @member {(sync.IRichLogootSOperationMsg|null|undefined)}richLogootSOpMsg
+         * @member {sync.IRichLogootSOperationMsg|null|undefined} richLogootSOpMsg
          * @memberof sync.SyncMsg
          * @instance
          */
@@ -51,7 +52,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * SyncMsg querySync.
-         * @member {(sync.IQuerySyncMsg|null|undefined)}querySync
+         * @member {sync.IQuerySyncMsg|null|undefined} querySync
          * @memberof sync.SyncMsg
          * @instance
          */
@@ -59,7 +60,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * SyncMsg replySync.
-         * @member {(sync.IReplySyncMsg|null|undefined)}replySync
+         * @member {sync.IReplySyncMsg|null|undefined} replySync
          * @memberof sync.SyncMsg
          * @instance
          */
@@ -70,7 +71,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * SyncMsg type.
-         * @member {string|undefined} type
+         * @member {"richLogootSOpMsg"|"querySync"|"replySync"|undefined} type
          * @memberof sync.SyncMsg
          * @instance
          */
@@ -156,16 +157,17 @@ export const sync = $root.sync = (() => {
          * Properties of a RichLogootSOperationMsg.
          * @memberof sync
          * @interface IRichLogootSOperationMsg
-         * @property {number} [id] RichLogootSOperationMsg id
-         * @property {number} [clock] RichLogootSOperationMsg clock
-         * @property {sync.ILogootSAddMsg} [logootSAddMsg] RichLogootSOperationMsg logootSAddMsg
-         * @property {sync.ILogootSDelMsg} [logootSDelMsg] RichLogootSOperationMsg logootSDelMsg
+         * @property {number|null} [id] RichLogootSOperationMsg id
+         * @property {number|null} [clock] RichLogootSOperationMsg clock
+         * @property {sync.ILogootSAddMsg|null} [logootSAddMsg] RichLogootSOperationMsg logootSAddMsg
+         * @property {sync.ILogootSDelMsg|null} [logootSDelMsg] RichLogootSOperationMsg logootSDelMsg
          */
 
         /**
          * Constructs a new RichLogootSOperationMsg.
          * @memberof sync
          * @classdesc Represents a RichLogootSOperationMsg.
+         * @implements IRichLogootSOperationMsg
          * @constructor
          * @param {sync.IRichLogootSOperationMsg=} [properties] Properties to set
          */
@@ -178,7 +180,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * RichLogootSOperationMsg id.
-         * @member {number}id
+         * @member {number} id
          * @memberof sync.RichLogootSOperationMsg
          * @instance
          */
@@ -186,7 +188,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * RichLogootSOperationMsg clock.
-         * @member {number}clock
+         * @member {number} clock
          * @memberof sync.RichLogootSOperationMsg
          * @instance
          */
@@ -194,7 +196,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * RichLogootSOperationMsg logootSAddMsg.
-         * @member {(sync.ILogootSAddMsg|null|undefined)}logootSAddMsg
+         * @member {sync.ILogootSAddMsg|null|undefined} logootSAddMsg
          * @memberof sync.RichLogootSOperationMsg
          * @instance
          */
@@ -202,7 +204,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * RichLogootSOperationMsg logootSDelMsg.
-         * @member {(sync.ILogootSDelMsg|null|undefined)}logootSDelMsg
+         * @member {sync.ILogootSDelMsg|null|undefined} logootSDelMsg
          * @memberof sync.RichLogootSOperationMsg
          * @instance
          */
@@ -213,7 +215,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * RichLogootSOperationMsg type.
-         * @member {string|undefined} type
+         * @member {"logootSAddMsg"|"logootSDelMsg"|undefined} type
          * @memberof sync.RichLogootSOperationMsg
          * @instance
          */
@@ -304,14 +306,15 @@ export const sync = $root.sync = (() => {
          * Properties of a LogootSAddMsg.
          * @memberof sync
          * @interface ILogootSAddMsg
-         * @property {sync.IIdentifierMsg} [id] LogootSAddMsg id
-         * @property {string} [content] LogootSAddMsg content
+         * @property {sync.IIdentifierMsg|null} [id] LogootSAddMsg id
+         * @property {string|null} [content] LogootSAddMsg content
          */
 
         /**
          * Constructs a new LogootSAddMsg.
          * @memberof sync
          * @classdesc Represents a LogootSAddMsg.
+         * @implements ILogootSAddMsg
          * @constructor
          * @param {sync.ILogootSAddMsg=} [properties] Properties to set
          */
@@ -324,7 +327,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * LogootSAddMsg id.
-         * @member {(sync.IIdentifierMsg|null|undefined)}id
+         * @member {sync.IIdentifierMsg|null|undefined} id
          * @memberof sync.LogootSAddMsg
          * @instance
          */
@@ -332,7 +335,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * LogootSAddMsg content.
-         * @member {string}content
+         * @member {string} content
          * @memberof sync.LogootSAddMsg
          * @instance
          */
@@ -410,13 +413,14 @@ export const sync = $root.sync = (() => {
          * Properties of an IdentifierMsg.
          * @memberof sync
          * @interface IIdentifierMsg
-         * @property {Array.<sync.IIdentifierTupleMsg>} [tuples] IdentifierMsg tuples
+         * @property {Array.<sync.IIdentifierTupleMsg>|null} [tuples] IdentifierMsg tuples
          */
 
         /**
          * Constructs a new IdentifierMsg.
          * @memberof sync
          * @classdesc Represents an IdentifierMsg.
+         * @implements IIdentifierMsg
          * @constructor
          * @param {sync.IIdentifierMsg=} [properties] Properties to set
          */
@@ -430,7 +434,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * IdentifierMsg tuples.
-         * @member {Array.<sync.IIdentifierTupleMsg>}tuples
+         * @member {Array.<sync.IIdentifierTupleMsg>} tuples
          * @memberof sync.IdentifierMsg
          * @instance
          */
@@ -506,16 +510,17 @@ export const sync = $root.sync = (() => {
          * Properties of an IdentifierTupleMsg.
          * @memberof sync
          * @interface IIdentifierTupleMsg
-         * @property {number} [random] IdentifierTupleMsg random
-         * @property {number} [replicaNumber] IdentifierTupleMsg replicaNumber
-         * @property {number} [clock] IdentifierTupleMsg clock
-         * @property {number} [offset] IdentifierTupleMsg offset
+         * @property {number|null} [random] IdentifierTupleMsg random
+         * @property {number|null} [replicaNumber] IdentifierTupleMsg replicaNumber
+         * @property {number|null} [clock] IdentifierTupleMsg clock
+         * @property {number|null} [offset] IdentifierTupleMsg offset
          */
 
         /**
          * Constructs a new IdentifierTupleMsg.
          * @memberof sync
          * @classdesc Represents an IdentifierTupleMsg.
+         * @implements IIdentifierTupleMsg
          * @constructor
          * @param {sync.IIdentifierTupleMsg=} [properties] Properties to set
          */
@@ -528,7 +533,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * IdentifierTupleMsg random.
-         * @member {number}random
+         * @member {number} random
          * @memberof sync.IdentifierTupleMsg
          * @instance
          */
@@ -536,7 +541,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * IdentifierTupleMsg replicaNumber.
-         * @member {number}replicaNumber
+         * @member {number} replicaNumber
          * @memberof sync.IdentifierTupleMsg
          * @instance
          */
@@ -544,7 +549,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * IdentifierTupleMsg clock.
-         * @member {number}clock
+         * @member {number} clock
          * @memberof sync.IdentifierTupleMsg
          * @instance
          */
@@ -552,7 +557,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * IdentifierTupleMsg offset.
-         * @member {number}offset
+         * @member {number} offset
          * @memberof sync.IdentifierTupleMsg
          * @instance
          */
@@ -640,13 +645,14 @@ export const sync = $root.sync = (() => {
          * Properties of a LogootSDelMsg.
          * @memberof sync
          * @interface ILogootSDelMsg
-         * @property {Array.<sync.IIdentifierIntervalMsg>} [lid] LogootSDelMsg lid
+         * @property {Array.<sync.IIdentifierIntervalMsg>|null} [lid] LogootSDelMsg lid
          */
 
         /**
          * Constructs a new LogootSDelMsg.
          * @memberof sync
          * @classdesc Represents a LogootSDelMsg.
+         * @implements ILogootSDelMsg
          * @constructor
          * @param {sync.ILogootSDelMsg=} [properties] Properties to set
          */
@@ -660,7 +666,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * LogootSDelMsg lid.
-         * @member {Array.<sync.IIdentifierIntervalMsg>}lid
+         * @member {Array.<sync.IIdentifierIntervalMsg>} lid
          * @memberof sync.LogootSDelMsg
          * @instance
          */
@@ -736,14 +742,15 @@ export const sync = $root.sync = (() => {
          * Properties of an IdentifierIntervalMsg.
          * @memberof sync
          * @interface IIdentifierIntervalMsg
-         * @property {sync.IIdentifierMsg} [idBegin] IdentifierIntervalMsg idBegin
-         * @property {number} [end] IdentifierIntervalMsg end
+         * @property {sync.IIdentifierMsg|null} [idBegin] IdentifierIntervalMsg idBegin
+         * @property {number|null} [end] IdentifierIntervalMsg end
          */
 
         /**
          * Constructs a new IdentifierIntervalMsg.
          * @memberof sync
          * @classdesc Represents an IdentifierIntervalMsg.
+         * @implements IIdentifierIntervalMsg
          * @constructor
          * @param {sync.IIdentifierIntervalMsg=} [properties] Properties to set
          */
@@ -756,7 +763,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * IdentifierIntervalMsg idBegin.
-         * @member {(sync.IIdentifierMsg|null|undefined)}idBegin
+         * @member {sync.IIdentifierMsg|null|undefined} idBegin
          * @memberof sync.IdentifierIntervalMsg
          * @instance
          */
@@ -764,7 +771,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * IdentifierIntervalMsg end.
-         * @member {number}end
+         * @member {number} end
          * @memberof sync.IdentifierIntervalMsg
          * @instance
          */
@@ -842,13 +849,14 @@ export const sync = $root.sync = (() => {
          * Properties of a QuerySyncMsg.
          * @memberof sync
          * @interface IQuerySyncMsg
-         * @property {Object.<string,number>} [vector] QuerySyncMsg vector
+         * @property {Object.<string,number>|null} [vector] QuerySyncMsg vector
          */
 
         /**
          * Constructs a new QuerySyncMsg.
          * @memberof sync
          * @classdesc Represents a QuerySyncMsg.
+         * @implements IQuerySyncMsg
          * @constructor
          * @param {sync.IQuerySyncMsg=} [properties] Properties to set
          */
@@ -862,7 +870,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * QuerySyncMsg vector.
-         * @member {Object.<string,number>}vector
+         * @member {Object.<string,number>} vector
          * @memberof sync.QuerySyncMsg
          * @instance
          */
@@ -941,14 +949,15 @@ export const sync = $root.sync = (() => {
          * Properties of a ReplySyncMsg.
          * @memberof sync
          * @interface IReplySyncMsg
-         * @property {Array.<sync.IRichLogootSOperationMsg>} [richLogootSOpsMsg] ReplySyncMsg richLogootSOpsMsg
-         * @property {Array.<sync.IIntervalMsg>} [intervals] ReplySyncMsg intervals
+         * @property {Array.<sync.IRichLogootSOperationMsg>|null} [richLogootSOpsMsg] ReplySyncMsg richLogootSOpsMsg
+         * @property {Array.<sync.IIntervalMsg>|null} [intervals] ReplySyncMsg intervals
          */
 
         /**
          * Constructs a new ReplySyncMsg.
          * @memberof sync
          * @classdesc Represents a ReplySyncMsg.
+         * @implements IReplySyncMsg
          * @constructor
          * @param {sync.IReplySyncMsg=} [properties] Properties to set
          */
@@ -963,7 +972,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * ReplySyncMsg richLogootSOpsMsg.
-         * @member {Array.<sync.IRichLogootSOperationMsg>}richLogootSOpsMsg
+         * @member {Array.<sync.IRichLogootSOperationMsg>} richLogootSOpsMsg
          * @memberof sync.ReplySyncMsg
          * @instance
          */
@@ -971,7 +980,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * ReplySyncMsg intervals.
-         * @member {Array.<sync.IIntervalMsg>}intervals
+         * @member {Array.<sync.IIntervalMsg>} intervals
          * @memberof sync.ReplySyncMsg
          * @instance
          */
@@ -1055,15 +1064,16 @@ export const sync = $root.sync = (() => {
          * Properties of an IntervalMsg.
          * @memberof sync
          * @interface IIntervalMsg
-         * @property {number} [id] IntervalMsg id
-         * @property {number} [begin] IntervalMsg begin
-         * @property {number} [end] IntervalMsg end
+         * @property {number|null} [id] IntervalMsg id
+         * @property {number|null} [begin] IntervalMsg begin
+         * @property {number|null} [end] IntervalMsg end
          */
 
         /**
          * Constructs a new IntervalMsg.
          * @memberof sync
          * @classdesc Represents an IntervalMsg.
+         * @implements IIntervalMsg
          * @constructor
          * @param {sync.IIntervalMsg=} [properties] Properties to set
          */
@@ -1076,7 +1086,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * IntervalMsg id.
-         * @member {number}id
+         * @member {number} id
          * @memberof sync.IntervalMsg
          * @instance
          */
@@ -1084,7 +1094,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * IntervalMsg begin.
-         * @member {number}begin
+         * @member {number} begin
          * @memberof sync.IntervalMsg
          * @instance
          */
@@ -1092,7 +1102,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * IntervalMsg end.
-         * @member {number}end
+         * @member {number} end
          * @memberof sync.IntervalMsg
          * @instance
          */
@@ -1187,16 +1197,18 @@ export const collaborator = $root.collaborator = (() => {
          * Properties of a Collaborator.
          * @memberof collaborator
          * @interface ICollaborator
-         * @property {string} [displayName] Collaborator displayName
-         * @property {string} [login] Collaborator login
-         * @property {string} [email] Collaborator email
-         * @property {string} [avatar] Collaborator avatar
+         * @property {number|null} [muteCoreId] Collaborator muteCoreId
+         * @property {string|null} [displayName] Collaborator displayName
+         * @property {string|null} [login] Collaborator login
+         * @property {string|null} [email] Collaborator email
+         * @property {string|null} [avatar] Collaborator avatar
          */
 
         /**
          * Constructs a new Collaborator.
          * @memberof collaborator
          * @classdesc Represents a Collaborator.
+         * @implements ICollaborator
          * @constructor
          * @param {collaborator.ICollaborator=} [properties] Properties to set
          */
@@ -1208,8 +1220,16 @@ export const collaborator = $root.collaborator = (() => {
         }
 
         /**
+         * Collaborator muteCoreId.
+         * @member {number} muteCoreId
+         * @memberof collaborator.Collaborator
+         * @instance
+         */
+        Collaborator.prototype.muteCoreId = 0;
+
+        /**
          * Collaborator displayName.
-         * @member {string}displayName
+         * @member {string} displayName
          * @memberof collaborator.Collaborator
          * @instance
          */
@@ -1217,7 +1237,7 @@ export const collaborator = $root.collaborator = (() => {
 
         /**
          * Collaborator login.
-         * @member {string}login
+         * @member {string} login
          * @memberof collaborator.Collaborator
          * @instance
          */
@@ -1225,7 +1245,7 @@ export const collaborator = $root.collaborator = (() => {
 
         /**
          * Collaborator email.
-         * @member {string}email
+         * @member {string} email
          * @memberof collaborator.Collaborator
          * @instance
          */
@@ -1233,7 +1253,7 @@ export const collaborator = $root.collaborator = (() => {
 
         /**
          * Collaborator avatar.
-         * @member {string}avatar
+         * @member {string} avatar
          * @memberof collaborator.Collaborator
          * @instance
          */
@@ -1244,12 +1264,12 @@ export const collaborator = $root.collaborator = (() => {
 
         /**
          * Collaborator type.
-         * @member {string|undefined} type
+         * @member {"muteCoreId"|"displayName"|"login"|"email"|"avatar"|undefined} type
          * @memberof collaborator.Collaborator
          * @instance
          */
         Object.defineProperty(Collaborator.prototype, "type", {
-            get: $util.oneOfGetter($oneOfFields = ["displayName", "login", "email", "avatar"]),
+            get: $util.oneOfGetter($oneOfFields = ["muteCoreId", "displayName", "login", "email", "avatar"]),
             set: $util.oneOfSetter($oneOfFields)
         });
 
@@ -1277,6 +1297,8 @@ export const collaborator = $root.collaborator = (() => {
         Collaborator.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
+            if (message.muteCoreId != null && message.hasOwnProperty("muteCoreId"))
+                writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.muteCoreId);
             if (message.displayName != null && message.hasOwnProperty("displayName"))
                 writer.uint32(/* id 2, wireType 2 =*/18).string(message.displayName);
             if (message.login != null && message.hasOwnProperty("login"))
@@ -1306,6 +1328,9 @@ export const collaborator = $root.collaborator = (() => {
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 switch (tag >>> 3) {
+                case 1:
+                    message.muteCoreId = reader.uint32();
+                    break;
                 case 2:
                     message.displayName = reader.string();
                     break;

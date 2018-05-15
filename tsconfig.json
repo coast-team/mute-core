@@ -5,6 +5,7 @@
     "lib": ["dom", "es2015", "es2016"],
     "sourceMap": true,
     "target": "ES5",
+    "typeRoots": ["src/typings"],
     "moduleResolution": "node",
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,

@@ -1,5 +1,4 @@
-export const isBrowser =
-  global === undefined || typeof (global as any).window !== 'undefined' ? true : false
+export const isBrowser = typeof window !== 'undefined' ? true : false
 
 export function generateId(): number {
   let res

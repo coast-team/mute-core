@@ -4,6 +4,7 @@
     "outDir": ".ava",
     "sourceMap": true,
     "target": "ES5",
+    "typeRoots": ["src/typings"],
     "moduleResolution": "node",
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,

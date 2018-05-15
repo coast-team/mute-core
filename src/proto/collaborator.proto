@@ -4,7 +4,7 @@ package collaborator;
 
 message Collaborator {
   oneof type {
-    unit32 muteCoreId = 1
+    uint32 muteCoreId = 1;
     string displayName = 2;
     string login = 3;
     string email = 4;

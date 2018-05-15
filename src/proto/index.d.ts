@@ -7,17 +7,17 @@ export namespace sync {
     interface ISyncMsg {
 
         /** SyncMsg richLogootSOpMsg */
-        richLogootSOpMsg?: sync.IRichLogootSOperationMsg;
+        richLogootSOpMsg?: (sync.IRichLogootSOperationMsg|null);
 
         /** SyncMsg querySync */
-        querySync?: sync.IQuerySyncMsg;
+        querySync?: (sync.IQuerySyncMsg|null);
 
         /** SyncMsg replySync */
-        replySync?: sync.IReplySyncMsg;
+        replySync?: (sync.IReplySyncMsg|null);
     }
 
     /** Represents a SyncMsg. */
-    class SyncMsg {
+    class SyncMsg implements ISyncMsg {
 
         /**
          * Constructs a new SyncMsg.
@@ -35,7 +35,7 @@ export namespace sync {
         public replySync?: (sync.IReplySyncMsg|null);
 
         /** SyncMsg type. */
-        public type?: string;
+        public type?: ("richLogootSOpMsg"|"querySync"|"replySync");
 
         /**
          * Creates a new SyncMsg instance using the specified properties.
@@ -67,20 +67,20 @@ export namespace sync {
     interface IRichLogootSOperationMsg {
 
         /** RichLogootSOperationMsg id */
-        id?: number;
+        id?: (number|null);
 
         /** RichLogootSOperationMsg clock */
-        clock?: number;
+        clock?: (number|null);
 
         /** RichLogootSOperationMsg logootSAddMsg */
-        logootSAddMsg?: sync.ILogootSAddMsg;
+        logootSAddMsg?: (sync.ILogootSAddMsg|null);
 
         /** RichLogootSOperationMsg logootSDelMsg */
-        logootSDelMsg?: sync.ILogootSDelMsg;
+        logootSDelMsg?: (sync.ILogootSDelMsg|null);
     }
 
     /** Represents a RichLogootSOperationMsg. */
-    class RichLogootSOperationMsg {
+    class RichLogootSOperationMsg implements IRichLogootSOperationMsg {
 
         /**
          * Constructs a new RichLogootSOperationMsg.
@@ -101,7 +101,7 @@ export namespace sync {
         public logootSDelMsg?: (sync.ILogootSDelMsg|null);
 
         /** RichLogootSOperationMsg type. */
-        public type?: string;
+        public type?: ("logootSAddMsg"|"logootSDelMsg");
 
         /**
          * Creates a new RichLogootSOperationMsg instance using the specified properties.
@@ -133,14 +133,14 @@ export namespace sync {
     interface ILogootSAddMsg {
 
         /** LogootSAddMsg id */
-        id?: sync.IIdentifierMsg;
+        id?: (sync.IIdentifierMsg|null);
 
         /** LogootSAddMsg content */
-        content?: string;
+        content?: (string|null);
     }
 
     /** Represents a LogootSAddMsg. */
-    class LogootSAddMsg {
+    class LogootSAddMsg implements ILogootSAddMsg {
 
         /**
          * Constructs a new LogootSAddMsg.
@@ -184,11 +184,11 @@ export namespace sync {
     interface IIdentifierMsg {
 
         /** IdentifierMsg tuples */
-        tuples?: sync.IIdentifierTupleMsg[];
+        tuples?: (sync.IIdentifierTupleMsg[]|null);
     }
 
     /** Represents an IdentifierMsg. */
-    class IdentifierMsg {
+    class IdentifierMsg implements IIdentifierMsg {
 
         /**
          * Constructs a new IdentifierMsg.
@@ -229,20 +229,20 @@ export namespace sync {
     interface IIdentifierTupleMsg {
 
         /** IdentifierTupleMsg random */
-        random?: number;
+        random?: (number|null);
 
         /** IdentifierTupleMsg replicaNumber */
-        replicaNumber?: number;
+        replicaNumber?: (number|null);
 
         /** IdentifierTupleMsg clock */
-        clock?: number;
+        clock?: (number|null);
 
         /** IdentifierTupleMsg offset */
-        offset?: number;
+        offset?: (number|null);
     }
 
     /** Represents an IdentifierTupleMsg. */
-    class IdentifierTupleMsg {
+    class IdentifierTupleMsg implements IIdentifierTupleMsg {
 
         /**
          * Constructs a new IdentifierTupleMsg.
@@ -292,11 +292,11 @@ export namespace sync {
     interface ILogootSDelMsg {
 
         /** LogootSDelMsg lid */
-        lid?: sync.IIdentifierIntervalMsg[];
+        lid?: (sync.IIdentifierIntervalMsg[]|null);
     }
 
     /** Represents a LogootSDelMsg. */
-    class LogootSDelMsg {
+    class LogootSDelMsg implements ILogootSDelMsg {
 
         /**
          * Constructs a new LogootSDelMsg.
@@ -337,14 +337,14 @@ export namespace sync {
     interface IIdentifierIntervalMsg {
 
         /** IdentifierIntervalMsg idBegin */
-        idBegin?: sync.IIdentifierMsg;
+        idBegin?: (sync.IIdentifierMsg|null);
 
         /** IdentifierIntervalMsg end */
-        end?: number;
+        end?: (number|null);
     }
 
     /** Represents an IdentifierIntervalMsg. */
-    class IdentifierIntervalMsg {
+    class IdentifierIntervalMsg implements IIdentifierIntervalMsg {
 
         /**
          * Constructs a new IdentifierIntervalMsg.
@@ -388,11 +388,11 @@ export namespace sync {
     interface IQuerySyncMsg {
 
         /** QuerySyncMsg vector */
-        vector?: { [k: string]: number };
+        vector?: ({ [k: string]: number }|null);
     }
 
     /** Represents a QuerySyncMsg. */
-    class QuerySyncMsg {
+    class QuerySyncMsg implements IQuerySyncMsg {
 
         /**
          * Constructs a new QuerySyncMsg.
@@ -433,14 +433,14 @@ export namespace sync {
     interface IReplySyncMsg {
 
         /** ReplySyncMsg richLogootSOpsMsg */
-        richLogootSOpsMsg?: sync.IRichLogootSOperationMsg[];
+        richLogootSOpsMsg?: (sync.IRichLogootSOperationMsg[]|null);
 
         /** ReplySyncMsg intervals */
-        intervals?: sync.IIntervalMsg[];
+        intervals?: (sync.IIntervalMsg[]|null);
     }
 
     /** Represents a ReplySyncMsg. */
-    class ReplySyncMsg {
+    class ReplySyncMsg implements IReplySyncMsg {
 
         /**
          * Constructs a new ReplySyncMsg.
@@ -484,17 +484,17 @@ export namespace sync {
     interface IIntervalMsg {
 
         /** IntervalMsg id */
-        id?: number;
+        id?: (number|null);
 
         /** IntervalMsg begin */
-        begin?: number;
+        begin?: (number|null);
 
         /** IntervalMsg end */
-        end?: number;
+        end?: (number|null);
     }
 
     /** Represents an IntervalMsg. */
-    class IntervalMsg {
+    class IntervalMsg implements IIntervalMsg {
 
         /**
          * Constructs a new IntervalMsg.
@@ -544,27 +544,33 @@ export namespace collaborator {
     /** Properties of a Collaborator. */
     interface ICollaborator {
 
+        /** Collaborator muteCoreId */
+        muteCoreId?: (number|null);
+
         /** Collaborator displayName */
-        displayName?: string;
+        displayName?: (string|null);
 
         /** Collaborator login */
-        login?: string;
+        login?: (string|null);
 
         /** Collaborator email */
-        email?: string;
+        email?: (string|null);
 
         /** Collaborator avatar */
-        avatar?: string;
+        avatar?: (string|null);
     }
 
     /** Represents a Collaborator. */
-    class Collaborator {
+    class Collaborator implements ICollaborator {
 
         /**
          * Constructs a new Collaborator.
          * @param [properties] Properties to set
          */
         constructor(properties?: collaborator.ICollaborator);
+
+        /** Collaborator muteCoreId. */
+        public muteCoreId: number;
 
         /** Collaborator displayName. */
         public displayName: string;
@@ -579,7 +585,7 @@ export namespace collaborator {
         public avatar: string;
 
         /** Collaborator type. */
-        public type?: string;
+        public type?: ("muteCoreId"|"displayName"|"login"|"email"|"avatar");
 
         /**
          * Creates a new Collaborator instance using the specified properties.
