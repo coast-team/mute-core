@@ -11,11 +11,11 @@ import {
   MessageEmitter,
   NetworkMessage,
   SendRandomlyMessage,
-  SendToMessage } from './network/'
+  SendToMessage,
+} from './network/'
 import { SyncMessageService, SyncService } from './sync'
 
 export class MuteCore implements Disposable, MessageEmitter {
-
   readonly collaboratorsService: CollaboratorsService
   readonly docService: DocService
   readonly syncService: SyncService
@@ -23,7 +23,7 @@ export class MuteCore implements Disposable, MessageEmitter {
 
   private initSubject: Subject<string>
 
-  constructor (me: ICollaborator) {
+  constructor(me: ICollaborator) {
     this.initSubject = new Subject<string>()
 
     this.collaboratorsService = new CollaboratorsService(me)
@@ -45,41 +45,38 @@ export class MuteCore implements Disposable, MessageEmitter {
     this.syncMessageService.replySyncSource = this.syncService.onReplySync
   }
 
-  set messageSource (source: Observable<NetworkMessage>) {
+  set messageSource(source: Observable<NetworkMessage>) {
     this.collaboratorsService.messageSource = source
     this.syncMessageService.messageSource = source
   }
 
-  get onInit (): Observable<string> {
+  get onInit(): Observable<string> {
     return this.initSubject.asObservable()
   }
 
-  get onMsgToBroadcast (): Observable<BroadcastMessage> {
+  get onMsgToBroadcast(): Observable<BroadcastMessage> {
     return merge(
       this.collaboratorsService.onMsgToBroadcast,
-      this.syncMessageService.onMsgToBroadcast,
+      this.syncMessageService.onMsgToBroadcast
     )
   }
 
-  get onMsgToSendRandomly (): Observable<SendRandomlyMessage> {
+  get onMsgToSendRandomly(): Observable<SendRandomlyMessage> {
     return merge(
       this.collaboratorsService.onMsgToSendRandomly,
-      this.syncMessageService.onMsgToSendRandomly,
+      this.syncMessageService.onMsgToSendRandomly
     )
   }
 
-  get onMsgToSendTo (): Observable<SendToMessage> {
-    return merge(
-      this.collaboratorsService.onMsgToSendTo,
-      this.syncMessageService.onMsgToSendTo,
-    )
+  get onMsgToSendTo(): Observable<SendToMessage> {
+    return merge(this.collaboratorsService.onMsgToSendTo, this.syncMessageService.onMsgToSendTo)
   }
 
-  init (key: string): void {
+  init(key: string): void {
     this.initSubject.next(key)
   }
 
-  dispose (): void {
+  dispose(): void {
     this.collaboratorsService.dispose()
     this.docService.dispose()
     this.syncService.dispose()

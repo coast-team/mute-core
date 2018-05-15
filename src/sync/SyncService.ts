@@ -13,7 +13,6 @@ import { Disposable } from '../Disposable'
 import { JoinEvent } from '../network/'
 
 export class SyncService implements Disposable {
-
   private id: number = -1
   private clock: number = 0
   private richLogootSOps: RichLogootSOperation[] = []
@@ -29,7 +28,7 @@ export class SyncService implements Disposable {
   private stateSubject: Subject<State>
   private triggerQuerySyncSubject: Subject<void>
 
-  constructor (id: number) {
+  constructor(id: number) {
     this.id = id
     this.vector = new StateVector()
     this.appliedOperationsSubject = new Subject()
@@ -45,119 +44,119 @@ export class SyncService implements Disposable {
     this.initPeriodicQuerySync()
   }
 
-  get onLocalRichLogootSOperation (): Observable<RichLogootSOperation> {
+  get onLocalRichLogootSOperation(): Observable<RichLogootSOperation> {
     return this.localRichLogootSOperationSubject.asObservable()
   }
 
-  get onQuerySync (): Observable<StateVector> {
+  get onQuerySync(): Observable<StateVector> {
     return this.querySyncSubject.asObservable()
   }
 
-  get onRemoteLogootSOperation (): Observable<LogootSOperation[]> {
+  get onRemoteLogootSOperation(): Observable<LogootSOperation[]> {
     return this.remoteLogootSOperationSubject.asObservable()
   }
 
-  get onReplySync (): Observable<ReplySyncEvent> {
+  get onReplySync(): Observable<ReplySyncEvent> {
     return this.replySyncSubject.asObservable()
   }
 
-  get onState (): Observable<State> {
+  get onState(): Observable<State> {
     return this.stateSubject.asObservable()
   }
 
-  get state (): State {
+  get state(): State {
     return new State(this.vector.asMap(), this.richLogootSOps)
   }
 
-  set localLogootSOperationSource (source: Observable<LogootSOperation>) {
-    source.pipe(takeUntil(this.disposeSubject))
-      .subscribe((logootSOp: LogootSOperation) => {
-        const richLogootSOp: RichLogootSOperation =
-          new RichLogootSOperation(this.id, this.clock, logootSOp)
+  set localLogootSOperationSource(source: Observable<LogootSOperation>) {
+    source.pipe(takeUntil(this.disposeSubject)).subscribe((logootSOp: LogootSOperation) => {
+      const richLogootSOp: RichLogootSOperation = new RichLogootSOperation(
+        this.id,
+        this.clock,
+        logootSOp
+      )
 
-        this.updateState(richLogootSOp)
+      this.updateState(richLogootSOp)
 
+      this.stateSubject.next(this.state)
+      this.localRichLogootSOperationSubject.next(richLogootSOp)
+
+      this.clock++
+    })
+  }
+
+  set remoteQuerySyncSource(source: Observable<StateVector>) {
+    source.pipe(takeUntil(this.disposeSubject)).subscribe((vector: StateVector) => {
+      const missingRichLogootSOps: RichLogootSOperation[] = this.computeMissingOps(vector)
+      // TODO: Add sort function to apply LogootSAdd operations before LogootSDel ones
+
+      const missingIntervals: Interval[] = this.vector.computeMissingIntervals(vector)
+
+      const replySyncEvent: ReplySyncEvent = new ReplySyncEvent(
+        missingRichLogootSOps,
+        missingIntervals
+      )
+      this.replySyncSubject.next(replySyncEvent)
+    })
+  }
+
+  set remoteReplySyncSource(source: Observable<ReplySyncEvent>) {
+    source.pipe(takeUntil(this.disposeSubject)).subscribe((replySyncEvent: ReplySyncEvent) => {
+      if (replySyncEvent.richLogootSOps.length > 0) {
+        this.applyRichLogootSOperations(replySyncEvent.richLogootSOps)
         this.stateSubject.next(this.state)
-        this.localRichLogootSOperationSubject.next(richLogootSOp)
+      }
 
-        this.clock++
+      replySyncEvent.intervals.forEach((interval: Interval) => {
+        this.richLogootSOps
+          .filter((richLogootSOp: RichLogootSOperation) => {
+            const id: number = richLogootSOp.id
+            const clock: number = richLogootSOp.clock
+            return interval.id === id && interval.begin <= clock && clock <= interval.end
+          })
+          .forEach((richLogootSOp: RichLogootSOperation) => {
+            this.localRichLogootSOperationSubject.next(richLogootSOp)
+          })
       })
+    })
   }
 
-  set remoteQuerySyncSource (source: Observable<StateVector>) {
-    source.pipe(takeUntil(this.disposeSubject))
-      .subscribe((vector: StateVector) => {
-        const missingRichLogootSOps: RichLogootSOperation[] =
-          this.computeMissingOps(vector)
-        // TODO: Add sort function to apply LogootSAdd operations before LogootSDel ones
-
-        const missingIntervals: Interval[] =
-          this.vector.computeMissingIntervals(vector)
-
-        const replySyncEvent: ReplySyncEvent =
-          new ReplySyncEvent(missingRichLogootSOps, missingIntervals)
-        this.replySyncSubject.next(replySyncEvent)
-      })
+  set remoteRichLogootSOperationSource(source: Observable<RichLogootSOperation>) {
+    source.pipe(takeUntil(this.disposeSubject)).subscribe((richLogootSOp: RichLogootSOperation) => {
+      this.applyRichLogootSOperations([richLogootSOp])
+      this.stateSubject.next(this.state)
+    })
   }
 
-  set remoteReplySyncSource (source: Observable<ReplySyncEvent>) {
-    source.pipe(takeUntil(this.disposeSubject))
-      .subscribe((replySyncEvent: ReplySyncEvent) => {
-        if (replySyncEvent.richLogootSOps.length > 0) {
-          this.applyRichLogootSOperations(replySyncEvent.richLogootSOps)
-          this.stateSubject.next(this.state)
-        }
-
-        replySyncEvent.intervals.forEach((interval: Interval) => {
-          this.richLogootSOps
-            .filter((richLogootSOp: RichLogootSOperation) => {
-              const id: number = richLogootSOp.id
-              const clock: number = richLogootSOp.clock
-              return interval.id === id && interval.begin <= clock && clock <= interval.end
-            })
-            .forEach((richLogootSOp: RichLogootSOperation) => {
-              this.localRichLogootSOperationSubject.next(richLogootSOp)
-            })
-        })
-      })
-  }
-
-  set remoteRichLogootSOperationSource (source: Observable<RichLogootSOperation>) {
-    source.pipe(takeUntil(this.disposeSubject))
-      .subscribe((richLogootSOp: RichLogootSOperation) => {
-        this.applyRichLogootSOperations([richLogootSOp])
-        this.stateSubject.next(this.state)
-      })
-  }
-
-  setJoinAndStateSources (joinSource: Observable<JoinEvent>, storedStateSource?: Observable<State>): void {
+  setJoinAndStateSources(
+    joinSource: Observable<JoinEvent>,
+    storedStateSource?: Observable<State>
+  ): void {
     let triggerQuerySyncObservable: Observable<JoinEvent> = joinSource
     if (storedStateSource) {
       this.storedStateSource = storedStateSource
       triggerQuerySyncObservable = joinSource.pipe(
         takeUntil(this.disposeSubject),
-        zip(this.isReadySubject, (joinEvent) => joinEvent),
+        zip(this.isReadySubject, (joinEvent) => joinEvent)
       )
     }
-    triggerQuerySyncObservable.pipe(take(1))
-      .subscribe((joinEvent: JoinEvent) => {
-        if (!joinEvent.created) {
-          this.querySyncSubject.next(this.vector)
-        }
-      })
+    triggerQuerySyncObservable.pipe(take(1)).subscribe((joinEvent: JoinEvent) => {
+      if (!joinEvent.created) {
+        this.querySyncSubject.next(this.vector)
+      }
+    })
   }
 
-  computeMissingOps (vector: StateVector): RichLogootSOperation[] {
-    return this.richLogootSOps
-      .filter((richLogootSOperation: RichLogootSOperation) => {
-        const id: number = richLogootSOperation.id
-        const clock: number = richLogootSOperation.clock
-        const v = vector.get(id)
-        return v === undefined ? true : v < clock ? true : false
-      })
+  computeMissingOps(vector: StateVector): RichLogootSOperation[] {
+    return this.richLogootSOps.filter((richLogootSOperation: RichLogootSOperation) => {
+      const id: number = richLogootSOperation.id
+      const clock: number = richLogootSOperation.clock
+      const v = vector.get(id)
+      return v === undefined ? true : v < clock ? true : false
+    })
   }
 
-  dispose (): void {
+  dispose(): void {
     this.appliedOperationsSubject.complete()
     this.disposeSubject.next()
     this.disposeSubject.complete()
@@ -169,30 +168,28 @@ export class SyncService implements Disposable {
     this.stateSubject.complete()
   }
 
-  private set storedStateSource (source: Observable<State>) {
-    source.pipe(takeUntil(this.disposeSubject))
-      .subscribe((state: State) => {
-        this.richLogootSOps = []
-        this.vector.clear()
-        this.applyRichLogootSOperations(state.richLogootSOps)
-        this.isReadySubject.next()
-      })
+  private set storedStateSource(source: Observable<State>) {
+    source.pipe(takeUntil(this.disposeSubject)).subscribe((state: State) => {
+      this.richLogootSOps = []
+      this.vector.clear()
+      this.applyRichLogootSOperations(state.richLogootSOps)
+      this.isReadySubject.next()
+    })
   }
 
-  private initPeriodicQuerySync (): void {
-    this.triggerQuerySyncSubject.pipe(takeUntil(this.disposeSubject))
-      .subscribe(() => {
-        this.querySyncSubject.next(this.vector)
-        this.triggerPeriodicQuerySync()
-      })
+  private initPeriodicQuerySync(): void {
+    this.triggerQuerySyncSubject.pipe(takeUntil(this.disposeSubject)).subscribe(() => {
+      this.querySyncSubject.next(this.vector)
+      this.triggerPeriodicQuerySync()
+    })
 
     this.triggerPeriodicQuerySync()
   }
 
-  private triggerPeriodicQuerySync (): void {
+  private triggerPeriodicQuerySync(): void {
     const defaultTime = 10000
     const max = defaultTime / 2
-    const min = - max
+    const min = -max
     // Compute a random number between [0, 10000] then shift interval to [-5000, 5000]
     const random = Math.floor(Math.random() * 2 * max) + min
     setTimeout(() => {
@@ -200,28 +197,28 @@ export class SyncService implements Disposable {
     }, defaultTime + random)
   }
 
-  private applyRichLogootSOperations (richLogootSOps: RichLogootSOperation[]): void {
+  private applyRichLogootSOperations(richLogootSOps: RichLogootSOperation[]): void {
     // Keep only new operations
-    const newRichLogootSOps: RichLogootSOperation[] =
-      richLogootSOps.filter((richLogootSOp: RichLogootSOperation) => {
+    const newRichLogootSOps: RichLogootSOperation[] = richLogootSOps.filter(
+      (richLogootSOp: RichLogootSOperation) => {
         const id: number = richLogootSOp.id
         const clock: number = richLogootSOp.clock
         return !this.vector.isAlreadyDelivered(id, clock)
-      })
+      }
+    )
 
     if (newRichLogootSOps.length > 0) {
       const logootSOperations: LogootSOperation[] = []
-      newRichLogootSOps
-        .forEach((richLogootSOp) => {
-          const id: number = richLogootSOp.id
-          const clock: number = richLogootSOp.clock
-          if (this.vector.isDeliverable(id, clock)) {
-            this.updateState(richLogootSOp)
-            logootSOperations.push(richLogootSOp.logootSOp)
-          } else {
-            this.bufferOperation(richLogootSOp)
-          }
-        })
+      newRichLogootSOps.forEach((richLogootSOp) => {
+        const id: number = richLogootSOp.id
+        const clock: number = richLogootSOp.clock
+        if (this.vector.isDeliverable(id, clock)) {
+          this.updateState(richLogootSOp)
+          logootSOperations.push(richLogootSOp.logootSOp)
+        } else {
+          this.bufferOperation(richLogootSOp)
+        }
+      })
 
       if (logootSOperations.length > 0) {
         this.remoteLogootSOperationSubject.next(logootSOperations)
@@ -230,29 +227,31 @@ export class SyncService implements Disposable {
     }
   }
 
-  private bufferOperation (richLogootSOp: RichLogootSOperation): void {
+  private bufferOperation(richLogootSOp: RichLogootSOperation): void {
     // Will deliver operation once the previous one will be applied
     const id: number = richLogootSOp.id
     const clock: number = richLogootSOp.clock
     console.log('SyncService: Buffering operation: ', { id, clock })
     const stopSubject: Subject<void> = new Subject()
-    this.appliedOperationsSubject.pipe(
-      takeUntil(stopSubject),
-      filter(() => {
-        const currentClock = this.vector.get(id)
-        return currentClock !== undefined && currentClock + 1 === clock
-      }),
-    ).subscribe(() => {
-      stopSubject.next()
-      stopSubject.complete()
-      console.log('SyncService: Delivering operation: ', { id, clock })
-      if (!this.vector.isAlreadyDelivered(id, clock)) {
-        this.applyRichLogootSOperations([richLogootSOp])
-      }
-    })
+    this.appliedOperationsSubject
+      .pipe(
+        takeUntil(stopSubject),
+        filter(() => {
+          const currentClock = this.vector.get(id)
+          return currentClock !== undefined && currentClock + 1 === clock
+        })
+      )
+      .subscribe(() => {
+        stopSubject.next()
+        stopSubject.complete()
+        console.log('SyncService: Delivering operation: ', { id, clock })
+        if (!this.vector.isAlreadyDelivered(id, clock)) {
+          this.applyRichLogootSOperations([richLogootSOp])
+        }
+      })
   }
 
-  private updateState (richLogootSOp: RichLogootSOperation): void {
+  private updateState(richLogootSOp: RichLogootSOperation): void {
     console.assert(this.vector.isDeliverable(richLogootSOp.id, richLogootSOp.clock))
     this.vector.set(richLogootSOp.id, richLogootSOp.clock)
     this.richLogootSOps.push(richLogootSOp)

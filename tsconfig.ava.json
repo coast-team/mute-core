@@ -10,7 +10,5 @@
     "noImplicitThis": true,
     "pretty": true
   },
-  "include": [
-    "test/**/*"
-  ]
+  "include": ["test/**/*"]
 }

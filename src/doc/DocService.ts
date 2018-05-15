@@ -1,9 +1,4 @@
-import {
-  Identifier,
-  LogootSOperation,
-  LogootSRopes,
-  TextOperation,
-} from 'mute-structs'
+import { Identifier, LogootSOperation, LogootSRopes, TextOperation } from 'mute-structs'
 import { Observable } from 'rxjs/Observable'
 import { debounceTime, takeUntil } from 'rxjs/operators'
 import { Subject } from 'rxjs/Subject'
@@ -17,7 +12,6 @@ export interface Position {
 }
 
 export class DocService implements Disposable {
-
   private disposeSubject: Subject<void>
 
   private doc: LogootSRopes
@@ -29,7 +23,7 @@ export class DocService implements Disposable {
   private remoteTextOperationsSubject: Subject<TextOperation[]>
   private updateSubject: Subject<void>
 
-  constructor (id: number) {
+  constructor(id: number) {
     this.doc = new LogootSRopes(id)
 
     this.disposeSubject = new Subject<void>()
@@ -39,64 +33,56 @@ export class DocService implements Disposable {
     this.remoteTextOperationsSubject = new Subject()
     this.updateSubject = new Subject()
 
-    this.updateSubject.pipe(
-      takeUntil(this.disposeSubject),
-      debounceTime(1000),
-    )
-      .subscribe(() => {
-        this.docTreeSubject.next(JSON.stringify(this.doc))
-        this.docDigestSubject.next(this.doc.digest())
-      })
+    this.updateSubject.pipe(takeUntil(this.disposeSubject), debounceTime(1000)).subscribe(() => {
+      this.docTreeSubject.next(JSON.stringify(this.doc))
+      this.docDigestSubject.next(this.doc.digest())
+    })
   }
 
-  set initSource (source: Observable<string>) {
-    source.pipe(takeUntil(this.disposeSubject))
-      .subscribe( (key: string) => {
-        this.docID = key
-      })
+  set initSource(source: Observable<string>) {
+    source.pipe(takeUntil(this.disposeSubject)).subscribe((key: string) => {
+      this.docID = key
+    })
   }
 
-  set localTextOperationsSource (source: Observable<TextOperation[]>) {
-    source.pipe(takeUntil(this.disposeSubject))
-      .subscribe((textOperations: TextOperation[]) => {
-        this.handleTextOperations(textOperations)
-        this.updateSubject.next()
-      })
+  set localTextOperationsSource(source: Observable<TextOperation[]>) {
+    source.pipe(takeUntil(this.disposeSubject)).subscribe((textOperations: TextOperation[]) => {
+      this.handleTextOperations(textOperations)
+      this.updateSubject.next()
+    })
   }
 
-  set remoteLogootSOperationSource (source: Observable<LogootSOperation[]>) {
-    source.pipe(takeUntil(this.disposeSubject))
-      .subscribe((logootSOps: LogootSOperation[]) => {
-        const remoteTextOps: TextOperation[] =
-          logootSOps
-            .map((logootSOp: LogootSOperation) => {
-              return this.handleRemoteOperation(logootSOp)
-            })
-            .reduce((acc: TextOperation[], textOps: TextOperation[]) => {
-              return acc.concat(textOps)
-            }, [])
-        this.remoteTextOperationsSubject.next(remoteTextOps)
-        this.updateSubject.next()
-      })
+  set remoteLogootSOperationSource(source: Observable<LogootSOperation[]>) {
+    source.pipe(takeUntil(this.disposeSubject)).subscribe((logootSOps: LogootSOperation[]) => {
+      const remoteTextOps: TextOperation[] = logootSOps
+        .map((logootSOp: LogootSOperation) => {
+          return this.handleRemoteOperation(logootSOp)
+        })
+        .reduce((acc: TextOperation[], textOps: TextOperation[]) => {
+          return acc.concat(textOps)
+        }, [])
+      this.remoteTextOperationsSubject.next(remoteTextOps)
+      this.updateSubject.next()
+    })
   }
 
-  get onDocDigest (): Observable<number> {
+  get onDocDigest(): Observable<number> {
     return this.docDigestSubject.asObservable()
   }
 
-  get onDocTree (): Observable<string> {
+  get onDocTree(): Observable<string> {
     return this.docTreeSubject.asObservable()
   }
 
-  get onLocalLogootSOperation (): Observable<LogootSOperation> {
+  get onLocalLogootSOperation(): Observable<LogootSOperation> {
     return this.localLogootSOperationSubject.asObservable()
   }
 
-  get onRemoteTextOperations (): Observable<TextOperation[]> {
+  get onRemoteTextOperations(): Observable<TextOperation[]> {
     return this.remoteTextOperationsSubject.asObservable()
   }
 
-  dispose (): void {
+  dispose(): void {
     this.disposeSubject.next()
     this.disposeSubject.complete()
     this.localLogootSOperationSubject.complete()
@@ -104,21 +90,21 @@ export class DocService implements Disposable {
     this.updateSubject.complete()
   }
 
-  handleTextOperations (textOperations: TextOperation[]): void {
-    textOperations.forEach( (textOperation: TextOperation) => {
+  handleTextOperations(textOperations: TextOperation[]): void {
+    textOperations.forEach((textOperation: TextOperation) => {
       const logootSOperation: LogootSOperation = textOperation.applyTo(this.doc)
       this.localLogootSOperationSubject.next(logootSOperation)
     })
     // log.info('operation:doc', 'updated doc: ', this.doc)
   }
 
-  handleRemoteOperation (logootSOperation: LogootSOperation): TextOperation[] {
+  handleRemoteOperation(logootSOperation: LogootSOperation): TextOperation[] {
     const textOperations: TextOperation[] = logootSOperation.execute(this.doc)
     // log.info('operation:doc', 'updated doc: ', this.doc)
     return textOperations
   }
 
-  positionFromIndex (index: number): Position | null {
+  positionFromIndex(index: number): Position | null {
     const respIntnode = this.doc.searchNode(index)
     if (respIntnode !== null) {
       const offset = respIntnode.node.actualBegin + respIntnode.i
@@ -131,11 +117,11 @@ export class DocService implements Disposable {
     return null
   }
 
-  indexFromId (id: Identifier): number {
+  indexFromId(id: Identifier): number {
     return this.doc.searchPos(id, new Array())
   }
 
-  setTitle (title: string): void {
+  setTitle(title: string): void {
     // log.debug('Sending title: ' + title)
     // this.network.sendDocTitle(title)
   }

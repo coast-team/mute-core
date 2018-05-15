@@ -1,11 +1,11 @@
 import { AbstractMessage } from './AbstractMessage'
 
 export class NetworkMessage extends AbstractMessage {
-  constructor (
+  constructor(
     service: string,
     readonly id: number,
     readonly isBroadcast: boolean,
-    content: Uint8Array,
+    content: Uint8Array
   ) {
     super(service, content)
   }

@@ -11,10 +11,6 @@
     "noImplicitThis": true,
     "pretty": true
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "src/proto"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["src/proto"]
 }
