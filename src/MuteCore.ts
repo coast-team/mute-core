@@ -14,6 +14,7 @@ import {
   SendToMessage,
 } from './network/'
 import { SyncMessageService, SyncService } from './sync'
+import { generateId } from './util'
 
 export class MuteCore implements Disposable, MessageEmitter {
   readonly collaboratorsService: CollaboratorsService
@@ -24,11 +25,14 @@ export class MuteCore implements Disposable, MessageEmitter {
   private initSubject: Subject<string>
 
   constructor(me: ICollaborator) {
+    if (!me.muteCoreId) {
+      me.muteCoreId = generateId()
+    }
     this.initSubject = new Subject<string>()
 
     this.collaboratorsService = new CollaboratorsService(me)
-    this.docService = new DocService(me.id)
-    this.syncService = new SyncService(me.id)
+    this.docService = new DocService(me.muteCoreId)
+    this.syncService = new SyncService(me.muteCoreId)
     this.syncMessageService = new SyncMessageService()
 
     this.docService.initSource = this.initSubject

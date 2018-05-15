@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs/Observable'
-import { filter, takeUntil } from 'rxjs/operators'
+import { filter, map, takeUntil } from 'rxjs/operators'
 import { Subject } from 'rxjs/Subject'
 
 import { Disposable } from '../Disposable'
@@ -17,10 +17,11 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
   static readonly DEFAULT_PSEUDO: string = 'Anonymous'
   private static ID: string = 'Collaborators'
 
-  private me: proto.ICollaborator
+  private me: ICollaborator
+  private collaborators: Map<number, ICollaborator>
 
   private updateSubject: Subject<ICollaborator>
-  private joinSubject: Subject<number>
+  private joinSubject: Subject<ICollaborator>
   private leaveSubject: Subject<number>
 
   private disposeSubject: Subject<void>
@@ -29,7 +30,7 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
   private msgToSendRandomlySubject: Subject<SendRandomlyMessage>
   private msgToSendToSubject: Subject<SendToMessage>
 
-  constructor(me: proto.ICollaborator) {
+  constructor(me: ICollaborator) {
     this.me = me
     this.updateSubject = new Subject()
     this.joinSubject = new Subject()
@@ -38,13 +39,15 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
     this.msgToBroadcastSubject = new Subject()
     this.msgToSendRandomlySubject = new Subject()
     this.msgToSendToSubject = new Subject()
+    this.collaborators = new Map()
+    this.collaborators.set(this.me.id, this.me)
   }
 
   get onUpdate(): Observable<ICollaborator> {
     return this.updateSubject.asObservable()
   }
 
-  get onJoin(): Observable<number> {
+  get onJoin(): Observable<ICollaborator> {
     return this.joinSubject.asObservable()
   }
 
@@ -71,28 +74,36 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
         filter((msg: NetworkMessage) => msg.service === CollaboratorsService.ID)
       )
       .subscribe((msg: NetworkMessage) => {
-        this.updateSubject.next(
-          Object.assign({ id: msg.id }, proto.Collaborator.decode(msg.content))
-        )
+        const collab = Object.assign({ id: msg.id }, proto.Collaborator.decode(msg.content))
+        if (!this.collaborators.has(collab.id)) {
+          this.collaborators.set(collab.id, collab)
+          this.joinSubject.next(collab)
+        } else {
+          this.collaborators.set(collab.id, collab)
+          this.updateSubject.next(collab)
+        }
       })
   }
 
   set joinSource(source: Observable<number>) {
-    source.pipe(takeUntil(this.disposeSubject)).subscribe((id: number) => {
-      this.emitUpdate(this.me, id)
-      this.joinSubject.next(id)
-    })
+    source
+      .pipe(takeUntil(this.disposeSubject))
+      .subscribe((id: number) => this.emitUpdate(this.me, id))
   }
 
   set leaveSource(source: Observable<number>) {
-    source
-      .pipe(takeUntil(this.disposeSubject))
-      .subscribe((id: number) => this.leaveSubject.next(id))
+    source.pipe(takeUntil(this.disposeSubject)).subscribe((id: number) => {
+      this.collaborators.delete(id)
+      this.leaveSubject.next(id)
+    })
   }
 
   set updateSource(source: Observable<ICollaborator>) {
     source.pipe(takeUntil(this.disposeSubject)).subscribe((data: ICollaborator) => {
-      this.update(data)
+      this.me.displayName = data.displayName || this.me.displayName
+      this.me.login = data.login || this.me.login
+      this.me.email = data.email || this.me.email
+      this.me.avatar = data.avatar || this.me.avatar
       this.emitUpdate(this.me)
     })
   }
@@ -126,12 +137,5 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
       this.msgToBroadcastSubject.next(msg)
     }
     return proto.Collaborator.encode(collabMsg).finish()
-  }
-
-  private update(collab: proto.ICollaborator) {
-    this.me.displayName = collab.displayName || this.me.displayName
-    this.me.login = collab.login || this.me.login
-    this.me.email = collab.email || this.me.email
-    this.me.avatar = collab.avatar || this.me.avatar
   }
 }
