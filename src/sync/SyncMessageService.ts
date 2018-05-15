@@ -25,7 +25,7 @@ import { RichLogootSOperation } from './RichLogootSOperation'
 import { StateVector } from './StateVector'
 
 export class SyncMessageService implements Disposable, MessageEmitter {
-  private static ID: string = 'SyncMessage'
+  private static ID: number = 423
 
   private disposeSubject: Subject<void>
   private msgToBroadcastSubject: Subject<BroadcastMessage>

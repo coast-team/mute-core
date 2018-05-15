@@ -1,3 +1,3 @@
 export abstract class AbstractMessage {
-  constructor(readonly service: string, readonly content: Uint8Array) {}
+  constructor(readonly service: number, readonly content: Uint8Array) {}
 }

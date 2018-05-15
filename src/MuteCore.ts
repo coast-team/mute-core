@@ -29,6 +29,7 @@ export class MuteCore implements Disposable, MessageEmitter {
     if (!me.muteCoreId) {
       me.muteCoreId = generateId()
     }
+    console.log('generated id = ', me.muteCoreId)
     this.initSubject = new Subject<string>()
 
     this.collaboratorsService = new CollaboratorsService(Object.assign({ id: 0 }, me))

@@ -15,7 +15,7 @@ import { ICollaborator } from './ICollaborator'
 
 export class CollaboratorsService implements Disposable, MessageEmitter {
   static readonly DEFAULT_PSEUDO: string = 'Anonymous'
-  private static ID: string = 'Collaborators'
+  private static ID: number = 421
 
   private me: ICollaborator
   private collaborators: Map<number, ICollaborator>

@@ -2,7 +2,7 @@ import { AbstractMessage } from './AbstractMessage'
 
 export class NetworkMessage extends AbstractMessage {
   constructor(
-    service: string,
+    service: number,
     readonly id: number,
     readonly isBroadcast: boolean,
     content: Uint8Array
