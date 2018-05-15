@@ -13,6 +13,7 @@ import {
   SendRandomlyMessage,
   SendToMessage,
 } from './network/'
+import { collaborator as proto } from './proto'
 import { SyncMessageService, SyncService } from './sync'
 import { generateId } from './util'
 
@@ -24,13 +25,13 @@ export class MuteCore implements Disposable, MessageEmitter {
 
   private initSubject: Subject<string>
 
-  constructor(me: ICollaborator) {
+  constructor(me: proto.ICollaborator) {
     if (!me.muteCoreId) {
       me.muteCoreId = generateId()
     }
     this.initSubject = new Subject<string>()
 
-    this.collaboratorsService = new CollaboratorsService(me)
+    this.collaboratorsService = new CollaboratorsService(Object.assign({ id: 0 }, me))
     this.docService = new DocService(me.muteCoreId)
     this.syncService = new SyncService(me.muteCoreId)
     this.syncMessageService = new SyncMessageService()

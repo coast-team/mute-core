@@ -40,7 +40,7 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
     this.msgToSendRandomlySubject = new Subject()
     this.msgToSendToSubject = new Subject()
     this.collaborators = new Map()
-    this.collaborators.set(this.me.id, this.me)
+    // this.collaborators.set(this.me.id, this.me)
   }
 
   get onUpdate(): Observable<ICollaborator> {
