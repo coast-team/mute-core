@@ -1,4 +1,4 @@
-import { LogootSOperation } from 'mute-structs'
+import { Dot, IdentifierInterval, LogootSDel, LogootSOperation } from 'mute-structs'
 import { Observable } from 'rxjs/Observable'
 import { filter, take, takeUntil, zip } from 'rxjs/operators'
 import { Subject } from 'rxjs/Subject'
@@ -70,11 +70,12 @@ export class SyncService implements Disposable {
 
   set localLogootSOperationSource(source: Observable<LogootSOperation>) {
     source.pipe(takeUntil(this.disposeSubject)).subscribe((logootSOp: LogootSOperation) => {
-      const richLogootSOp: RichLogootSOperation = new RichLogootSOperation(
-        this.id,
-        this.clock,
-        logootSOp
-      )
+      let dependencies: Dot[] = []
+      if (logootSOp instanceof LogootSDel) {
+        dependencies = this.getDependencies(logootSOp)
+      }
+
+      const richLogootSOp = new RichLogootSOperation(this.id, this.clock, logootSOp, dependencies)
 
       this.updateState(richLogootSOp)
 
@@ -210,11 +211,12 @@ export class SyncService implements Disposable {
     if (newRichLogootSOps.length > 0) {
       const logootSOperations: LogootSOperation[] = []
       newRichLogootSOps.forEach((richLogootSOp) => {
-        const id: number = richLogootSOp.id
-        const clock: number = richLogootSOp.clock
-        if (this.vector.isDeliverable(id, clock)) {
+        if (this.isDeliverable(richLogootSOp)) {
+          const id: number = richLogootSOp.id
+          const clock: number = richLogootSOp.clock
+          const logootSOp = richLogootSOp.logootSOp
           this.updateState(richLogootSOp)
-          logootSOperations.push(richLogootSOp.logootSOp)
+          logootSOperations.push(logootSOp)
         } else {
           this.bufferOperation(richLogootSOp)
         }
@@ -234,13 +236,7 @@ export class SyncService implements Disposable {
     console.log('SyncService: Buffering operation: ', { id, clock })
     const stopSubject: Subject<void> = new Subject()
     this.appliedOperationsSubject
-      .pipe(
-        takeUntil(stopSubject),
-        filter(() => {
-          const currentClock = this.vector.get(id)
-          return currentClock !== undefined && currentClock + 1 === clock
-        })
-      )
+      .pipe(takeUntil(stopSubject), filter(() => this.isDeliverable(richLogootSOp)))
       .subscribe(() => {
         stopSubject.next()
         stopSubject.complete()
@@ -252,8 +248,32 @@ export class SyncService implements Disposable {
   }
 
   private updateState(richLogootSOp: RichLogootSOperation): void {
-    console.assert(this.vector.isDeliverable(richLogootSOp.id, richLogootSOp.clock))
-    this.vector.set(richLogootSOp.id, richLogootSOp.clock)
+    console.assert(this.isDeliverable(richLogootSOp))
+    const id: number = richLogootSOp.id
+    const clock: number = richLogootSOp.clock
+    this.vector.set(id, clock)
     this.richLogootSOps.push(richLogootSOp)
+  }
+
+  private isDeliverable(richLogootSOp: RichLogootSOperation) {
+    const id: number = richLogootSOp.id
+    const clock: number = richLogootSOp.clock
+    const dependencies: Dot[] = richLogootSOp.dependencies
+    return this.vector.isDeliverable(id, clock) && this.hasDeliveredDependencies(dependencies)
+  }
+
+  private hasDeliveredDependencies(dependencies: Dot[]): boolean {
+    return dependencies.every((dot: Dot) => {
+      const currentClock: number | undefined = this.vector.get(dot.replicaNumber)
+      return currentClock !== undefined && dot.clock <= currentClock
+    })
+  }
+
+  private getDependencies(logootSDel: LogootSDel): Dot[] {
+    return logootSDel.lid.map((idInterval: IdentifierInterval) => {
+      const dependencyId = idInterval.idBegin.replicaNumber
+      const dependencyClock = this.vector.get(dependencyId)
+      return { replicaNumber: dependencyId, clock: dependencyClock }
+    })
   }
 }

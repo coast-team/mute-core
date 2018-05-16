@@ -17,6 +17,7 @@ message RichLogootSOperationMsg {
     LogootSAddMsg logootSAddMsg = 3;
     LogootSDelMsg logootSDelMsg = 4;
   }
+  repeated DotMsg dependencies = 5;
 }
 
 message LogootSAddMsg {
@@ -57,4 +58,9 @@ message IntervalMsg {
   int32 id = 1;
   int32 begin = 2;
   int32 end = 3;
+}
+
+message DotMsg {
+  required int32 replicaNumber = 1;
+  required int32 clock = 2;
 }
