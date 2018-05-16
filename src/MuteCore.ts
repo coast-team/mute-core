@@ -29,7 +29,11 @@ export class MuteCore implements Disposable, MessageEmitter {
     if (!me.muteCoreId) {
       me.muteCoreId = generateId()
     }
-    console.log('generated id = ', me.muteCoreId)
+
+    /* FIXME: this.me object doesn't have id property set to the correct network id (it is set to 0 just below).
+      This is because the id is initialized once join() method is called.
+    */
+
     this.initSubject = new Subject<string>()
 
     this.collaboratorsService = new CollaboratorsService(Object.assign({ id: 0 }, me))
