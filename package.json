@@ -27,7 +27,7 @@
   "scripts": {
     "prebuild": "rm -rf dist",
     "build": "tsc --outDir dist/commonjs && tsc -m es6 --types --outDir dist/esm",
-    "postbuild": "mkdir dist/types/proto && cp src/proto/index.d.ts dist/types/proto/ && npm run postbuildcommonjs && npm run postbuildesm",
+    "postbuild": "mkdir dist/types/proto && cp src/proto/index.d.ts dist/types/proto/ && cp -r  src/proto dist/ && npm run postbuildcommonjs && npm run postbuildesm",
     "postbuildcommonjs": "mkdir dist/commonjs/proto && npm run protobasicconf -- -w commonjs -o dist/commonjs/proto/index.js",
     "postbuildesm": "mkdir dist/esm/proto && npm run --silent protobasicconf -- -w es6 | babel -o dist/esm/proto/index.js",
     "check": "tsc --noEmit",
