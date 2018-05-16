@@ -14,7 +14,6 @@ import { collaborator as proto } from '../proto'
 import { ICollaborator } from './ICollaborator'
 
 export class CollaboratorsService implements Disposable, MessageEmitter {
-  static readonly DEFAULT_PSEUDO: string = 'Anonymous'
   private static ID: number = 421
 
   private me: ICollaborator
@@ -119,7 +118,7 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
     this.msgToSendToSubject.complete()
   }
 
-  private emitUpdate(collab: proto.ICollaborator, id?: number): Uint8Array {
+  private emitUpdate(collab: ICollaborator, id?: number) {
     const collabMsg = proto.Collaborator.create(collab)
 
     if (id) {
@@ -136,6 +135,5 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
       )
       this.msgToBroadcastSubject.next(msg)
     }
-    return proto.Collaborator.encode(collabMsg).finish()
   }
 }
