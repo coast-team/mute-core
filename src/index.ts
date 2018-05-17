@@ -1,3 +1,5 @@
+import 'core-js/es7/global'
+
 export { ICollaborator, CollaboratorsService } from './collaborators/'
 export { DocService, Position } from './doc/'
 export {
@@ -6,6 +8,7 @@ export {
   NetworkMessage,
   SendRandomlyMessage,
   SendToMessage,
-  AbstractMessage } from './network/'
+  AbstractMessage,
+} from './network/'
 export { MuteCore } from './MuteCore'
-export { RichLogootSOperation, State} from './sync/'
+export { RichLogootSOperation, State } from './sync/'
