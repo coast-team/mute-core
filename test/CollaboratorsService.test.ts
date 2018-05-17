@@ -1,7 +1,6 @@
 import test from 'ava'
 import { TestContext } from 'ava'
-import { Observable } from 'rxjs/Observable'
-import { from } from 'rxjs/observable/from'
+import { from, Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
 
 import { CollaboratorsService, ICollaborator } from '../src/collaborators'

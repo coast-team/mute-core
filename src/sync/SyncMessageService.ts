@@ -6,10 +6,8 @@ import {
   LogootSDel,
   LogootSOperation,
 } from 'mute-structs'
-import { Observable } from 'rxjs/Observable'
-import { zip } from 'rxjs/observable/zip'
+import { Observable, Subject, zip } from 'rxjs'
 import { filter, takeUntil } from 'rxjs/operators'
-import { Subject } from 'rxjs/Subject'
 
 import { Disposable } from '../Disposable'
 import {

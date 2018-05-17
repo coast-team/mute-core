@@ -1,8 +1,7 @@
 import test from 'ava'
 import { TestContext } from 'ava'
 import { Identifier, IdentifierInterval, LogootSAdd, LogootSDel } from 'mute-structs'
-import { Observable, Subject } from 'rxjs'
-import { from } from 'rxjs/observable/from'
+import { from, Observable, Subject } from 'rxjs'
 import { map } from 'rxjs/operators'
 import {
   BroadcastMessage,

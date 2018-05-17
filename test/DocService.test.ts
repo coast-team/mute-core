@@ -1,20 +1,13 @@
 import test from 'ava'
-import {TestContext} from 'ava'
-import {
-    LogootSOperation,
-    TextDelete,
-    TextInsert,
-    TextOperation,
-} from 'mute-structs'
-import {Observable, Subject} from 'rxjs'
-import {from} from 'rxjs/observable/from'
-import {map} from 'rxjs/operators'
+import { TestContext } from 'ava'
+import { LogootSOperation, TextDelete, TextInsert, TextOperation } from 'mute-structs'
+import { from, Observable, Subject } from 'rxjs'
+import { map } from 'rxjs/operators'
 
-import {DocService} from '../src/doc'
+import { DocService } from '../src/doc'
+import { disposeOf } from './Helpers'
 
-import {disposeOf} from './Helpers'
-
-function generateTextOperations (): TextOperation[] {
+function generateTextOperations(): TextOperation[] {
   const textOperations: TextOperation[] = []
 
   textOperations.push(new TextInsert(0, 'Hello'))
@@ -31,14 +24,11 @@ test('textOperation-correct-send-and-delivery', (t: TestContext) => {
   disposeOf(docServiceOut, 200)
 
   const textOperations: TextOperation[] = generateTextOperations()
-  const array: TextOperation[][] =
-        textOperations.map((textOp: TextOperation) => [textOp])
+  const array: TextOperation[][] = textOperations.map((textOp: TextOperation) => [textOp])
 
-  docServiceOut.remoteLogootSOperationSource =
-        docServiceIn
-            .onLocalLogootSOperation.pipe(
-                map((logootSOp: LogootSOperation) => [logootSOp]),
-            )
+  docServiceOut.remoteLogootSOperationSource = docServiceIn.onLocalLogootSOperation.pipe(
+    map((logootSOp: LogootSOperation) => [logootSOp])
+  )
 
   setTimeout(() => {
     docServiceIn.localTextOperationsSource = from(array)
@@ -48,24 +38,20 @@ test('textOperation-correct-send-and-delivery', (t: TestContext) => {
   t.plan(textOperations.length * 2)
   return docServiceOut.onRemoteTextOperations.pipe(
     map((actualTextOperations: TextOperation[]): void => {
-        // Each LogootSOperation should correspond to one TextOperation
+      // Each LogootSOperation should correspond to one TextOperation
       t.is(actualTextOperations.length, 1)
 
       const actual: TextOperation = actualTextOperations[0]
       const expected: TextOperation = textOperations[counter]
-      if (actual instanceof TextDelete &&
-            expected instanceof TextDelete) {
-
+      if (actual instanceof TextDelete && expected instanceof TextDelete) {
         t.true(actual.equals(expected))
-      } else if (actual instanceof TextInsert &&
-            expected instanceof TextInsert) {
-
+      } else if (actual instanceof TextInsert && expected instanceof TextInsert) {
         t.true(actual.equals(expected))
       } else {
         t.fail('actual and expected must be of the same type')
       }
 
       counter++
-    }),
+    })
   )
 })

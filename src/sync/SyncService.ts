@@ -1,7 +1,6 @@
 import { Dot, IdentifierInterval, LogootSDel, LogootSOperation } from 'mute-structs'
-import { Observable } from 'rxjs/Observable'
+import { Observable, Subject } from 'rxjs'
 import { filter, take, takeUntil, zip } from 'rxjs/operators'
-import { Subject } from 'rxjs/Subject'
 
 import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'

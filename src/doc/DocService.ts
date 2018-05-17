@@ -1,7 +1,6 @@
 import { Identifier, LogootSOperation, LogootSRopes, TextOperation } from 'mute-structs'
-import { Observable } from 'rxjs/Observable'
+import { Observable, Subject } from 'rxjs'
 import { debounceTime, takeUntil } from 'rxjs/operators'
-import { Subject } from 'rxjs/Subject'
 
 import { Disposable } from '../Disposable'
 import { JoinEvent } from '../network/'
