@@ -3,11 +3,9 @@ syntax = "proto3";
 package collaborator;
 
 message Collaborator {
-  oneof type {
-    uint32 muteCoreId = 1;
-    string displayName = 2;
-    string login = 3;
-    string email = 4;
-    string avatar = 5;
-  }
+  uint32 muteCoreId = 1;
+  string displayName = 2;
+  string login = 3;
+  string email = 4;
+  string avatar = 5;
 }

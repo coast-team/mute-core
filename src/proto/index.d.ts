@@ -641,9 +641,6 @@ export namespace collaborator {
         /** Collaborator avatar. */
         public avatar: string;
 
-        /** Collaborator type. */
-        public type?: ("muteCoreId"|"displayName"|"login"|"email"|"avatar");
-
         /**
          * Creates a new Collaborator instance using the specified properties.
          * @param [properties] Properties to set

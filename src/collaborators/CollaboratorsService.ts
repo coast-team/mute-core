@@ -72,21 +72,25 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
         filter((msg: NetworkMessage) => msg.service === CollaboratorsService.ID)
       )
       .subscribe((msg: NetworkMessage) => {
-        const collab = Object.assign({ id: msg.id }, proto.Collaborator.decode(msg.content))
-        if (!this.collaborators.has(collab.id)) {
-          this.collaborators.set(collab.id, collab)
-          this.joinSubject.next(collab)
-        } else {
+        const collabUpdate = Object.assign({ id: msg.id }, proto.Collaborator.decode(msg.content))
+        const collab = this.collaborators.get(collabUpdate.id)
+        if (collab) {
+          collab.muteCoreId = collabUpdate.muteCoreId || collab.muteCoreId
+          collab.displayName = collabUpdate.displayName || collab.displayName
+          collab.login = collabUpdate.login || collab.login
+          collab.email = collabUpdate.email || collab.email
+          collab.avatar = collabUpdate.avatar || collab.avatar
           this.collaborators.set(collab.id, collab)
           this.updateSubject.next(collab)
+        } else {
+          this.collaborators.set(collabUpdate.id, collabUpdate)
+          this.joinSubject.next(collabUpdate)
         }
       })
   }
 
   set joinSource(source: Observable<number>) {
-    source
-      .pipe(takeUntil(this.disposeSubject))
-      .subscribe((id: number) => this.emitUpdate(this.me, id))
+    source.pipe(takeUntil(this.disposeSubject)).subscribe((id: number) => this.emitUpdate(id))
   }
 
   set leaveSource(source: Observable<number>) {
@@ -98,11 +102,8 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
 
   set updateSource(source: Observable<ICollaborator>) {
     source.pipe(takeUntil(this.disposeSubject)).subscribe((data: ICollaborator) => {
-      this.me.displayName = data.displayName || this.me.displayName
-      this.me.login = data.login || this.me.login
-      this.me.email = data.email || this.me.email
-      this.me.avatar = data.avatar || this.me.avatar
-      this.emitUpdate(this.me)
+      Object.assign(this.me, data)
+      this.emitUpdate()
     })
   }
 
@@ -117,8 +118,11 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
     this.msgToSendToSubject.complete()
   }
 
-  private emitUpdate(collab: ICollaborator, id?: number) {
-    const collabMsg = proto.Collaborator.create(collab)
+  private emitUpdate(id?: number) {
+    const data = Object.assign({}, this.me)
+    delete data.id
+    const collabMsg = proto.Collaborator.create(data)
+    console.log('I emit my profile ', collabMsg)
 
     if (id) {
       const msg: SendToMessage = new SendToMessage(

@@ -1386,20 +1386,6 @@ export const collaborator = $root.collaborator = (() => {
          */
         Collaborator.prototype.avatar = "";
 
-        // OneOf field names bound to virtual getters and setters
-        let $oneOfFields;
-
-        /**
-         * Collaborator type.
-         * @member {"muteCoreId"|"displayName"|"login"|"email"|"avatar"|undefined} type
-         * @memberof collaborator.Collaborator
-         * @instance
-         */
-        Object.defineProperty(Collaborator.prototype, "type", {
-            get: $util.oneOfGetter($oneOfFields = ["muteCoreId", "displayName", "login", "email", "avatar"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
         /**
          * Creates a new Collaborator instance using the specified properties.
          * @function create
