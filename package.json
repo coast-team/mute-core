@@ -1,7 +1,7 @@
 {
   "name": "mute-core",
   "description": "",
-  "version": "1.0.0",
+  "version": "0.0.0-development",
   "main": "./dist/commonjs/index.js",
   "module": "./dist/esm/index.node.js",
   "browser": "./dist/esm/index.js",
@@ -41,7 +41,9 @@
     "postproto": "pbts -o src/proto/index.d.ts src/proto/index.js",
     "precommit": "lint-staged && npm test",
     "commitmsg": "commitlint -e $GIT_PARAMS",
-    "cz": "git-cz"
+    "cz": "git-cz",
+    "semantic-release": "semantic-release",
+    "travis-deploy-once": "travis-deploy-once"
   },
   "dependencies": {
     "core-js": "^2.5.6",
@@ -66,7 +68,9 @@
     "rxjs-compat": "^6.1.0",
     "tslint": "^5.10.0",
     "tslint-config-prettier": "^1.13.0",
-    "typescript": "~2.8.3"
+    "typescript": "~2.8.3",
+    "semantic-release": "^15.5.0",
+    "travis-deploy-once": "^5.0.0"
   },
   "ava": {
     "files": [
