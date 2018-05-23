@@ -33,28 +33,39 @@
     "postbuildesm": "mkdir dist/esm/proto && npm run --silent protobasicconf -- -w es6 | babel -o dist/esm/proto/index.js",
     "postbuildproto": "mkdir dist/proto && cp src/proto/*.proto dist/proto",
     "check": "tsc --noEmit",
-    "lint": "tslint --fix -p tsconfig.json && prettier --write --list-different src/**/*.ts test/**/*.{ts} ./*.{ts,js,json,md} ./*.md",
+    "lint": "tslint --fix -p tsconfig.json && prettier --write --list-different src/**/*.ts test/**/*.{ts} ./*.{ts,js,json,md} ./*.md && markdownlint ./*.md",
     "pretest": "rm -rf .ava && tsc -p tsconfig.ava.json && mkdir .ava/src/proto && npm run protobasicconf -- -w commonjs -o .ava/src/proto/index.js",
     "test": "ava",
     "protobasicconf": "pbjs -t static-module --no-verify --no-delimited --no-convert src/proto/index.proto",
     "proto": "pbjs -t static-module -w es6  --no-verify --no-delimited --no-convert -o src/proto/index.js src/proto/index.proto",
-    "postproto": "pbts -o src/proto/index.d.ts src/proto/index.js"
+    "postproto": "pbts -o src/proto/index.d.ts src/proto/index.js",
+    "precommit": "lint-staged && npm test",
+    "commitmsg": "commitlint -e $GIT_PARAMS",
+    "cz": "git-cz"
   },
   "dependencies": {
     "core-js": "^2.5.6",
     "mute-structs": "^0.4.2",
     "protobufjs": "^6.8.4",
-    "rxjs": "^6.1.0",
+    "rxjs": "^6.2.0",
     "safe-any": "^1.0.2"
   },
   "devDependencies": {
+    "@commitlint/cli": "^6.2.0",
+    "@commitlint/config-conventional": "^6.1.3",
     "assert": "^1.4.1",
     "ava": "^0.23.0",
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",
+    "commitizen": "^2.9.6",
+    "cz-conventional-changelog": "^2.1.0",
+    "husky": "^0.14.3",
+    "lint-staged": "^7.1.2",
+    "markdownlint-cli": "^0.9.0",
     "prettier": "^1.12.1",
+    "rxjs-compat": "^6.1.0",
     "tslint": "^5.10.0",
-    "tslint-config-prettier": "^1.12.0",
+    "tslint-config-prettier": "^1.13.0",
     "typescript": "~2.8.3"
   },
   "ava": {
@@ -65,5 +76,33 @@
       "test"
     ],
     "timeout": "5s"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-conventional-changelog"
+    }
+  },
+  "lint-staged": {
+    "linters": {
+      "*.md": [
+        "prettier --write --list-different",
+        "git add",
+        "markdownlint"
+      ],
+      "*.ts": [
+        "tslint --fix -p tsconfig.json -e src/proto/*",
+        "git add"
+      ],
+      "*.{ts,json,scss,css}": [
+        "prettier --write --list-different",
+        "git add"
+      ]
+    },
+    "concurrent": false
   }
 }
