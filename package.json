@@ -7,7 +7,7 @@
   "browser": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
   "files": [
-    "dist"
+    "dist/"
   ],
   "repository": {
     "type": "git",
@@ -34,7 +34,7 @@
     "postbuildproto": "mkdir dist/proto && cp src/proto/*.proto dist/proto",
     "check": "tsc --noEmit",
     "lint": "tslint --fix -p tsconfig.json && prettier --write --list-different src/**/*.ts test/**/*.{ts} ./*.{ts,js,json,md} ./*.md && markdownlint ./*.md",
-    "pretest": "rm -rf .ava && tsc -p tsconfig.ava.json && mkdir .ava/src/proto && npm run protobasicconf -- -w commonjs -o .ava/src/proto/index.js",
+    "pretest": "npm run build && rm -rf .ava && tsc -p tsconfig.ava.json && mkdir .ava/src/proto && npm run protobasicconf -- -w commonjs -o .ava/src/proto/index.js",
     "test": "ava",
     "protobasicconf": "pbjs -t static-module --no-verify --no-delimited --no-convert src/proto/index.proto",
     "proto": "pbjs -t static-module -w es6  --no-verify --no-delimited --no-convert -o src/proto/index.js src/proto/index.proto",
