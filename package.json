@@ -33,7 +33,7 @@
     "postbuildesm": "mkdir dist/esm/proto && npm run --silent protobasicconf -- -w es6 | babel -o dist/esm/proto/index.js",
     "postbuildproto": "mkdir dist/proto && cp src/proto/*.proto dist/proto",
     "check": "tsc --noEmit",
-    "lint": "tslint --fix -p tsconfig.json && prettier --write --list-different src/**/*.ts test/**/*.{ts} ./*.{ts,js,json,md} ./*.md && markdownlint ./*.md",
+    "lint": "tslint --fix -p tsconfig.json && prettier --write --list-different 'src/**/*.ts test/**/*.{ts}' './*.{ts,js,json,md}' './*.md' && markdownlint ./*.md",
     "pretest": "npm run build && rm -rf .ava && tsc -p tsconfig.ava.json && mkdir .ava/src/proto && npm run protobasicconf -- -w commonjs -o .ava/src/proto/index.js",
     "test": "ava",
     "protobasicconf": "pbjs -t static-module --no-verify --no-delimited --no-convert src/proto/index.proto",
@@ -46,7 +46,7 @@
     "travis-deploy-once": "travis-deploy-once"
   },
   "dependencies": {
-    "core-js": "^2.5.6",
+    "core-js": "^2.5.7",
     "mute-structs": "^0.4.2",
     "protobufjs": "^6.8.4",
     "rxjs": "^6.2.0",
@@ -59,18 +59,18 @@
     "ava": "^0.23.0",
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",
-    "commitizen": "^2.9.6",
+    "commitizen": "^2.10.1",
     "cz-conventional-changelog": "^2.1.0",
     "husky": "^0.14.3",
     "lint-staged": "^7.1.2",
     "markdownlint-cli": "^0.9.0",
-    "prettier": "^1.12.1",
-    "rxjs-compat": "^6.1.0",
+    "prettier": "^1.13.2",
+    "rxjs-compat": "^6.2.0",
+    "semantic-release": "^15.5.0",
+    "travis-deploy-once": "^5.0.0",
     "tslint": "^5.10.0",
     "tslint-config-prettier": "^1.13.0",
-    "typescript": "~2.8.3",
-    "semantic-release": "^15.5.0",
-    "travis-deploy-once": "^5.0.0"
+    "typescript": "~2.8.3"
   },
   "ava": {
     "files": [
