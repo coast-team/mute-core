@@ -27,7 +27,7 @@ test('textOperation-correct-send-and-delivery', (t: TestContext) => {
   const array: TextOperation[][] = textOperations.map((textOp: TextOperation) => [textOp])
 
   docServiceOut.remoteLogootSOperationSource = docServiceIn.onLocalLogootSOperation.pipe(
-    map((logootSOp: LogootSOperation) => [logootSOp])
+    map((logootSOp: LogootSOperation) => ({ collaborator: undefined, operations: [logootSOp] }))
   )
 
   setTimeout(() => {
@@ -37,21 +37,23 @@ test('textOperation-correct-send-and-delivery', (t: TestContext) => {
   let counter = 0
   t.plan(textOperations.length * 2)
   return docServiceOut.onRemoteTextOperations.pipe(
-    map((actualTextOperations: TextOperation[]): void => {
-      // Each LogootSOperation should correspond to one TextOperation
-      t.is(actualTextOperations.length, 1)
+    map(
+      ({ operations }): void => {
+        // Each LogootSOperation should correspond to one TextOperation
+        t.is(operations.length, 1)
 
-      const actual: TextOperation = actualTextOperations[0]
-      const expected: TextOperation = textOperations[counter]
-      if (actual instanceof TextDelete && expected instanceof TextDelete) {
-        t.true(actual.equals(expected))
-      } else if (actual instanceof TextInsert && expected instanceof TextInsert) {
-        t.true(actual.equals(expected))
-      } else {
-        t.fail('actual and expected must be of the same type')
+        const actual: TextOperation = operations[0]
+        const expected: TextOperation = textOperations[counter]
+        if (actual instanceof TextDelete && expected instanceof TextDelete) {
+          t.true(actual.equals(expected))
+        } else if (actual instanceof TextInsert && expected instanceof TextInsert) {
+          t.true(actual.equals(expected))
+        } else {
+          t.fail('actual and expected must be of the same type')
+        }
+
+        counter++
       }
-
-      counter++
-    })
+    )
   )
 })

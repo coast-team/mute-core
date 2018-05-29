@@ -2,6 +2,7 @@ import { Identifier, LogootSOperation, LogootSRopes, TextOperation } from 'mute-
 import { Observable, Subject } from 'rxjs'
 import { debounceTime, takeUntil } from 'rxjs/operators'
 
+import { ICollaborator } from '../collaborators'
 import { Disposable } from '../Disposable'
 import { JoinEvent } from '../network/'
 
@@ -19,7 +20,10 @@ export class DocService implements Disposable {
   private docDigestSubject: Subject<number>
   private docTreeSubject: Subject<string>
   private localLogootSOperationSubject: Subject<LogootSOperation>
-  private remoteTextOperationsSubject: Subject<TextOperation[]>
+  private remoteTextOperationsSubject: Subject<{
+    collaborator: ICollaborator | undefined
+    operations: TextOperation[]
+  }>
   private updateSubject: Subject<void>
 
   constructor(id: number) {
@@ -32,10 +36,15 @@ export class DocService implements Disposable {
     this.remoteTextOperationsSubject = new Subject()
     this.updateSubject = new Subject()
 
-    this.updateSubject.pipe(takeUntil(this.disposeSubject), debounceTime(1000)).subscribe(() => {
-      this.docTreeSubject.next(JSON.stringify(this.doc))
-      this.docDigestSubject.next(this.doc.digest())
-    })
+    this.updateSubject
+      .pipe(
+        takeUntil(this.disposeSubject),
+        debounceTime(1000)
+      )
+      .subscribe(() => {
+        this.docTreeSubject.next(JSON.stringify(this.doc))
+        this.docDigestSubject.next(this.doc.digest())
+      })
   }
 
   set initSource(source: Observable<string>) {
@@ -51,16 +60,20 @@ export class DocService implements Disposable {
     })
   }
 
-  set remoteLogootSOperationSource(source: Observable<LogootSOperation[]>) {
-    source.pipe(takeUntil(this.disposeSubject)).subscribe((logootSOps: LogootSOperation[]) => {
-      const remoteTextOps: TextOperation[] = logootSOps
-        .map((logootSOp: LogootSOperation) => {
-          return this.handleRemoteOperation(logootSOp)
-        })
-        .reduce((acc: TextOperation[], textOps: TextOperation[]) => {
-          return acc.concat(textOps)
-        }, [])
-      this.remoteTextOperationsSubject.next(remoteTextOps)
+  set remoteLogootSOperationSource(
+    source: Observable<{
+      collaborator: ICollaborator | undefined
+      operations: LogootSOperation[]
+    }>
+  ) {
+    source.pipe(takeUntil(this.disposeSubject)).subscribe(({ collaborator, operations }) => {
+      const remoteTextOps: TextOperation[] = operations
+        .map((op) => this.handleRemoteOperation(op))
+        .reduce((acc: TextOperation[], textOps: TextOperation[]) => acc.concat(textOps), [])
+      this.remoteTextOperationsSubject.next({
+        collaborator,
+        operations: remoteTextOps,
+      })
       this.updateSubject.next()
     })
   }
@@ -77,7 +90,10 @@ export class DocService implements Disposable {
     return this.localLogootSOperationSubject.asObservable()
   }
 
-  get onRemoteTextOperations(): Observable<TextOperation[]> {
+  get onRemoteTextOperations(): Observable<{
+    collaborator: ICollaborator | undefined
+    operations: TextOperation[]
+  }> {
     return this.remoteTextOperationsSubject.asObservable()
   }
 

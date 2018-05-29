@@ -1,5 +1,6 @@
 import { merge, Observable, Subject } from 'rxjs'
 
+import { map } from 'rxjs/operators'
 import { CollaboratorsService, ICollaborator } from './collaborators/'
 import { Disposable } from './Disposable'
 import { DocService } from './doc/'
@@ -12,7 +13,7 @@ import {
   SendToMessage,
 } from './network/'
 import { collaborator as proto } from './proto'
-import { SyncMessageService, SyncService } from './sync'
+import { RichLogootSOperation, SyncMessageService, SyncService } from './sync'
 import { generateId } from './util'
 
 export class MuteCore implements Disposable, MessageEmitter {
@@ -36,7 +37,7 @@ export class MuteCore implements Disposable, MessageEmitter {
 
     this.collaboratorsService = new CollaboratorsService(Object.assign({ id: 0 }, me))
     this.docService = new DocService(me.muteCoreId)
-    this.syncService = new SyncService(me.muteCoreId)
+    this.syncService = new SyncService(me.muteCoreId, this.collaboratorsService)
     this.syncMessageService = new SyncMessageService()
 
     this.docService.initSource = this.initSubject

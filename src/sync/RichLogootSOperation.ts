@@ -7,6 +7,7 @@ import {
   LogootSOperation,
 } from 'mute-structs'
 import { SafeAny } from 'safe-any'
+import { ICollaborator } from '../collaborators'
 
 export class RichLogootSOperation {
   static fromPlain(o: SafeAny<RichLogootSOperation>): RichLogootSOperation | null {
@@ -38,6 +39,7 @@ export class RichLogootSOperation {
   readonly clock: number
   readonly logootSOp: LogootSOperation
   readonly dependencies: Dot[]
+  collab: ICollaborator
 
   constructor(id: number, clock: number, logootSOp: LogootSOperation, dependencies: Dot[] = []) {
     this.id = id

@@ -4,6 +4,7 @@ import { LogootSOperation } from 'mute-structs'
 import { Observable, Subject } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
 
+import { CollaboratorsService } from '../src/collaborators'
 import { ReplySyncEvent, RichLogootSOperation, SyncService } from '../src/sync'
 import {
   disposeOf,
@@ -12,7 +13,7 @@ import {
 } from './Helpers'
 
 test('deliver-operations-in-sequential-order', (t: TestContext) => {
-  const syncService = new SyncService(0)
+  const syncService = new SyncService(0, new CollaboratorsService(Object.assign({ id: 0 })))
   disposeOf(syncService, 200)
 
   const richLogootSOps: RichLogootSOperation[] = generateSequentialRichLogootSOps()
@@ -31,17 +32,17 @@ test('deliver-operations-in-sequential-order', (t: TestContext) => {
   let counter = 0
   t.plan(richLogootSOps.length * 2)
   return syncService.onRemoteLogootSOperation.pipe(
-    map((actualLogootSOps: LogootSOperation[]) => {
+    map(({ operations }) => {
       const expectedLogootSOp: LogootSOperation = richLogootSOps[counter].logootSOp
-      t.is(actualLogootSOps.length, 1)
-      t.deepEqual(actualLogootSOps, [expectedLogootSOp])
+      t.is(operations.length, 1)
+      t.deepEqual(operations, [expectedLogootSOp])
       counter++
     })
   )
 })
 
 test('deliver-operations-in-causal-order', (t: TestContext) => {
-  const syncService = new SyncService(0)
+  const syncService = new SyncService(0, new CollaboratorsService(Object.assign({ id: 0 })))
   disposeOf(syncService, 200)
 
   const richLogootSOps: RichLogootSOperation[] = generateCausalRichLogootSOps()
@@ -60,10 +61,10 @@ test('deliver-operations-in-causal-order', (t: TestContext) => {
   let counter = 0
   t.plan(richLogootSOps.length * 2)
   return syncService.onRemoteLogootSOperation.pipe(
-    map((actualLogootSOps: LogootSOperation[]) => {
+    map(({ operations }) => {
       const expectedLogootSOp: LogootSOperation = richLogootSOps[counter].logootSOp
-      t.is(actualLogootSOps.length, 1)
-      t.deepEqual(actualLogootSOps, [expectedLogootSOp])
+      t.is(operations.length, 1)
+      t.deepEqual(operations, [expectedLogootSOp])
       counter++
     })
   )
