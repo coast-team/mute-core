@@ -6,6 +6,7 @@
     "target": "ES5",
     "typeRoots": ["src/typings"],
     "moduleResolution": "node",
+    "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
