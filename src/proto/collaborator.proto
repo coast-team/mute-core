@@ -3,7 +3,7 @@ syntax = "proto3";
 package collaborator;
 
 message Collaborator {
-  uint32 muteCoreId = 1;
+  sint32 muteCoreId = 1;
   string displayName = 2;
   string login = 3;
   string email = 4;

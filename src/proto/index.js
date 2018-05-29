@@ -1411,7 +1411,7 @@ export const collaborator = $root.collaborator = (() => {
             if (!writer)
                 writer = $Writer.create();
             if (message.muteCoreId != null && message.hasOwnProperty("muteCoreId"))
-                writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.muteCoreId);
+                writer.uint32(/* id 1, wireType 0 =*/8).sint32(message.muteCoreId);
             if (message.displayName != null && message.hasOwnProperty("displayName"))
                 writer.uint32(/* id 2, wireType 2 =*/18).string(message.displayName);
             if (message.login != null && message.hasOwnProperty("login"))
@@ -1442,7 +1442,7 @@ export const collaborator = $root.collaborator = (() => {
                 let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
-                    message.muteCoreId = reader.uint32();
+                    message.muteCoreId = reader.sint32();
                     break;
                 case 2:
                     message.displayName = reader.string();

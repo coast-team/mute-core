@@ -41,6 +41,15 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
     // this.collaborators.set(this.me.id, this.me)
   }
 
+  getCollaborator(muteCoreId: number): ICollaborator | undefined {
+    for (const [id, c] of this.collaborators) {
+      if (c.muteCoreId === muteCoreId) {
+        return c
+      }
+    }
+    return undefined
+  }
+
   get onUpdate(): Observable<ICollaborator> {
     return this.updateSubject.asObservable()
   }
@@ -122,7 +131,6 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
     const data = Object.assign({}, this.me)
     delete data.id
     const collabMsg = proto.Collaborator.create(data)
-    console.log('I emit my profile ', collabMsg)
 
     if (id) {
       const msg: SendToMessage = new SendToMessage(
