@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "docs/jsFromTs",
+    "target": "ESNext"
+  },
+  "include": ["src/**/*"],
+  "exclude": []
+}
