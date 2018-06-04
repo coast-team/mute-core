@@ -200,7 +200,7 @@ export class SyncMessageService implements Disposable, MessageEmitter {
   deserializeRichLogootSOperation(content: sync.RichLogootSOperationMsg): RichLogootSOperation {
     const id: number = content.id
     const clock: number = content.clock
-    const dependencies: Dot[] = content.dependencies
+    const dependencies = content.dependencies as sync.IDotMsg[]
 
     let logootSOp: sync.ILogootSAddMsg | sync.ILogootSDelMsg
     if (content.logootSAddMsg) {

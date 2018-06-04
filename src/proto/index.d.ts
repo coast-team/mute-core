@@ -547,10 +547,10 @@ export namespace sync {
     interface IDotMsg {
 
         /** DotMsg replicaNumber */
-        replicaNumber: number;
+        replicaNumber?: (number|null);
 
         /** DotMsg clock */
-        clock: number;
+        clock?: (number|null);
     }
 
     /** Represents a DotMsg. */

@@ -1203,8 +1203,8 @@ export const sync = $root.sync = (() => {
          * Properties of a DotMsg.
          * @memberof sync
          * @interface IDotMsg
-         * @property {number} replicaNumber DotMsg replicaNumber
-         * @property {number} clock DotMsg clock
+         * @property {number|null} [replicaNumber] DotMsg replicaNumber
+         * @property {number|null} [clock] DotMsg clock
          */
 
         /**
@@ -1262,8 +1262,10 @@ export const sync = $root.sync = (() => {
         DotMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            writer.uint32(/* id 1, wireType 0 =*/8).int32(message.replicaNumber);
-            writer.uint32(/* id 2, wireType 0 =*/16).int32(message.clock);
+            if (message.replicaNumber != null && message.hasOwnProperty("replicaNumber"))
+                writer.uint32(/* id 1, wireType 0 =*/8).int32(message.replicaNumber);
+            if (message.clock != null && message.hasOwnProperty("clock"))
+                writer.uint32(/* id 2, wireType 0 =*/16).int32(message.clock);
             return writer;
         };
 
@@ -1296,10 +1298,6 @@ export const sync = $root.sync = (() => {
                     break;
                 }
             }
-            if (!message.hasOwnProperty("replicaNumber"))
-                throw $util.ProtocolError("missing required 'replicaNumber'", { instance: message });
-            if (!message.hasOwnProperty("clock"))
-                throw $util.ProtocolError("missing required 'clock'", { instance: message });
             return message;
         };
 
