@@ -11,4 +11,5 @@ export {
   AbstractMessage,
 } from './network/'
 export { MuteCore } from './MuteCore'
+export { LocalOperation, RemoteOperation } from './logs/'
 export { RichLogootSOperation, State } from './sync/'
