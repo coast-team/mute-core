@@ -1,9 +1,12 @@
 import { merge, Observable, Subject } from 'rxjs'
+import { map, tap } from 'rxjs/operators'
 
-import { map } from 'rxjs/operators'
+import { LogootSAdd, LogootSDel, LogootSOperation } from 'mute-structs'
 import { CollaboratorsService, ICollaborator } from './collaborators/'
 import { Disposable } from './Disposable'
 import { DocService } from './doc/'
+import { LocalOperation } from './logs/LocalOperation'
+import { RemoteOperation } from './logs/RemoteOperation'
 import {
   BroadcastMessage,
   JoinEvent,
@@ -23,6 +26,8 @@ export class MuteCore implements Disposable, MessageEmitter {
   readonly syncMessageService: SyncMessageService
 
   private initSubject: Subject<string>
+  private localOperation: Subject<LocalOperation>
+  private remoteOperation: Subject<RemoteOperation>
 
   constructor(me: proto.ICollaborator) {
     if (!me.muteCoreId) {
@@ -34,6 +39,8 @@ export class MuteCore implements Disposable, MessageEmitter {
     */
 
     this.initSubject = new Subject<string>()
+    this.localOperation = new Subject<LocalOperation>()
+    this.remoteOperation = new Subject<RemoteOperation>()
 
     this.collaboratorsService = new CollaboratorsService(Object.assign({ id: 0 }, me))
     this.docService = new DocService(me.muteCoreId)
@@ -43,10 +50,18 @@ export class MuteCore implements Disposable, MessageEmitter {
     this.docService.initSource = this.initSubject
     this.docService.remoteLogootSOperationSource = this.syncService.onRemoteLogootSOperation
 
-    this.syncService.localLogootSOperationSource = this.docService.onLocalLogootSOperation
+    this.syncService.localLogootSOperationSource = this.docService.onLocalLogootSOperation.pipe(
+      tap((operation: LogootSOperation) => {
+        this.logLocalOperation(me.muteCoreId, operation)
+      })
+    )
     this.syncService.remoteQuerySyncSource = this.syncMessageService.onRemoteQuerySync
     this.syncService.remoteReplySyncSource = this.syncMessageService.onRemoteReplySync
-    this.syncService.remoteRichLogootSOperationSource = this.syncMessageService.onRemoteRichLogootSOperation
+    this.syncService.remoteRichLogootSOperationSource = this.syncMessageService.onRemoteRichLogootSOperation.pipe(
+      tap((operation: RichLogootSOperation) => {
+        this.logRemoteOperation(me.muteCoreId, operation)
+      })
+    )
     // this.syncService.storedStateSource = this.syncStorage.onStoredState
 
     this.syncMessageService.localRichLogootSOperationSource = this.syncService.onLocalRichLogootSOperation
@@ -81,6 +96,14 @@ export class MuteCore implements Disposable, MessageEmitter {
     return merge(this.collaboratorsService.onMsgToSendTo, this.syncMessageService.onMsgToSendTo)
   }
 
+  get onLocalOperation(): Observable<LocalOperation> {
+    return this.localOperation.asObservable()
+  }
+
+  get onRemoteOperation(): Observable<RemoteOperation> {
+    return this.remoteOperation.asObservable()
+  }
+
   init(key: string): void {
     this.initSubject.next(key)
   }
@@ -90,5 +113,52 @@ export class MuteCore implements Disposable, MessageEmitter {
     this.docService.dispose()
     this.syncService.dispose()
     this.syncMessageService.dispose()
+  }
+
+  logLocalOperation(id: number, ope: LogootSOperation): void {
+    if (ope instanceof LogootSAdd) {
+      const o = ope as LogootSAdd
+      this.localOperation.next({
+        type: 'localInsertion',
+        siteId: id,
+        clock: this.syncService.getClock,
+        operation: o,
+        context: this.syncService.getVector,
+      })
+    } else if (ope instanceof LogootSDel) {
+      const o = ope as LogootSDel
+      this.localOperation.next({
+        type: 'localDeletion',
+        siteId: id,
+        clock: this.syncService.getClock,
+        operation: o,
+        context: this.syncService.getVector,
+      })
+    }
+  }
+
+  logRemoteOperation(id: number, operation: RichLogootSOperation): void {
+    const ope = operation.logootSOp
+    if (ope instanceof LogootSAdd) {
+      const o = ope as LogootSAdd
+      this.remoteOperation.next({
+        type: 'remoteInsertion',
+        siteId: id,
+        remoteSiteId: operation.id,
+        remoteClock: operation.clock,
+        operation: o,
+        context: this.syncService.getVector,
+      })
+    } else if (ope instanceof LogootSDel) {
+      const o = ope as LogootSDel
+      this.remoteOperation.next({
+        type: 'remoteDeletion',
+        siteId: id,
+        remoteSiteId: operation.id,
+        remoteClock: operation.clock,
+        operation: o,
+        context: this.syncService.getVector,
+      })
+    }
   }
 }
