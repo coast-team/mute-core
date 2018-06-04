@@ -15,7 +15,7 @@ import { ICollaborator } from './ICollaborator'
 export class CollaboratorsService implements Disposable, MessageEmitter {
   private static ID: number = 421
 
-  private me: ICollaborator
+  public me: ICollaborator
   private collaborators: Map<number, ICollaborator>
 
   private updateSubject: Subject<ICollaborator>
