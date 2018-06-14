@@ -667,3 +667,58 @@ export namespace collaborator {
         public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): collaborator.Collaborator;
     }
 }
+
+/** Namespace title. */
+export namespace title {
+
+    /** Properties of a Title. */
+    interface ITitle {
+
+        /** Title count */
+        count?: (number|null);
+
+        /** Title title */
+        title?: (string|null);
+    }
+
+    /** Represents a Title. */
+    class Title implements ITitle {
+
+        /**
+         * Constructs a new Title.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: title.ITitle);
+
+        /** Title count. */
+        public count: number;
+
+        /** Title title. */
+        public title: string;
+
+        /**
+         * Creates a new Title instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns Title instance
+         */
+        public static create(properties?: title.ITitle): title.Title;
+
+        /**
+         * Encodes the specified Title message. Does not implicitly {@link title.Title.verify|verify} messages.
+         * @param message Title message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: title.ITitle, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a Title message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns Title
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): title.Title;
+    }
+}

@@ -1468,4 +1468,123 @@ export const collaborator = $root.collaborator = (() => {
     return collaborator;
 })();
 
+export const title = $root.title = (() => {
+
+    /**
+     * Namespace title.
+     * @exports title
+     * @namespace
+     */
+    const title = {};
+
+    title.Title = (function() {
+
+        /**
+         * Properties of a Title.
+         * @memberof title
+         * @interface ITitle
+         * @property {number|null} [count] Title count
+         * @property {string|null} [title] Title title
+         */
+
+        /**
+         * Constructs a new Title.
+         * @memberof title
+         * @classdesc Represents a Title.
+         * @implements ITitle
+         * @constructor
+         * @param {title.ITitle=} [properties] Properties to set
+         */
+        function Title(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * Title count.
+         * @member {number} count
+         * @memberof title.Title
+         * @instance
+         */
+        Title.prototype.count = 0;
+
+        /**
+         * Title title.
+         * @member {string} title
+         * @memberof title.Title
+         * @instance
+         */
+        Title.prototype.title = "";
+
+        /**
+         * Creates a new Title instance using the specified properties.
+         * @function create
+         * @memberof title.Title
+         * @static
+         * @param {title.ITitle=} [properties] Properties to set
+         * @returns {title.Title} Title instance
+         */
+        Title.create = function create(properties) {
+            return new Title(properties);
+        };
+
+        /**
+         * Encodes the specified Title message. Does not implicitly {@link title.Title.verify|verify} messages.
+         * @function encode
+         * @memberof title.Title
+         * @static
+         * @param {title.ITitle} message Title message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        Title.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.count != null && message.hasOwnProperty("count"))
+                writer.uint32(/* id 0, wireType 0 =*/0).uint32(message.count);
+            if (message.title != null && message.hasOwnProperty("title"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.title);
+            return writer;
+        };
+
+        /**
+         * Decodes a Title message from the specified reader or buffer.
+         * @function decode
+         * @memberof title.Title
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {title.Title} Title
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        Title.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.title.Title();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 0:
+                    message.count = reader.uint32();
+                    break;
+                case 1:
+                    message.title = reader.string();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        return Title;
+    })();
+
+    return title;
+})();
+
 export { $root as default };

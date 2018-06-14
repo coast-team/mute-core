@@ -5,6 +5,7 @@ import { LogootSAdd, LogootSDel, LogootSOperation } from 'mute-structs'
 import { CollaboratorsService, ICollaborator } from './collaborators/'
 import { Disposable } from './Disposable'
 import { DocService } from './doc/'
+import { TitleService } from './doc/TitleService'
 import { LocalOperation } from './logs/LocalOperation'
 import { RemoteOperation } from './logs/RemoteOperation'
 import {
@@ -22,6 +23,7 @@ import { generateId } from './util'
 export class MuteCore implements Disposable, MessageEmitter {
   readonly collaboratorsService: CollaboratorsService
   readonly docService: DocService
+  readonly titleService: TitleService
   readonly syncService: SyncService
   readonly syncMessageService: SyncMessageService
 
@@ -44,6 +46,7 @@ export class MuteCore implements Disposable, MessageEmitter {
 
     this.collaboratorsService = new CollaboratorsService(Object.assign({ id: 0 }, me))
     this.docService = new DocService(me.muteCoreId)
+    this.titleService = new TitleService(me.muteCoreId)
     this.syncService = new SyncService(me.muteCoreId, this.collaboratorsService)
     this.syncMessageService = new SyncMessageService()
 
@@ -72,6 +75,7 @@ export class MuteCore implements Disposable, MessageEmitter {
   set messageSource(source: Observable<NetworkMessage>) {
     this.collaboratorsService.messageSource = source
     this.syncMessageService.messageSource = source
+    this.titleService.messageSource = source
   }
 
   get onInit(): Observable<string> {
@@ -81,19 +85,25 @@ export class MuteCore implements Disposable, MessageEmitter {
   get onMsgToBroadcast(): Observable<BroadcastMessage> {
     return merge(
       this.collaboratorsService.onMsgToBroadcast,
-      this.syncMessageService.onMsgToBroadcast
+      this.syncMessageService.onMsgToBroadcast,
+      this.titleService.onMsgToBroadcast
     )
   }
 
   get onMsgToSendRandomly(): Observable<SendRandomlyMessage> {
     return merge(
       this.collaboratorsService.onMsgToSendRandomly,
-      this.syncMessageService.onMsgToSendRandomly
+      this.syncMessageService.onMsgToSendRandomly,
+      this.titleService.onMsgToSendRandomly
     )
   }
 
   get onMsgToSendTo(): Observable<SendToMessage> {
-    return merge(this.collaboratorsService.onMsgToSendTo, this.syncMessageService.onMsgToSendTo)
+    return merge(
+      this.collaboratorsService.onMsgToSendTo,
+      this.syncMessageService.onMsgToSendTo,
+      this.titleService.onMsgToSendTo
+    )
   }
 
   get onLocalOperation(): Observable<LocalOperation> {
@@ -111,6 +121,7 @@ export class MuteCore implements Disposable, MessageEmitter {
   dispose(): void {
     this.collaboratorsService.dispose()
     this.docService.dispose()
+    this.titleService.dispose()
     this.syncService.dispose()
     this.syncMessageService.dispose()
   }
