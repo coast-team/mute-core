@@ -1483,7 +1483,7 @@ export const title = $root.title = (() => {
          * Properties of a Title.
          * @memberof title
          * @interface ITitle
-         * @property {number|null} [count] Title count
+         * @property {string|null} [count] Title count
          * @property {string|null} [title] Title title
          */
 
@@ -1504,11 +1504,11 @@ export const title = $root.title = (() => {
 
         /**
          * Title count.
-         * @member {number} count
+         * @member {string} count
          * @memberof title.Title
          * @instance
          */
-        Title.prototype.count = 0;
+        Title.prototype.count = "";
 
         /**
          * Title title.
@@ -1543,7 +1543,7 @@ export const title = $root.title = (() => {
             if (!writer)
                 writer = $Writer.create();
             if (message.count != null && message.hasOwnProperty("count"))
-                writer.uint32(/* id 0, wireType 0 =*/0).uint32(message.count);
+                writer.uint32(/* id 0, wireType 2 =*/2).string(message.count);
             if (message.title != null && message.hasOwnProperty("title"))
                 writer.uint32(/* id 1, wireType 2 =*/10).string(message.title);
             return writer;
@@ -1568,7 +1568,7 @@ export const title = $root.title = (() => {
                 let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 0:
-                    message.count = reader.uint32();
+                    message.count = reader.string();
                     break;
                 case 1:
                     message.title = reader.string();

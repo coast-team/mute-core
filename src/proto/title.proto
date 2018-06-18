@@ -3,6 +3,6 @@ syntax = "proto3";
 package title;
 
 message Title {
-  uint32 count = 0;
+  string count = 0;
   string title = 1;
 }

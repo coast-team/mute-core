@@ -54,7 +54,7 @@ export class TitleService implements Disposable {
 
   set onLocalTitleChange(source: Observable<string>) {
     source.pipe(takeUntil(this.disposeSubject)).subscribe((title) => {
-      this.handleLocalTitleState({ count: this.titleState[0] + 1, title })
+      this.handleLocalTitleState({ count: Date.now(), title })
       this.emitTitle()
     })
   }
@@ -71,7 +71,8 @@ export class TitleService implements Disposable {
       )
       .subscribe((msg: NetworkMessage) => {
         const titleUpdate = Object.assign({}, proto.Title.decode(msg.content))
-        this.handleRemoteTitleState(titleUpdate)
+        const titleState = { count: parseInt(titleUpdate.count, 10), title: titleUpdate.title }
+        this.handleRemoteTitleState(titleState)
       })
   }
 
@@ -106,7 +107,7 @@ export class TitleService implements Disposable {
   }
 
   private emitTitle(id?: number): void {
-    const state = { count: this.titleState[0], title: this.titleState[1] }
+    const state = { count: '' + this.titleState[0], title: this.titleState[1] }
     const titleMsg = proto.Title.create(state)
     if (id) {
       const msg: SendToMessage = new SendToMessage(

@@ -675,7 +675,7 @@ export namespace title {
     interface ITitle {
 
         /** Title count */
-        count?: (number|null);
+        count?: (string|null);
 
         /** Title title */
         title?: (string|null);
@@ -691,7 +691,7 @@ export namespace title {
         constructor(properties?: title.ITitle);
 
         /** Title count. */
-        public count: number;
+        public count: string;
 
         /** Title title. */
         public title: string;
