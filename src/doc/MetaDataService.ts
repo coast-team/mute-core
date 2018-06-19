@@ -1,0 +1,135 @@
+import { Observable, Subject } from 'rxjs'
+import { filter, takeUntil } from 'rxjs/operators'
+import { Disposable } from '../Disposable'
+import { BroadcastMessage, NetworkMessage, SendRandomlyMessage, SendToMessage } from '../network'
+import { metadata as proto } from '../proto'
+import { TitleService } from './TitleService'
+
+export enum MetaDataType {
+  Title,
+}
+
+export interface MetaDataMessage {
+  type: MetaDataType
+  data: any
+}
+
+export class MetaDataService implements Disposable {
+  public static ID: number = 430
+
+  private titleService: TitleService
+
+  private disposeSubject: Subject<void>
+  private localChangeSubject: Subject<MetaDataMessage>
+  private remoteChangeSubject: Subject<MetaDataMessage>
+
+  private msgToBroadcastSubject: Subject<BroadcastMessage>
+  private msgToSendRandomlySubject: Subject<SendRandomlyMessage>
+  private msgToSendToSubject: Subject<SendToMessage>
+
+  constructor(id: number) {
+    this.titleService = new TitleService(id)
+
+    this.disposeSubject = new Subject()
+    this.localChangeSubject = new Subject()
+    this.remoteChangeSubject = new Subject()
+
+    this.msgToBroadcastSubject = new Subject()
+    this.msgToSendRandomlySubject = new Subject()
+    this.msgToSendToSubject = new Subject()
+  }
+
+  get title(): string {
+    return this.titleService.title
+  }
+
+  initTitle(title: string) {
+    this.titleService.initTitle(title)
+  }
+
+  set messageSource(source: Observable<NetworkMessage>) {
+    source
+      .pipe(
+        takeUntil(this.disposeSubject),
+        filter((msg: NetworkMessage) => msg.service === MetaDataService.ID)
+      )
+      .subscribe((msg: NetworkMessage) => {
+        const message = Object.assign({}, proto.MetaData.decode(msg.content))
+        const type = message.type
+        const data = JSON.parse(message.data)
+        switch (type) {
+          case MetaDataType.Title:
+            this.titleService.handleRemoteTitleState(data)
+            this.remoteChangeSubject.next({
+              type: MetaDataType.Title,
+              data: this.titleService.title,
+            })
+            break
+          default:
+            console.error('No MetaDataType for type ' + type)
+        }
+      })
+  }
+
+  set onLocalChange(source: Observable<MetaDataMessage>) {
+    source.pipe(takeUntil(this.disposeSubject)).subscribe((metadata: MetaDataMessage) => {
+      switch (metadata.type) {
+        case MetaDataType.Title:
+          this.titleService.handleLocalTitleState(metadata.data)
+          this.emitMetaData(MetaDataType.Title, JSON.stringify(this.titleService.asObject))
+          break
+        default:
+          console.error('No MetaDataType for type ' + metadata.type)
+      }
+    })
+  }
+
+  set joinSource(source: Observable<number>) {
+    source.pipe(takeUntil(this.disposeSubject)).subscribe((id: number) => this.emitAll(id))
+  }
+
+  get onChange(): Observable<MetaDataMessage> {
+    return this.remoteChangeSubject.asObservable()
+  }
+
+  get onMsgToBroadcast(): Observable<BroadcastMessage> {
+    return this.msgToBroadcastSubject.asObservable()
+  }
+
+  get onMsgToSendRandomly(): Observable<SendRandomlyMessage> {
+    return this.msgToSendRandomlySubject.asObservable()
+  }
+
+  get onMsgToSendTo(): Observable<SendToMessage> {
+    return this.msgToSendToSubject.asObservable()
+  }
+
+  dispose(): void {
+    this.disposeSubject.next()
+    this.disposeSubject.complete()
+    this.localChangeSubject.complete()
+    this.remoteChangeSubject.complete()
+  }
+
+  private emitAll(id: number) {
+    this.emitMetaData(MetaDataType.Title, JSON.stringify(this.titleService.asObject), id)
+  }
+
+  private emitMetaData(type: MetaDataType, data: string, id?: number): void {
+    const metaDataMsg = proto.MetaData.create({ type, data })
+    if (id) {
+      const msg: SendToMessage = new SendToMessage(
+        MetaDataService.ID,
+        id,
+        proto.MetaData.encode(metaDataMsg).finish()
+      )
+      this.msgToSendToSubject.next(msg)
+    } else {
+      const msg: BroadcastMessage = new BroadcastMessage(
+        MetaDataService.ID,
+        proto.MetaData.encode(metaDataMsg).finish()
+      )
+      this.msgToBroadcastSubject.next(msg)
+    }
+  }
+}

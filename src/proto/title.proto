@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-package title;
-
-message Title {
-  string count = 0;
-  string title = 1;
-}

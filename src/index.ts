@@ -1,7 +1,7 @@
 import 'core-js/es7/global'
 
 export { ICollaborator, CollaboratorsService } from './collaborators/'
-export { DocService, Position } from './doc/'
+export { DocService, Position, MetaDataMessage, MetaDataType, MetaDataService } from './doc/'
 export {
   BroadcastMessage,
   JoinEvent,

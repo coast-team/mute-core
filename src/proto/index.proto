@@ -2,4 +2,4 @@ syntax = "proto3";
 
 import "sync.proto";
 import "collaborator.proto";
-import "title.proto";
+import "metadata.proto";

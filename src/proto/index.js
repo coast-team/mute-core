@@ -1468,34 +1468,34 @@ export const collaborator = $root.collaborator = (() => {
     return collaborator;
 })();
 
-export const title = $root.title = (() => {
+export const metadata = $root.metadata = (() => {
 
     /**
-     * Namespace title.
-     * @exports title
+     * Namespace metadata.
+     * @exports metadata
      * @namespace
      */
-    const title = {};
+    const metadata = {};
 
-    title.Title = (function() {
+    metadata.MetaData = (function() {
 
         /**
-         * Properties of a Title.
-         * @memberof title
-         * @interface ITitle
-         * @property {string|null} [count] Title count
-         * @property {string|null} [title] Title title
+         * Properties of a MetaData.
+         * @memberof metadata
+         * @interface IMetaData
+         * @property {number|null} [type] MetaData type
+         * @property {string|null} [data] MetaData data
          */
 
         /**
-         * Constructs a new Title.
-         * @memberof title
-         * @classdesc Represents a Title.
-         * @implements ITitle
+         * Constructs a new MetaData.
+         * @memberof metadata
+         * @classdesc Represents a MetaData.
+         * @implements IMetaData
          * @constructor
-         * @param {title.ITitle=} [properties] Properties to set
+         * @param {metadata.IMetaData=} [properties] Properties to set
          */
-        function Title(properties) {
+        function MetaData(properties) {
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -1503,75 +1503,75 @@ export const title = $root.title = (() => {
         }
 
         /**
-         * Title count.
-         * @member {string} count
-         * @memberof title.Title
+         * MetaData type.
+         * @member {number} type
+         * @memberof metadata.MetaData
          * @instance
          */
-        Title.prototype.count = "";
+        MetaData.prototype.type = 0;
 
         /**
-         * Title title.
-         * @member {string} title
-         * @memberof title.Title
+         * MetaData data.
+         * @member {string} data
+         * @memberof metadata.MetaData
          * @instance
          */
-        Title.prototype.title = "";
+        MetaData.prototype.data = "";
 
         /**
-         * Creates a new Title instance using the specified properties.
+         * Creates a new MetaData instance using the specified properties.
          * @function create
-         * @memberof title.Title
+         * @memberof metadata.MetaData
          * @static
-         * @param {title.ITitle=} [properties] Properties to set
-         * @returns {title.Title} Title instance
+         * @param {metadata.IMetaData=} [properties] Properties to set
+         * @returns {metadata.MetaData} MetaData instance
          */
-        Title.create = function create(properties) {
-            return new Title(properties);
+        MetaData.create = function create(properties) {
+            return new MetaData(properties);
         };
 
         /**
-         * Encodes the specified Title message. Does not implicitly {@link title.Title.verify|verify} messages.
+         * Encodes the specified MetaData message. Does not implicitly {@link metadata.MetaData.verify|verify} messages.
          * @function encode
-         * @memberof title.Title
+         * @memberof metadata.MetaData
          * @static
-         * @param {title.ITitle} message Title message or plain object to encode
+         * @param {metadata.IMetaData} message MetaData message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        Title.encode = function encode(message, writer) {
+        MetaData.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.count != null && message.hasOwnProperty("count"))
-                writer.uint32(/* id 0, wireType 2 =*/2).string(message.count);
-            if (message.title != null && message.hasOwnProperty("title"))
-                writer.uint32(/* id 1, wireType 2 =*/10).string(message.title);
+            if (message.type != null && message.hasOwnProperty("type"))
+                writer.uint32(/* id 0, wireType 0 =*/0).int32(message.type);
+            if (message.data != null && message.hasOwnProperty("data"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.data);
             return writer;
         };
 
         /**
-         * Decodes a Title message from the specified reader or buffer.
+         * Decodes a MetaData message from the specified reader or buffer.
          * @function decode
-         * @memberof title.Title
+         * @memberof metadata.MetaData
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {title.Title} Title
+         * @returns {metadata.MetaData} MetaData
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Title.decode = function decode(reader, length) {
+        MetaData.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.title.Title();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.metadata.MetaData();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 0:
-                    message.count = reader.string();
+                    message.type = reader.int32();
                     break;
                 case 1:
-                    message.title = reader.string();
+                    message.data = reader.string();
                     break;
                 default:
                     reader.skipType(tag & 7);
@@ -1581,10 +1581,10 @@ export const title = $root.title = (() => {
             return message;
         };
 
-        return Title;
+        return MetaData;
     })();
 
-    return title;
+    return metadata;
 })();
 
 export { $root as default };

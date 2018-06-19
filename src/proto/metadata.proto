@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package metadata;
+
+message MetaData {
+  int32 type = 0;
+  string data = 1;
+}

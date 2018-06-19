@@ -668,57 +668,57 @@ export namespace collaborator {
     }
 }
 
-/** Namespace title. */
-export namespace title {
+/** Namespace metadata. */
+export namespace metadata {
 
-    /** Properties of a Title. */
-    interface ITitle {
+    /** Properties of a MetaData. */
+    interface IMetaData {
 
-        /** Title count */
-        count?: (string|null);
+        /** MetaData type */
+        type?: (number|null);
 
-        /** Title title */
-        title?: (string|null);
+        /** MetaData data */
+        data?: (string|null);
     }
 
-    /** Represents a Title. */
-    class Title implements ITitle {
+    /** Represents a MetaData. */
+    class MetaData implements IMetaData {
 
         /**
-         * Constructs a new Title.
+         * Constructs a new MetaData.
          * @param [properties] Properties to set
          */
-        constructor(properties?: title.ITitle);
+        constructor(properties?: metadata.IMetaData);
 
-        /** Title count. */
-        public count: string;
+        /** MetaData type. */
+        public type: number;
 
-        /** Title title. */
-        public title: string;
+        /** MetaData data. */
+        public data: string;
 
         /**
-         * Creates a new Title instance using the specified properties.
+         * Creates a new MetaData instance using the specified properties.
          * @param [properties] Properties to set
-         * @returns Title instance
+         * @returns MetaData instance
          */
-        public static create(properties?: title.ITitle): title.Title;
+        public static create(properties?: metadata.IMetaData): metadata.MetaData;
 
         /**
-         * Encodes the specified Title message. Does not implicitly {@link title.Title.verify|verify} messages.
-         * @param message Title message or plain object to encode
+         * Encodes the specified MetaData message. Does not implicitly {@link metadata.MetaData.verify|verify} messages.
+         * @param message MetaData message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: title.ITitle, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: metadata.IMetaData, writer?: $protobuf.Writer): $protobuf.Writer;
 
         /**
-         * Decodes a Title message from the specified reader or buffer.
+         * Decodes a MetaData message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
          * @param [length] Message length if known beforehand
-         * @returns Title
+         * @returns MetaData
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): title.Title;
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): metadata.MetaData;
     }
 }
