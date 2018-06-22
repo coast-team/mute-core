@@ -6,7 +6,7 @@ import {
   LogootSDel,
   LogootSOperation,
 } from 'mute-structs'
-import { Observable, Subject, zip } from 'rxjs'
+import { Observable, Subject, Subscription, zip } from 'rxjs'
 import { filter, takeUntil } from 'rxjs/operators'
 
 import { Disposable } from '../Disposable'
@@ -35,6 +35,8 @@ export class SyncMessageService implements Disposable, MessageEmitter {
   private remoteRichLogootSOperationSubject: Subject<RichLogootSOperation>
   private remoteReplySyncSubject: Subject<ReplySyncEvent>
 
+  private msgSource: Subscription
+
   constructor() {
     this.disposeSubject = new Subject()
     this.msgToBroadcastSubject = new Subject()
@@ -55,7 +57,10 @@ export class SyncMessageService implements Disposable, MessageEmitter {
   }
 
   set messageSource(source: Observable<NetworkMessage>) {
-    source
+    if (this.msgSource) {
+      this.msgSource.unsubscribe()
+    }
+    this.msgSource = source
       .pipe(
         takeUntil(this.onDispose),
         filter((msg: NetworkMessage) => msg.service === SyncMessageService.ID)

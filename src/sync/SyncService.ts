@@ -1,6 +1,6 @@
 import { Dot, IdentifierInterval, LogootSDel, LogootSOperation } from 'mute-structs'
-import { Observable, Subject } from 'rxjs'
-import { filter, take, takeUntil, zip } from 'rxjs/operators'
+import { Observable, Subject, zip } from 'rxjs'
+import { filter, take, takeUntil } from 'rxjs/operators'
 
 import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'
@@ -147,16 +147,19 @@ export class SyncService implements Disposable {
 
   setJoinAndStateSources(
     joinSource: Observable<JoinEvent>,
-    storedStateSource?: Observable<State>
+    metadataSource: Observable<void>,
+    storedStateSource: Observable<State>
   ): void {
-    let triggerQuerySyncObservable: Observable<JoinEvent> = joinSource
-    if (storedStateSource) {
-      this.storedStateSource = storedStateSource
-      triggerQuerySyncObservable = joinSource.pipe(
-        takeUntil(this.disposeSubject),
-        zip(this.isReadySubject, (joinEvent) => joinEvent)
-      )
-    }
+    let triggerQuerySyncObservable: Observable<JoinEvent>
+
+    this.storedStateSource = storedStateSource
+    triggerQuerySyncObservable = zip(
+      this.isReadySubject,
+      metadataSource,
+      joinSource,
+      (ready, metadata, joinEvent) => joinEvent
+    ).pipe(takeUntil(this.disposeSubject))
+
     triggerQuerySyncObservable.pipe(take(1)).subscribe((joinEvent: JoinEvent) => {
       if (!joinEvent.created) {
         this.querySyncSubject.next(this.vector)
