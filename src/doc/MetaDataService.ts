@@ -80,7 +80,7 @@ export class MetaDataService implements Disposable {
             this.titleService.handleRemoteTitleState(data)
             this.remoteChangeSubject.next({
               type: MetaDataType.Title,
-              data: this.titleService.title,
+              data: this.titleService.asObject,
             })
             break
           case MetaDataType.FixData:
