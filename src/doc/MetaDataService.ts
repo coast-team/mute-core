@@ -43,8 +43,8 @@ export class MetaDataService implements Disposable {
     this.msgToSendToSubject = new Subject()
   }
 
-  initTitle(title: string) {
-    this.titleService.initTitle(title)
+  initTitle(title: string, titleLastModification: number) {
+    this.titleService.initTitle(title, titleLastModification)
   }
 
   initFixMetaData(creationDate: Date, key: string) {
@@ -71,7 +71,7 @@ export class MetaDataService implements Disposable {
             break
           case MetaDataType.FixData:
             data.creationDate = new Date(data.creationDate)
-            this.fixDataService.handleRemoteTitleState(data)
+            this.fixDataService.handleRemoteFixDataState(data)
             this.remoteChangeSubject.next({
               type: MetaDataType.FixData,
               data: this.fixDataService.state,
@@ -87,7 +87,10 @@ export class MetaDataService implements Disposable {
     source.pipe(takeUntil(this.disposeSubject)).subscribe((metadata: MetaDataMessage) => {
       switch (metadata.type) {
         case MetaDataType.Title:
-          this.titleService.handleLocalTitleState(metadata.data)
+          this.titleService.handleLocalTitleState(
+            metadata.data.title,
+            metadata.data.titleLastModification
+          )
           this.emitMetaData(MetaDataType.Title, JSON.stringify(this.titleService.asObject))
           break
         case MetaDataType.FixData:

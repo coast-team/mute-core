@@ -14,8 +14,8 @@ export class TitleService {
     this.titleState = this.register.state()
   }
 
-  public handleLocalTitleState(newTitle: string): void {
-    this.titleState = this.register.write(Date.now(), newTitle)
+  public handleLocalTitleState(newTitle: string, newCount: number): void {
+    this.titleState = this.register.write(newCount, newTitle)
   }
 
   public handleRemoteTitleState(newState: TitleState): void {
@@ -23,7 +23,8 @@ export class TitleService {
     this.titleState = this.register.state()
   }
 
-  public initTitle(init: string): void {
+  public initTitle(init: string, timestamp: number): void {
+    this.titleState[0] = timestamp
     this.titleState[1] = init
   }
 

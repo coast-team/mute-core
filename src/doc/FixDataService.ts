@@ -14,7 +14,7 @@ export class FixDataService {
     this.fixDataState = { creationDate, key }
   }
 
-  public handleRemoteTitleState(newState: FixDataState): void {
+  public handleRemoteFixDataState(newState: FixDataState): void {
     if (!newState.creationDate) {
       return
     }
