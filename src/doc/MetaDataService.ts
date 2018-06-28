@@ -4,7 +4,7 @@ import { Disposable } from '../Disposable'
 import { BroadcastMessage, NetworkMessage, SendRandomlyMessage, SendToMessage } from '../network'
 import { metadata as proto } from '../proto'
 import { FixDataService, FixDataState } from './FixDataService'
-import { TitleService } from './TitleService'
+import { TitleService, TitleState } from './TitleService'
 
 export enum MetaDataType {
   Title,
@@ -18,6 +18,20 @@ export interface MetaDataMessage {
 
 export class MetaDataService implements Disposable {
   public static ID: number = 430
+
+  static mergeTitle(t1: TitleState, t2: TitleState): object {
+    const service = new TitleService(0)
+    service.initTitle(t1.title, t1.count)
+    service.handleRemoteTitleState({ count: t2.count, title: t2.title })
+    return service.state
+  }
+
+  static mergeFixData(fd1: FixDataState, fd2: FixDataState): FixDataState {
+    const service = new FixDataService()
+    service.init(fd1.creationDate, fd1.key)
+    service.handleRemoteFixDataState(fd2)
+    return service.state
+  }
 
   private titleService: TitleService
   private fixDataService: FixDataService
