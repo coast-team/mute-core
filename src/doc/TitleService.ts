@@ -36,7 +36,7 @@ export class TitleService {
     return this.titleState[1]
   }
 
-  get asObject(): object {
+  get asObject(): TitleState {
     return { count: this.titleState[0], title: this.titleState[1] }
   }
 }

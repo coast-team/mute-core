@@ -19,11 +19,11 @@ export interface MetaDataMessage {
 export class MetaDataService implements Disposable {
   public static ID: number = 430
 
-  static mergeTitle(t1: TitleState, t2: TitleState): object {
+  static mergeTitle(t1: TitleState, t2: TitleState): TitleState {
     const service = new TitleService(0)
     service.initTitle(t1.title, t1.count)
     service.handleRemoteTitleState({ count: t2.count, title: t2.title })
-    return service.state
+    return service.asObject
   }
 
   static mergeFixData(fd1: FixDataState, fd2: FixDataState): FixDataState {
