@@ -1,5 +1,12 @@
 import { Interval } from './Interval'
 
+export enum StateVectorOrder {
+  SUPERIOR = 1,
+  INFERIOR = -1,
+  EQUAL = 2,
+  CONCURRENT = 0,
+}
+
 /**
  * Keep track of the messages delivered by peers
  * Allow to maintain the causal delivery per peer
@@ -70,7 +77,7 @@ export class StateVector {
     return clock === v + 1
   }
 
-  forEach(f: (clock?: number, id?: number) => void) {
+  forEach(f: (clock: number, id: number) => void) {
     this.vector.forEach(f)
   }
 
@@ -94,5 +101,61 @@ export class StateVector {
     })
 
     return missingIntervals
+  }
+
+  compareTo(other: StateVector): StateVectorOrder {
+    if (other.size < this.size) {
+      return -other.compareTo(this)
+    }
+    let order = this.size < other.size ? StateVectorOrder.INFERIOR : StateVectorOrder.EQUAL
+    this.forEach((clock, id) => {
+      const otherID = other.get(id)
+      if (!otherID && this.size === other.size) {
+        order = StateVectorOrder.CONCURRENT
+      } else if (!otherID) {
+        order =
+          order === StateVectorOrder.INFERIOR
+            ? StateVectorOrder.CONCURRENT
+            : StateVectorOrder.SUPERIOR
+      } else if (clock < otherID) {
+        order =
+          order === StateVectorOrder.SUPERIOR
+            ? StateVectorOrder.CONCURRENT
+            : StateVectorOrder.INFERIOR
+      } else if (clock > otherID) {
+        order =
+          order === StateVectorOrder.INFERIOR
+            ? StateVectorOrder.CONCURRENT
+            : StateVectorOrder.SUPERIOR
+      }
+
+      if (order === StateVectorOrder.CONCURRENT) {
+        return
+      }
+    })
+    return order
+  }
+
+  maxPairwise(other: StateVector): void {
+    const map = new Map<number, number>()
+    const tabKeys: number[] = []
+
+    this.vector.forEach((value, key) => {
+      tabKeys.push(key)
+      const otherVectorKey = other.vector.get(key)
+      if (otherVectorKey) {
+        map.set(key, Math.max(value, otherVectorKey))
+      } else {
+        map.set(key, value)
+      }
+    })
+
+    other.vector.forEach((value, key) => {
+      if (!tabKeys.includes(key)) {
+        map.set(key, value)
+      }
+    })
+
+    this.vector = map
   }
 }

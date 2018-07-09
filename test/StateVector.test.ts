@@ -2,6 +2,8 @@ import { AssertionError } from 'assert'
 import test, { ExecutionContext } from 'ava'
 
 import { Interval, StateVector } from '../src/sync'
+
+import { StateVectorOrder } from '../src/sync/StateVector'
 import { generateVector } from './Helpers'
 
 function isAlreadyDeliveredMacro(
@@ -231,3 +233,64 @@ test(
   updatedVector2,
   [new Interval(5, 0, 0)]
 )
+
+test('compareTo-equal', (t) => {
+  const s1 = new StateVector(new Map([[1, 10], [2, 3]]))
+  const s2 = new StateVector(new Map([[1, 10], [2, 3]]))
+  t.is(s1.compareTo(s2), StateVectorOrder.EQUAL)
+})
+
+test('compareTo-inferiorClock', (t) => {
+  const s1 = new StateVector(new Map([[1, 10], [2, 1]]))
+  const s2 = new StateVector(new Map([[1, 10], [2, 3]]))
+  t.is(s1.compareTo(s2), StateVectorOrder.INFERIOR)
+})
+
+test('compareTo-inferior', (t) => {
+  const s1 = new StateVector(new Map([[1, 10]]))
+  const s2 = new StateVector(new Map([[1, 10], [2, 3]]))
+  t.is(s1.compareTo(s2), StateVectorOrder.INFERIOR)
+})
+
+test('compareTo-superiorClock', (t) => {
+  const s1 = new StateVector(new Map([[1, 11], [2, 7]]))
+  const s2 = new StateVector(new Map([[1, 10], [2, 3]]))
+  t.is(s1.compareTo(s2), StateVectorOrder.SUPERIOR)
+})
+
+test('compareTo-superior', (t) => {
+  const s1 = new StateVector(new Map([[1, 11], [2, 7], [3, 1]]))
+  const s2 = new StateVector(new Map([[1, 10], [2, 3]]))
+  t.is(s1.compareTo(s2), StateVectorOrder.SUPERIOR)
+})
+
+test('compareTo-concurrentClockSameSize', (t) => {
+  const s1 = new StateVector(new Map([[1, 9], [2, 7]]))
+  const s2 = new StateVector(new Map([[1, 10], [2, 3]]))
+  t.is(s1.compareTo(s2), StateVectorOrder.CONCURRENT)
+})
+
+test('compareTo-concurrentDifferentIdSameSize', (t) => {
+  const s1 = new StateVector(new Map([[1, 10], [2, 7]]))
+  const s2 = new StateVector(new Map([[1, 10], [3, 3]]))
+  t.is(s1.compareTo(s2), StateVectorOrder.CONCURRENT)
+})
+
+test('compareTo-concurrentDifferentSize', (t) => {
+  const s1 = new StateVector(new Map([[1, 10], [2, 7]]))
+  const s2 = new StateVector(new Map([[1, 10], [2, 6], [3, 3]]))
+  t.is(s1.compareTo(s2), StateVectorOrder.CONCURRENT)
+})
+
+test('maxPairwise', (t) => {
+  const s1 = new StateVector(new Map([[1, 10], [2, 7], [4, 65]]))
+  const s2 = new StateVector(new Map([[1, 10], [2, 6], [3, 3]]))
+
+  const expected = new StateVector(new Map([[1, 10], [2, 7], [3, 3], [4, 65]]))
+  s1.maxPairwise(s2)
+
+  t.is(s1.size, expected.size)
+  s1.forEach((clock, id) => {
+    t.is(s1.get(id), expected.get(id))
+  })
+})
