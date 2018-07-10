@@ -11,26 +11,22 @@ export enum MetaDataType {
   FixData,
 }
 
+export type MetaDataState = TitleState | FixDataState
+
 export interface MetaDataMessage {
   type: MetaDataType
-  data: any
+  data: MetaDataState
 }
 
 export class MetaDataService implements Disposable {
   public static ID: number = 430
 
-  static mergeTitle(t1: TitleState, t2: TitleState): TitleState {
-    const service = new TitleService(0)
-    service.initTitle(t1.title, t1.count)
-    service.handleRemoteTitleState({ count: t2.count, title: t2.title })
-    return service.asObject
+  static mergeTitle(s1: TitleState, s2: TitleState): TitleState {
+    return TitleService.merge(s1, s2)
   }
 
-  static mergeFixData(fd1: FixDataState, fd2: FixDataState): FixDataState {
-    const service = new FixDataService()
-    service.init(fd1.creationDate, fd1.key)
-    service.handleRemoteFixDataState(fd2)
-    return service.state
+  static mergeFixData(s1: FixDataState, s2: FixDataState): FixDataState {
+    return FixDataService.merge(s1, s2)
   }
 
   private titleService: TitleService
@@ -44,9 +40,9 @@ export class MetaDataService implements Disposable {
   private msgToSendRandomlySubject: Subject<SendRandomlyMessage>
   private msgToSendToSubject: Subject<SendToMessage>
 
-  constructor(id: number) {
-    this.titleService = new TitleService(id)
-    this.fixDataService = new FixDataService()
+  constructor(id: number, titleState: TitleState, fixDataState: FixDataState) {
+    this.titleService = new TitleService(titleState)
+    this.fixDataService = new FixDataService(fixDataState)
 
     this.disposeSubject = new Subject()
     this.localChangeSubject = new Subject()
@@ -57,38 +53,27 @@ export class MetaDataService implements Disposable {
     this.msgToSendToSubject = new Subject()
   }
 
-  initTitle(title: string, titleLastModification: number) {
-    this.titleService.initTitle(title, titleLastModification)
-  }
-
-  initFixMetaData(creationDate: Date, key: string) {
-    this.fixDataService.init(creationDate, key)
-  }
-
   set messageSource(source: Observable<NetworkMessage>) {
     source
       .pipe(
         takeUntil(this.disposeSubject),
-        filter((msg: NetworkMessage) => msg.service === MetaDataService.ID)
+        filter((msg) => msg.service === MetaDataService.ID)
       )
-      .subscribe((msg: NetworkMessage) => {
-        const message = Object.assign({}, proto.MetaData.decode(msg.content))
+      .subscribe(({ content }) => {
+        const message = Object.assign({}, proto.MetaData.decode(content))
         const type = message.type
         const data = JSON.parse(message.data)
         switch (type) {
           case MetaDataType.Title:
-            this.titleService.handleRemoteTitleState(data)
             this.remoteChangeSubject.next({
               type: MetaDataType.Title,
-              data: this.titleService.asObject,
+              data: this.titleService.handleRemoteState(data),
             })
             break
           case MetaDataType.FixData:
-            data.creationDate = new Date(data.creationDate)
-            this.fixDataService.handleRemoteFixDataState(data)
             this.remoteChangeSubject.next({
               type: MetaDataType.FixData,
-              data: this.fixDataService.state,
+              data: this.fixDataService.handleRemoteFixDataState(data),
             })
             break
           default:
@@ -98,19 +83,17 @@ export class MetaDataService implements Disposable {
   }
 
   set onLocalChange(source: Observable<MetaDataMessage>) {
-    source.pipe(takeUntil(this.disposeSubject)).subscribe((metadata: MetaDataMessage) => {
-      switch (metadata.type) {
+    source.pipe(takeUntil(this.disposeSubject)).subscribe(({ type, data }) => {
+      switch (type) {
         case MetaDataType.Title:
-          this.titleService.handleLocalTitleState(
-            metadata.data.title,
-            metadata.data.titleLastModification
-          )
-          this.emitMetaData(MetaDataType.Title, JSON.stringify(this.titleService.asObject))
+          const { title, titleModified } = data as TitleState
+          this.titleService.handleLocalState({ title, titleModified })
+          this.emitMetaData(MetaDataType.Title, JSON.stringify(this.titleService.state))
           break
         case MetaDataType.FixData:
           break
         default:
-          console.error('No MetaDataType for type ' + metadata.type)
+          console.error('No MetaDataType for type ' + type)
       }
     })
   }
@@ -144,7 +127,7 @@ export class MetaDataService implements Disposable {
 
   private emitAll(id: number) {
     this.emitMetaData(MetaDataType.FixData, JSON.stringify(this.fixDataService.state), id)
-    this.emitMetaData(MetaDataType.Title, JSON.stringify(this.titleService.asObject), id)
+    this.emitMetaData(MetaDataType.Title, JSON.stringify(this.titleService.state), id)
   }
 
   private emitMetaData(type: MetaDataType, data: string, id?: number): void {

@@ -1,30 +1,25 @@
 export interface FixDataState {
-  creationDate: Date
-  key: string
+  docCreated: number
+  cryptoKey: string
 }
 
 export class FixDataService {
-  private fixDataState: FixDataState
+  static merge(state1: FixDataState, state2: FixDataState): FixDataState {
+    const finalState = state1.docCreated < state2.docCreated ? state1 : state2
+    return { docCreated: finalState.docCreated, cryptoKey: finalState.cryptoKey }
+  }
+  private _state: FixDataState
 
-  constructor() {
-    this.fixDataState = { creationDate: null, key: '' }
+  constructor(state: FixDataState) {
+    this._state = state
   }
 
-  init(creationDate: Date, key: string): void {
-    this.fixDataState = { creationDate, key }
-  }
-
-  public handleRemoteFixDataState(newState: FixDataState): void {
-    if (!newState.creationDate) {
-      return
-    }
-
-    if (newState.creationDate < this.fixDataState.creationDate) {
-      this.fixDataState = newState
-    }
+  public handleRemoteFixDataState(newState: FixDataState): FixDataState {
+    this._state = FixDataService.merge(this._state, newState)
+    return this._state
   }
 
   get state(): FixDataState {
-    return this.fixDataState
+    return this._state
   }
 }
