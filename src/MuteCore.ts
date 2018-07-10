@@ -5,7 +5,9 @@ import { LogootSAdd, LogootSDel, LogootSOperation } from 'mute-structs'
 import { CollaboratorsService, ICollaborator } from './collaborators/'
 import { Disposable } from './Disposable'
 import { DocService } from './doc/'
-import { MetaDataService } from './doc/MetaDataService'
+import { FixDataState } from './doc/FixDataService'
+import { MetaDataService, MetaDataState, MetaDataType } from './doc/MetaDataService'
+import { TitleState } from './doc/TitleService'
 import { LocalOperation } from './logs/LocalOperation'
 import { RemoteOperation } from './logs/RemoteOperation'
 import {
@@ -20,6 +22,12 @@ import { collaborator as proto } from './proto'
 import { RichLogootSOperation, SyncMessageService, SyncService } from './sync'
 import { generateId } from './util'
 
+export interface SessionParameters {
+  profile: proto.ICollaborator
+  metaTitle: TitleState
+  metaFixData: FixDataState
+}
+
 export class MuteCore implements Disposable, MessageEmitter {
   readonly collaboratorsService: CollaboratorsService
   readonly docService: DocService
@@ -31,9 +39,9 @@ export class MuteCore implements Disposable, MessageEmitter {
   private localOperation: Subject<LocalOperation>
   private remoteOperation: Subject<RemoteOperation>
 
-  constructor(me: proto.ICollaborator) {
-    if (!me.muteCoreId) {
-      me.muteCoreId = generateId()
+  constructor({ profile, metaTitle, metaFixData }: SessionParameters) {
+    if (!profile.muteCoreId) {
+      profile.muteCoreId = generateId()
     }
 
     /* FIXME: this.me object doesn't have id property set to the correct network id (it is set to 0 just below).
@@ -44,10 +52,10 @@ export class MuteCore implements Disposable, MessageEmitter {
     this.localOperation = new Subject<LocalOperation>()
     this.remoteOperation = new Subject<RemoteOperation>()
 
-    this.collaboratorsService = new CollaboratorsService(Object.assign({ id: 0 }, me))
-    this.docService = new DocService(me.muteCoreId)
-    this.metaDataService = new MetaDataService(me.muteCoreId)
-    this.syncService = new SyncService(me.muteCoreId, this.collaboratorsService)
+    this.collaboratorsService = new CollaboratorsService(Object.assign({ id: 0 }, profile))
+    this.docService = new DocService(profile.muteCoreId)
+    this.metaDataService = new MetaDataService(profile.muteCoreId, metaTitle, metaFixData)
+    this.syncService = new SyncService(profile.muteCoreId, this.collaboratorsService)
     this.syncMessageService = new SyncMessageService()
 
     this.docService.initSource = this.initSubject
@@ -55,14 +63,14 @@ export class MuteCore implements Disposable, MessageEmitter {
 
     this.syncService.localLogootSOperationSource = this.docService.onLocalLogootSOperation.pipe(
       tap((operation: LogootSOperation) => {
-        this.logLocalOperation(me.muteCoreId, operation)
+        this.logLocalOperation(profile.muteCoreId, operation)
       })
     )
     this.syncService.remoteQuerySyncSource = this.syncMessageService.onRemoteQuerySync
     this.syncService.remoteReplySyncSource = this.syncMessageService.onRemoteReplySync
     this.syncService.remoteRichLogootSOperationSource = this.syncMessageService.onRemoteRichLogootSOperation.pipe(
       tap((operation: RichLogootSOperation) => {
-        this.logRemoteOperation(me.muteCoreId, operation)
+        this.logRemoteOperation(profile.muteCoreId, operation)
       })
     )
     // this.syncService.storedStateSource = this.syncStorage.onStoredState
