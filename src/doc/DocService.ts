@@ -4,7 +4,7 @@ import { debounceTime, takeUntil } from 'rxjs/operators'
 
 import { ICollaborator } from '../collaborators'
 import { Disposable } from '../Disposable'
-import { JoinEvent } from '../network/'
+import { sync } from '../proto'
 
 export interface Position {
   id: Identifier
@@ -119,7 +119,7 @@ export class DocService implements Disposable {
     return textOperations
   }
 
-  positionFromIndex(index: number): Position | null {
+  positionFromIndex(index: number): Position | undefined {
     const respIntnode = this.doc.searchNode(index)
     if (respIntnode !== null) {
       const offset = respIntnode.node.actualBegin + respIntnode.i
@@ -129,15 +129,10 @@ export class DocService implements Disposable {
         index: respIntnode.i,
       }
     }
-    return null
+    return undefined
   }
 
-  indexFromId(id: Identifier): number {
-    return this.doc.searchPos(id, new Array())
-  }
-
-  setTitle(title: string): void {
-    // log.debug('Sending title: ' + title)
-    // this.network.sendDocTitle(title)
+  indexFromId(id: sync.IdentifierMsg): number {
+    return this.doc.searchPos(Identifier.fromPlain(id), new Array())
   }
 }

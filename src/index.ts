@@ -21,3 +21,4 @@ export {
 export { MuteCore } from './MuteCore'
 export { LocalOperation, RemoteOperation } from './logs/'
 export { RichLogootSOperation, State } from './sync/'
+export { TextInsert, TextDelete } from 'mute-structs'
