@@ -4,14 +4,16 @@ import { IMessageIn, IMessageOut, Service } from '../misc'
 import { metadata as proto } from '../proto'
 import { Streams } from '../Streams'
 import { FixData, FixDataState } from './FixData'
+import { LogsService, LogState } from './LogsService'
 import { Title, TitleState } from './Title'
 
 export enum MetaDataType {
   Title,
   FixData,
+  Logs,
 }
 
-export type MetaDataState = TitleState | FixDataState
+export type MetaDataState = TitleState | FixDataState | LogState
 
 export interface MetaDataMessage {
   type: MetaDataType
@@ -29,6 +31,7 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
 
   private title: Title
   private fixData: FixData
+  private logService: LogsService
 
   private localUpdateSubject: Subject<MetaDataMessage>
   private remoteUpdateSubject: Subject<MetaDataMessage>
@@ -37,12 +40,15 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
     messageIn$: Observable<IMessageIn>,
     messageOut$: Subject<IMessageOut>,
     titleState: TitleState,
-    fixDataState: FixDataState
+    fixDataState: FixDataState,
+    logState: LogState,
+    id: number
   ) {
     super(messageIn$, messageOut$, Streams.METADATA, proto.MetaData)
 
     this.title = new Title(titleState)
     this.fixData = new FixData(fixDataState)
+    this.logService = new LogsService(id, logState)
 
     this.localUpdateSubject = new Subject()
     this.remoteUpdateSubject = new Subject()
@@ -62,6 +68,16 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
             data: this.fixData.handleRemoteFixDataState(dataObj),
           })
           break
+        case MetaDataType.Logs:
+          dataObj.vector = new Map(dataObj.vector) // in the message, the map is written as an array like [[1, 2], [2, 3]]
+          this.remoteUpdateSubject.next({
+            type: MetaDataType.Logs,
+            data: this.logService.handleRemoteLogState(dataObj.id, {
+              share: dataObj.share,
+              vector: dataObj.vector,
+            }),
+          })
+          break
         default:
           console.error('No MetaDataType for type ' + type)
       }
@@ -77,6 +93,19 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
           super.send({ type: MetaDataType.Title, data: JSON.stringify(this.title.state) })
           break
         case MetaDataType.FixData:
+          break
+        case MetaDataType.Logs:
+          const { share } = data as LogState
+          this.logService.handleLocalLogState(share)
+          const state = this.logService.state
+          super.send({
+            type: MetaDataType.Logs,
+            data: JSON.stringify({
+              id: this.logService.id,
+              share: state.share,
+              vector: Array.from(state.vector || new Map<number, number>()),
+            }),
+          })
           break
         default:
           console.error('No MetaDataType for type ' + type)

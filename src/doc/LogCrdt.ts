@@ -1,16 +1,15 @@
 import { State, StateVector } from '../sync'
 import { StateVectorOrder } from '../sync/StateVector'
-import { LogState } from './LogsService'
 
 export class LogCrdt {
   private id: number
   private state: StateVector
   private share: boolean
 
-  constructor(id: number, state: LogState) {
+  constructor(id: number, share: boolean, vector?: Map<number, number>) {
     this.id = id
-    this.share = state.share
-    this.state = new StateVector(state.vector)
+    this.share = share
+    this.state = new StateVector(vector)
   }
 
   merge(other: LogCrdt) {
@@ -31,6 +30,10 @@ export class LogCrdt {
     } else {
       this.state.set(this.id, 0)
     }
+  }
+
+  getState(): object {
+    return { share: this.share, vector: this.state.asMap(), id: this.id }
   }
 
   get isShared(): boolean {

@@ -6,17 +6,29 @@ export interface LogState {
 }
 
 export class LogsService {
+  private _id: number
   private crdt: LogCrdt
 
   constructor(id: number, state: LogState) {
-    this.crdt = new LogCrdt(id, state)
+    this._id = id
+    this.crdt = new LogCrdt(id, state.share, state.vector)
   }
 
   public handleLocalLogState(share: boolean): void {
     this.crdt.setShare(share)
   }
 
-  public handleRemoteLogState(otherCrdt: LogCrdt): void {
+  public handleRemoteLogState(id: number, other: LogState): LogState {
+    const otherCrdt = new LogCrdt(id, other.share, other.vector)
     this.crdt.merge(otherCrdt)
+    return this.state
+  }
+
+  get id() {
+    return this._id
+  }
+
+  get state(): LogState {
+    return this.crdt.getState() as LogState
   }
 }

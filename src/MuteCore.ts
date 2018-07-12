@@ -11,6 +11,7 @@ import {
   Position,
   TitleState,
 } from './doc'
+import { LogState } from './doc/LogsService'
 import { LocalOperation, RemoteOperation } from './logs'
 import { Disposable, generateId, IMessageIn, IMessageOut } from './misc'
 import { collaborator as proto } from './proto'
@@ -21,6 +22,7 @@ export interface SessionParameters {
   docContent: State
   metaTitle: TitleState
   metaFixData: FixDataState
+  metaLogs: LogState
 }
 
 export class MuteCore extends Disposable {
@@ -43,7 +45,7 @@ export class MuteCore extends Disposable {
   private _messageOut$: Subject<IMessageOut>
   private _messageIn$: Subject<IMessageIn>
 
-  constructor({ profile, docContent, metaTitle, metaFixData }: SessionParameters) {
+  constructor({ profile, docContent, metaTitle, metaFixData, metaLogs }: SessionParameters) {
     super()
     const muteCoreId = profile.muteCoreId || generateId()
     if (!profile.muteCoreId) {
@@ -70,7 +72,9 @@ export class MuteCore extends Disposable {
       this._messageIn$,
       this._messageOut$,
       metaTitle,
-      metaFixData
+      metaFixData,
+      metaLogs,
+      muteCoreId
     )
 
     // Initialize synchronization mechanism
