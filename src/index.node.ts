@@ -1,3 +1,3 @@
 global.cryptoNode = require('crypto')
 
-export * from './index'
+export * from '.'

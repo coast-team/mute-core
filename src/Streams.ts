@@ -1,0 +1,5 @@
+export enum Streams {
+  COLLABORATORS = 400,
+  METADATA,
+  DOCUMENT_CONTENT,
+}

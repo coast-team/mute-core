@@ -1,44 +1,49 @@
 import { Observable, Subject } from 'rxjs'
-import { filter, map, takeUntil } from 'rxjs/operators'
+import { filter } from 'rxjs/operators'
 
-import { Disposable } from '../Disposable'
-import {
-  BroadcastMessage,
-  MessageEmitter,
-  NetworkMessage,
-  SendRandomlyMessage,
-  SendToMessage,
-} from '../network/'
+import { IMessageIn, IMessageOut } from '../network'
 import { collaborator as proto } from '../proto'
+import { Service } from '../Service'
+import { Streams } from '../Streams'
 import { ICollaborator } from './ICollaborator'
 
-export class CollaboratorsService implements Disposable, MessageEmitter {
-  private static ID: number = 421
-
+export class CollaboratorsService extends Service {
   public me: ICollaborator
-  private collaborators: Map<number, ICollaborator>
+  public collaborators: Map<number, ICollaborator>
 
   private updateSubject: Subject<ICollaborator>
   private joinSubject: Subject<ICollaborator>
   private leaveSubject: Subject<number>
 
-  private disposeSubject: Subject<void>
-
-  private msgToBroadcastSubject: Subject<BroadcastMessage>
-  private msgToSendRandomlySubject: Subject<SendRandomlyMessage>
-  private msgToSendToSubject: Subject<SendToMessage>
-
-  constructor(me: ICollaborator) {
+  constructor(
+    messageIn: Observable<IMessageIn>,
+    messageOut: Subject<IMessageOut>,
+    me: ICollaborator
+  ) {
+    super(messageIn, messageOut, Streams.COLLABORATORS)
     this.me = me
+    this.collaborators = new Map()
     this.updateSubject = new Subject()
     this.joinSubject = new Subject()
     this.leaveSubject = new Subject()
-    this.disposeSubject = new Subject()
-    this.msgToBroadcastSubject = new Subject()
-    this.msgToSendRandomlySubject = new Subject()
-    this.msgToSendToSubject = new Subject()
-    this.collaborators = new Map()
     // this.collaborators.set(this.me.id, this.me)
+
+    this.newSub = messageIn.subscribe(({ sernderId, content }) => {
+      const collabUpdate = Object.assign({ id: sernderId }, proto.Collaborator.decode(content))
+      const collab = this.collaborators.get(collabUpdate.id)
+      if (collab) {
+        collab.muteCoreId = collabUpdate.muteCoreId || collab.muteCoreId
+        collab.displayName = collabUpdate.displayName || collab.displayName
+        collab.login = collabUpdate.login || collab.login
+        collab.email = collabUpdate.email || collab.email
+        collab.avatar = collabUpdate.avatar || collab.avatar
+        this.collaborators.set(collab.id, collab)
+        this.updateSubject.next(collab)
+      } else {
+        this.collaborators.set(collabUpdate.id, collabUpdate)
+        this.joinSubject.next(collabUpdate)
+      }
+    })
   }
 
   getCollaborator(muteCoreId: number): ICollaborator | undefined {
@@ -62,89 +67,34 @@ export class CollaboratorsService implements Disposable, MessageEmitter {
     return this.leaveSubject.asObservable()
   }
 
-  get onMsgToBroadcast(): Observable<BroadcastMessage> {
-    return this.msgToBroadcastSubject.asObservable()
-  }
-
-  get onMsgToSendRandomly(): Observable<SendRandomlyMessage> {
-    return this.msgToSendRandomlySubject.asObservable()
-  }
-
-  get onMsgToSendTo(): Observable<SendToMessage> {
-    return this.msgToSendToSubject.asObservable()
-  }
-
-  set messageSource(source: Observable<NetworkMessage>) {
-    source
-      .pipe(
-        takeUntil(this.disposeSubject),
-        filter((msg: NetworkMessage) => msg.service === CollaboratorsService.ID)
-      )
-      .subscribe((msg: NetworkMessage) => {
-        const collabUpdate = Object.assign({ id: msg.id }, proto.Collaborator.decode(msg.content))
-        const collab = this.collaborators.get(collabUpdate.id)
-        if (collab) {
-          collab.muteCoreId = collabUpdate.muteCoreId || collab.muteCoreId
-          collab.displayName = collabUpdate.displayName || collab.displayName
-          collab.login = collabUpdate.login || collab.login
-          collab.email = collabUpdate.email || collab.email
-          collab.avatar = collabUpdate.avatar || collab.avatar
-          this.collaborators.set(collab.id, collab)
-          this.updateSubject.next(collab)
-        } else {
-          this.collaborators.set(collabUpdate.id, collabUpdate)
-          this.joinSubject.next(collabUpdate)
-        }
-      })
-  }
-
   set joinSource(source: Observable<number>) {
-    source.pipe(takeUntil(this.disposeSubject)).subscribe((id: number) => this.emitUpdate(id))
+    this.newSub = source.subscribe((id: number) => this.emitUpdate(id))
   }
 
   set leaveSource(source: Observable<number>) {
-    source.pipe(takeUntil(this.disposeSubject)).subscribe((id: number) => {
+    this.newSub = source.subscribe((id: number) => {
       this.collaborators.delete(id)
       this.leaveSubject.next(id)
     })
   }
 
   set updateSource(source: Observable<ICollaborator>) {
-    source.pipe(takeUntil(this.disposeSubject)).subscribe((data: ICollaborator) => {
+    this.newSub = source.subscribe((data: ICollaborator) => {
       Object.assign(this.me, data)
       this.emitUpdate()
     })
   }
 
-  dispose(): void {
+  dispose() {
     this.updateSubject.complete()
     this.joinSubject.complete()
     this.leaveSubject.complete()
-    this.disposeSubject.next()
-    this.disposeSubject.complete()
-    this.msgToBroadcastSubject.complete()
-    this.msgToSendRandomlySubject.complete()
-    this.msgToSendToSubject.complete()
+    super.dispose()
   }
 
-  private emitUpdate(id?: number) {
+  private emitUpdate(recipientId?: number) {
     const data = Object.assign({}, this.me)
     delete data.id
-    const collabMsg = proto.Collaborator.create(data)
-
-    if (id) {
-      const msg: SendToMessage = new SendToMessage(
-        CollaboratorsService.ID,
-        id,
-        proto.Collaborator.encode(collabMsg).finish()
-      )
-      this.msgToSendToSubject.next(msg)
-    } else {
-      const msg: BroadcastMessage = new BroadcastMessage(
-        CollaboratorsService.ID,
-        proto.Collaborator.encode(collabMsg).finish()
-      )
-      this.msgToBroadcastSubject.next(msg)
-    }
+    super.send(proto.Collaborator.encode(proto.Collaborator.create(data)).finish(), recipientId)
   }
 }

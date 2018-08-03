@@ -1,25 +1,24 @@
 import { Dot, IdentifierInterval, LogootSDel, LogootSOperation } from 'mute-structs'
-import { Observable, Subject, zip } from 'rxjs'
+import { Observable, Subject, Subscription, zip } from 'rxjs'
 import { filter, take, takeUntil } from 'rxjs/operators'
 
+import { CollaboratorsService, ICollaborator } from '../collaborators'
+import { Disposable } from '../Disposable'
+import { IMessageIn, IMessageOut } from '../network'
+import { Service } from '../Service'
 import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichLogootSOperation } from './RichLogootSOperation'
 import { State } from './State'
 import { StateVector } from './StateVector'
 
-import { CollaboratorsService, ICollaborator } from '../collaborators'
-import { Disposable } from '../Disposable'
-import { JoinEvent } from '../network/'
-
-export class SyncService implements Disposable {
+export class SyncService extends Disposable {
   private id: number = -1
   private clock: number = 0
   private richLogootSOps: RichLogootSOperation[] = []
   private vector: StateVector
 
   private appliedOperationsSubject: Subject<void>
-  private disposeSubject: Subject<void>
   private isReadySubject: Subject<void>
   private localRichLogootSOperationSubject: Subject<RichLogootSOperation>
   private querySyncSubject: Subject<StateVector>
@@ -33,11 +32,11 @@ export class SyncService implements Disposable {
   private collabsService: CollaboratorsService
 
   constructor(id: number, collaboratorsService: CollaboratorsService) {
+    super()
     this.id = id
     this.collabsService = collaboratorsService
     this.vector = new StateVector()
     this.appliedOperationsSubject = new Subject()
-    this.disposeSubject = new Subject<void>()
     this.isReadySubject = new Subject<void>()
     this.localRichLogootSOperationSubject = new Subject()
     this.querySyncSubject = new Subject()
@@ -85,7 +84,7 @@ export class SyncService implements Disposable {
   }
 
   set localLogootSOperationSource(source: Observable<LogootSOperation>) {
-    source.pipe(takeUntil(this.disposeSubject)).subscribe((logootSOp: LogootSOperation) => {
+    this.newSub = source.subscribe((logootSOp: LogootSOperation) => {
       let dependencies: Dot[] = []
       if (logootSOp instanceof LogootSDel) {
         dependencies = this.getDependencies(logootSOp)
@@ -103,7 +102,7 @@ export class SyncService implements Disposable {
   }
 
   set remoteQuerySyncSource(source: Observable<StateVector>) {
-    source.pipe(takeUntil(this.disposeSubject)).subscribe((vector: StateVector) => {
+    this.newSub = source.subscribe((vector: StateVector) => {
       const missingRichLogootSOps: RichLogootSOperation[] = this.computeMissingOps(vector)
       // TODO: Add sort function to apply LogootSAdd operations before LogootSDel ones
 
@@ -118,7 +117,7 @@ export class SyncService implements Disposable {
   }
 
   set remoteReplySyncSource(source: Observable<ReplySyncEvent>) {
-    source.pipe(takeUntil(this.disposeSubject)).subscribe((replySyncEvent: ReplySyncEvent) => {
+    this.newSub = source.subscribe((replySyncEvent: ReplySyncEvent) => {
       if (replySyncEvent.richLogootSOps.length > 0) {
         this.applyRichLogootSOperations(replySyncEvent.richLogootSOps)
         this.stateSubject.next(this.state)
@@ -139,32 +138,25 @@ export class SyncService implements Disposable {
   }
 
   set remoteRichLogootSOperationSource(source: Observable<RichLogootSOperation>) {
-    source.pipe(takeUntil(this.disposeSubject)).subscribe((richLogootSOp: RichLogootSOperation) => {
+    this.newSub = source.subscribe((richLogootSOp: RichLogootSOperation) => {
       this.applyRichLogootSOperations([richLogootSOp])
       this.stateSubject.next(this.state)
     })
   }
 
   setJoinAndStateSources(
-    joinSource: Observable<JoinEvent>,
+    joinSource: Observable<any>,
     metadataSource: Observable<void>,
     storedStateSource: Observable<State>
   ): void {
-    let triggerQuerySyncObservable: Observable<JoinEvent>
-
     this.storedStateSource = storedStateSource
-    triggerQuerySyncObservable = zip(
-      this.isReadySubject,
-      metadataSource,
-      joinSource,
-      (ready, metadata, joinEvent) => joinEvent
-    ).pipe(takeUntil(this.disposeSubject))
-
-    triggerQuerySyncObservable.pipe(take(1)).subscribe((joinEvent: JoinEvent) => {
-      if (!joinEvent.created) {
-        this.querySyncSubject.next(this.vector)
-      }
-    })
+    zip(this.isReadySubject, metadataSource, joinSource, (ready, metadata, joinEvent) => joinEvent)
+      .pipe(take(1))
+      .subscribe((joinEvent) => {
+        if (this.collabsService.collaborators.size > 1) {
+          this.querySyncSubject.next(this.vector)
+        }
+      })
   }
 
   computeMissingOps(vector: StateVector): RichLogootSOperation[] {
@@ -178,18 +170,17 @@ export class SyncService implements Disposable {
 
   dispose(): void {
     this.appliedOperationsSubject.complete()
-    this.disposeSubject.next()
-    this.disposeSubject.complete()
     this.isReadySubject.complete()
     this.localRichLogootSOperationSubject.complete()
     this.querySyncSubject.complete()
     this.remoteLogootSOperationSubject.complete()
     this.replySyncSubject.complete()
     this.stateSubject.complete()
+    super.dispose()
   }
 
   private set storedStateSource(source: Observable<State>) {
-    source.pipe(takeUntil(this.disposeSubject)).subscribe((state: State) => {
+    this.newSub = source.subscribe((state: State) => {
       this.richLogootSOps = []
       this.vector.clear()
       this.applyRichLogootSOperations(state.richLogootSOps)
@@ -198,7 +189,7 @@ export class SyncService implements Disposable {
   }
 
   private initPeriodicQuerySync(): void {
-    this.triggerQuerySyncSubject.pipe(takeUntil(this.disposeSubject)).subscribe(() => {
+    this.newSub = this.triggerQuerySyncSubject.subscribe(() => {
       this.querySyncSubject.next(this.vector)
       this.triggerPeriodicQuerySync()
     })

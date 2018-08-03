@@ -1,6 +1,6 @@
 import { Identifier, LogootSOperation, LogootSRopes, TextOperation } from 'mute-structs'
 import { Observable, Subject } from 'rxjs'
-import { debounceTime, takeUntil } from 'rxjs/operators'
+import { debounceTime } from 'rxjs/operators'
 
 import { ICollaborator } from '../collaborators'
 import { Disposable } from '../Disposable'
@@ -11,12 +11,8 @@ export interface Position {
   index: number
 }
 
-export class DocService implements Disposable {
-  private disposeSubject: Subject<void>
-
+export class DocService extends Disposable {
   private doc: LogootSRopes
-  private docID: string
-
   private docDigestSubject: Subject<number>
   private docTreeSubject: Subject<string>
   private localLogootSOperationSubject: Subject<LogootSOperation>
@@ -27,34 +23,23 @@ export class DocService implements Disposable {
   private updateSubject: Subject<void>
 
   constructor(id: number) {
+    super()
     this.doc = new LogootSRopes(id)
 
-    this.disposeSubject = new Subject<void>()
     this.docDigestSubject = new Subject()
     this.docTreeSubject = new Subject()
     this.localLogootSOperationSubject = new Subject()
     this.remoteTextOperationsSubject = new Subject()
     this.updateSubject = new Subject()
 
-    this.updateSubject
-      .pipe(
-        takeUntil(this.disposeSubject),
-        debounceTime(1000)
-      )
-      .subscribe(() => {
-        this.docTreeSubject.next(JSON.stringify(this.doc))
-        this.docDigestSubject.next(this.doc.digest())
-      })
-  }
-
-  set initSource(source: Observable<string>) {
-    source.pipe(takeUntil(this.disposeSubject)).subscribe((key: string) => {
-      this.docID = key
+    this.newSub = this.updateSubject.pipe(debounceTime(1000)).subscribe(() => {
+      this.docTreeSubject.next(JSON.stringify(this.doc))
+      this.docDigestSubject.next(this.doc.digest())
     })
   }
 
   set localTextOperationsSource(source: Observable<TextOperation[]>) {
-    source.pipe(takeUntil(this.disposeSubject)).subscribe((textOperations: TextOperation[]) => {
+    this.newSub = source.subscribe((textOperations: TextOperation[]) => {
       this.handleTextOperations(textOperations)
       this.updateSubject.next()
     })
@@ -66,7 +51,7 @@ export class DocService implements Disposable {
       operations: LogootSOperation[]
     }>
   ) {
-    source.pipe(takeUntil(this.disposeSubject)).subscribe(({ collaborator, operations }) => {
+    this.newSub = source.subscribe(({ collaborator, operations }) => {
       const remoteTextOps: TextOperation[] = operations
         .map((op) => this.handleRemoteOperation(op))
         .reduce((acc: TextOperation[], textOps: TextOperation[]) => acc.concat(textOps), [])
@@ -98,11 +83,10 @@ export class DocService implements Disposable {
   }
 
   dispose(): void {
-    this.disposeSubject.next()
-    this.disposeSubject.complete()
     this.localLogootSOperationSubject.complete()
     this.remoteTextOperationsSubject.complete()
     this.updateSubject.complete()
+    super.dispose()
   }
 
   handleTextOperations(textOperations: TextOperation[]): void {

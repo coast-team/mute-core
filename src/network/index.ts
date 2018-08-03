@@ -1,7 +1,12 @@
-export { BroadcastMessage } from './BroadcastMessage'
-export { JoinEvent } from './JoinEvent'
-export { MessageEmitter } from './MessageEmitter'
-export { NetworkMessage } from './NetworkMessage'
-export { SendRandomlyMessage } from './SendRandomlyMessage'
-export { SendToMessage } from './SendToMessage'
-export { AbstractMessage } from './AbstractMessage'
+export interface IMessage {
+  streamId: number
+  content: Uint8Array
+}
+
+export interface IMessageIn extends IMessage {
+  sernderId: number
+}
+
+export interface IMessageOut extends IMessage {
+  recipientId?: number // O value means send to a random peer
+}
