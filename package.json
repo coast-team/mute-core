@@ -51,6 +51,7 @@
   "devDependencies": {
     "@commitlint/cli": "^7.0.0",
     "@commitlint/config-conventional": "^7.0.1",
+    "@types/node": "^8.10.22",
     "assert": "^1.4.1",
     "ava": "^0.23.0",
     "commitizen": "^2.10.1",

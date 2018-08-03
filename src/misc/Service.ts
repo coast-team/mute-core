@@ -1,9 +1,9 @@
 import { Observable, Subject } from 'rxjs'
 import { filter } from 'rxjs/operators'
 
+import { Streams } from '../Streams'
 import { Disposable } from './Disposable'
-import { IMessageIn, IMessageOut } from './network'
-import { Streams } from './Streams'
+import { IMessageIn, IMessageOut } from './IMessage'
 
 export abstract class Service extends Disposable {
   protected messageIn: Observable<IMessageIn>

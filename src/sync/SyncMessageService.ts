@@ -1,9 +1,8 @@
 import { LogootSAdd, LogootSDel, LogootSOperation } from 'mute-structs'
 import { Observable, Subject, zip } from 'rxjs'
 
-import { IMessageIn, IMessageOut } from '../network'
+import { IMessageIn, IMessageOut, Service } from '../misc'
 import { sync } from '../proto'
-import { Service } from '../Service'
 import { Streams } from '../Streams'
 import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'

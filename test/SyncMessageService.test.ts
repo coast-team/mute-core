@@ -8,7 +8,7 @@ import {
   NetworkMessage,
   SendRandomlyMessage,
   SendToMessage,
-} from '../src/network'
+} from '../src/misc/IMessage'
 import {
   Interval,
   ReplySyncEvent,
@@ -43,9 +43,11 @@ test('richLogootSOperations-correct-send-and-delivery', (t: TestContext) => {
 
   // Simulate the network between the two instances of the service
   syncMsgServiceOut.messageSource = syncMsgServiceIn.onMsgToBroadcast.pipe(
-    map((msg: BroadcastMessage): NetworkMessage => {
-      return new NetworkMessage(msg.service, 0, true, msg.content)
-    })
+    map(
+      (msg: BroadcastMessage): NetworkMessage => {
+        return new NetworkMessage(msg.service, 0, true, msg.content)
+      }
+    )
   )
 
   const richLogootSOps: RichLogootSOperation[] = generateSequentialRichLogootSOps()
@@ -56,12 +58,14 @@ test('richLogootSOperations-correct-send-and-delivery', (t: TestContext) => {
   let counter = 0
   t.plan(richLogootSOps.length)
   return syncMsgServiceOut.onRemoteRichLogootSOperation.pipe(
-    map((actual: RichLogootSOperation): void => {
-      const expected: RichLogootSOperation = richLogootSOps[counter]
-      t.true(actual.equals(expected))
+    map(
+      (actual: RichLogootSOperation): void => {
+        const expected: RichLogootSOperation = richLogootSOps[counter]
+        t.true(actual.equals(expected))
 
-      counter++
-    })
+        counter++
+      }
+    )
   )
 })
 
@@ -72,9 +76,11 @@ test('querySync-correct-send-and-delivery', (t: TestContext) => {
   disposeOf(syncMsgServiceOut, 200)
 
   syncMsgServiceOut.messageSource = syncMsgServiceIn.onMsgToSendRandomly.pipe(
-    map((msg: SendRandomlyMessage): NetworkMessage => {
-      return new NetworkMessage(msg.service, 0, true, msg.content)
-    })
+    map(
+      (msg: SendRandomlyMessage): NetworkMessage => {
+        return new NetworkMessage(msg.service, 0, true, msg.content)
+      }
+    )
   )
 
   const expectedVector: StateVector = generateVector()
@@ -84,11 +90,15 @@ test('querySync-correct-send-and-delivery', (t: TestContext) => {
 
   t.plan(expectedVector.size)
   return syncMsgServiceOut.onRemoteQuerySync.pipe(
-    map((actualVector: StateVector): void => {
-      actualVector.forEach((actual: number, key: number): void => {
-        t.is(actual, expectedVector.get(key))
-      })
-    })
+    map(
+      (actualVector: StateVector): void => {
+        actualVector.forEach(
+          (actual: number, key: number): void => {
+            t.is(actual, expectedVector.get(key))
+          }
+        )
+      }
+    )
   )
 })
 
@@ -100,10 +110,12 @@ test('replySync-correct-recipient', (t: TestContext) => {
   // when delivering a remote QuerySync
   const replySyncSubject: Subject<ReplySyncEvent> = new Subject<ReplySyncEvent>()
   syncMsgService.replySyncSource = replySyncSubject.asObservable()
-  syncMsgService.onRemoteQuerySync.subscribe((vector: StateVector): void => {
-    const replySyncEvent: ReplySyncEvent = generateReplySync()
-    replySyncSubject.next(replySyncEvent)
-  })
+  syncMsgService.onRemoteQuerySync.subscribe(
+    (vector: StateVector): void => {
+      const replySyncEvent: ReplySyncEvent = generateReplySync()
+      replySyncSubject.next(replySyncEvent)
+    }
+  )
 
   const expected = 42
   const vector: StateVector = generateVector()
@@ -116,9 +128,11 @@ test('replySync-correct-recipient', (t: TestContext) => {
 
   t.plan(1)
   return syncMsgService.onMsgToSendTo.pipe(
-    map((msg: SendToMessage): void => {
-      t.is(msg.id, expected)
-    })
+    map(
+      (msg: SendToMessage): void => {
+        t.is(msg.id, expected)
+      }
+    )
   )
 })
 
@@ -133,14 +147,18 @@ test('replySync-correct-send-and-delivery', (t: TestContext) => {
   const replySyncSubject: Subject<ReplySyncEvent> = new Subject<ReplySyncEvent>()
   syncMsgServiceIn.replySyncSource = replySyncSubject.asObservable()
   const expected: ReplySyncEvent = generateReplySync()
-  syncMsgServiceIn.onRemoteQuerySync.subscribe((vector: StateVector): void => {
-    replySyncSubject.next(expected)
-  })
+  syncMsgServiceIn.onRemoteQuerySync.subscribe(
+    (vector: StateVector): void => {
+      replySyncSubject.next(expected)
+    }
+  )
 
   syncMsgServiceOut.messageSource = syncMsgServiceIn.onMsgToSendTo.pipe(
-    map((msg: SendToMessage): NetworkMessage => {
-      return new NetworkMessage(msg.service, 0, true, msg.content)
-    })
+    map(
+      (msg: SendToMessage): NetworkMessage => {
+        return new NetworkMessage(msg.service, 0, true, msg.content)
+      }
+    )
   )
 
   const vector: StateVector = generateVector()
@@ -153,8 +171,10 @@ test('replySync-correct-send-and-delivery', (t: TestContext) => {
 
   t.plan(1)
   return syncMsgServiceOut.onRemoteReplySync.pipe(
-    map((actual: ReplySyncEvent): void => {
-      t.true(actual.equals(expected))
-    })
+    map(
+      (actual: ReplySyncEvent): void => {
+        t.true(actual.equals(expected))
+      }
+    )
   )
 })

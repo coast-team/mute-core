@@ -3,17 +3,11 @@ import { Observable, Subject } from 'rxjs'
 import { tap } from 'rxjs/operators'
 
 import { CollaboratorsService } from './collaborators'
-import { Disposable } from './Disposable'
-import { DocService } from './doc'
-import { FixDataState } from './doc/FixDataService'
-import { MetaDataService } from './doc/MetaDataService'
-import { TitleState } from './doc/TitleService'
-import { LocalOperation } from './logs/LocalOperation'
-import { RemoteOperation } from './logs/RemoteOperation'
-import { IMessageIn, IMessageOut } from './network'
+import { DocService, FixDataState, MetaDataService, TitleState } from './doc'
+import { LocalOperation, RemoteOperation } from './logs'
+import { Disposable, generateId, IMessageIn, IMessageOut } from './misc'
 import { collaborator as proto } from './proto'
 import { RichLogootSOperation, SyncMessageService, SyncService } from './sync'
-import { generateId } from './util'
 
 export interface SessionParameters {
   profile: proto.ICollaborator

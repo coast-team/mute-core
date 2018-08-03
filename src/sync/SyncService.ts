@@ -3,7 +3,7 @@ import { Observable, Subject, zip } from 'rxjs'
 import { filter, take, takeUntil } from 'rxjs/operators'
 
 import { CollaboratorsService, ICollaborator } from '../collaborators'
-import { Disposable } from '../Disposable'
+import { Disposable } from '../misc'
 import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichLogootSOperation } from './RichLogootSOperation'

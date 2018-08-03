@@ -4,7 +4,7 @@ import { from, Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
 
 import { CollaboratorsService, ICollaborator } from '../src/collaborators'
-import { BroadcastMessage, NetworkMessage, SendToMessage } from '../src/network'
+import { BroadcastMessage, NetworkMessage, SendToMessage } from '../src/misc/IMessage'
 
 import { disposeOf } from './Helpers'
 
@@ -31,13 +31,15 @@ test('pseudos-correct-send-and-delivery', (t: TestContext) => {
   t.plan((expectedUpdates.length - 1) * 2)
   let counter = 1
   return collaboratorsServiceOut.onUpdate.pipe(
-    map((collaborator: ICollaborator): void => {
-      const { displayName } = expectedUpdates[counter]
-      t.is(collaborator.id, expectedId)
-      t.is(collaborator.displayName, displayName)
+    map(
+      (collaborator: ICollaborator): void => {
+        const { displayName } = expectedUpdates[counter]
+        t.is(collaborator.id, expectedId)
+        t.is(collaborator.displayName, displayName)
 
-      counter++
-    })
+        counter++
+      }
+    )
   )
 })
 
@@ -61,12 +63,14 @@ test('peers-joining-correct-delivery', (t: TestContext) => {
   t.plan(expectedIds.length)
   let counter = 0
   return collaboratorsServiceOut.onJoin.pipe(
-    map((collaborator: ICollaborator): void => {
-      const { id } = expectedIds[counter]
-      t.is(collaborator.id, id)
+    map(
+      (collaborator: ICollaborator): void => {
+        const { id } = expectedIds[counter]
+        t.is(collaborator.id, id)
 
-      counter++
-    })
+        counter++
+      }
+    )
   )
 })
 
@@ -81,8 +85,10 @@ test('send-pseudo-to-joining-peer', (t: TestContext) => {
 
   t.plan(1)
   return collaboratorsService.onMsgToSendTo.pipe(
-    map((msg: SendToMessage): void => {
-      t.is(msg.id, expectedId)
-    })
+    map(
+      (msg: SendToMessage): void => {
+        t.is(msg.id, expectedId)
+      }
+    )
   )
 })

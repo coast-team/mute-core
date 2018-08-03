@@ -3,7 +3,7 @@ import { Observable, Subject } from 'rxjs'
 import { debounceTime } from 'rxjs/operators'
 
 import { ICollaborator } from '../collaborators'
-import { Disposable } from '../Disposable'
+import { Disposable } from '../misc'
 import { sync } from '../proto'
 
 export interface Position {

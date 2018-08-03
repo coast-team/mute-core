@@ -1,8 +1,7 @@
 import { Observable, Subject } from 'rxjs'
 
-import { IMessageIn, IMessageOut } from '../network'
+import { IMessageIn, IMessageOut, Service } from '../misc'
 import { metadata as proto } from '../proto'
-import { Service } from '../Service'
 import { Streams } from '../Streams'
 import { FixDataService, FixDataState } from './FixDataService'
 import { TitleService, TitleState } from './TitleService'

@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import * as crypto from 'crypto'
-import { env } from './util'
+import { env } from './misc'
 
 try {
   env.crypto = crypto

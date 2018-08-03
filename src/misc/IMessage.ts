@@ -1,4 +1,4 @@
-export interface IMessage {
+interface IMessage {
   streamId: number
   content: Uint8Array
 }

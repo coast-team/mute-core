@@ -7,7 +7,7 @@ import {
   LogootSDel,
 } from 'mute-structs'
 
-import { Disposable } from '../src/Disposable'
+import { Disposable } from '../src/misc/Disposable'
 import { RichLogootSOperation, StateVector } from '../src/sync'
 
 export function disposeOf(disposable: Disposable, time: number): void {
