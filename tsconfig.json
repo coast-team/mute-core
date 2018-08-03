@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "declaration": true,
     "declarationDir": "dist/types",
     "lib": ["es2017", "dom"],
     "outDir": "dist",
