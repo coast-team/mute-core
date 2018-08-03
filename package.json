@@ -24,7 +24,8 @@
   "author": "Matthieu Nicolas <matthieu.nicolas@inria.fr",
   "contributors": [
     "Philippe Kalitine <philippe.kalitine@gmail.com> (https://philippe.kalitine.name/)",
-    "Quentin Tardivon"
+    "Quentin Tardivon",
+    "Cedric Enclos"
   ],
   "license": "GPL-3.0",
   "scripts": {
