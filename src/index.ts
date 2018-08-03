@@ -1,5 +1,3 @@
-import 'core-js/es7/global'
-
 export { ICollaborator, CollaboratorsService } from './collaborators'
 export {
   DocService,

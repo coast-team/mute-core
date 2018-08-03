@@ -1,9 +1,16 @@
-export const isBrowser = typeof window !== 'undefined' ? true : false
+/// <reference types="node" />
+import * as CryptoNode from 'crypto'
+
+export interface IEnvironment {
+  crypto: Crypto | typeof CryptoNode
+}
+
+export const env = {} as IEnvironment
 
 export function generateId(): number {
-  if (isBrowser) {
-    return global.crypto.getRandomValues(new Int32Array(1))[0]
+  if ('getRandomValues' in env.crypto) {
+    return env.crypto.getRandomValues(new Int32Array(1))[0]
   } else {
-    return global.cryptoNode.randomBytes(4).readInt32BE(0, true)
+    return env.crypto.randomBytes(4).readInt32BE(0, true)
   }
 }
