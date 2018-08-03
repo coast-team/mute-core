@@ -1,12 +1,6 @@
-import {
-  Dot,
-  IdentifierInterval,
-  isDot,
-  LogootSAdd,
-  LogootSDel,
-  LogootSOperation,
-} from 'mute-structs'
+import { Dot, isDot, LogootSAdd, LogootSDel, LogootSOperation } from 'mute-structs'
 import { SafeAny } from 'safe-any'
+
 import { ICollaborator } from '../collaborators'
 
 export class RichLogootSOperation {
@@ -39,7 +33,7 @@ export class RichLogootSOperation {
   readonly clock: number
   readonly logootSOp: LogootSOperation
   readonly dependencies: Dot[]
-  collab: ICollaborator
+  public collab: ICollaborator | undefined
 
   constructor(id: number, clock: number, logootSOp: LogootSOperation, dependencies: Dot[] = []) {
     this.id = id

@@ -117,6 +117,7 @@ export class DocService extends Disposable {
   }
 
   indexFromId(id: sync.IdentifierMsg): number {
-    return this.doc.searchPos(Identifier.fromPlain(id), new Array())
+    // FIXME: should not use 'as Identifier'
+    return this.doc.searchPos(Identifier.fromPlain(id) as Identifier, new Array())
   }
 }

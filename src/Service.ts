@@ -1,4 +1,4 @@
-import { Observable, Subject, Subscription } from 'rxjs'
+import { Observable, Subject } from 'rxjs'
 import { filter } from 'rxjs/operators'
 
 import { Disposable } from './Disposable'

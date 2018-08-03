@@ -106,9 +106,14 @@ export class SyncMessageService extends Service {
       return this.deserializeRichLogootSOperation(richLogootSOpMsg as sync.RichLogootSOperationMsg)
     })
 
-    const intervals: Interval[] = content.intervals.map((interval: sync.IntervalMsg) => {
-      return new Interval(interval.id, interval.begin, interval.end)
-    })
+    // FIXME: id, begin, end must not be undefined
+    const intervals = content.intervals.map(({ id, begin, end }) => {
+      if (id && begin && end) {
+        return new Interval(id, begin, end)
+      } else {
+        return undefined
+      }
+    }) as Interval[]
 
     const replySyncEvent: ReplySyncEvent = new ReplySyncEvent(richLogootSOps, intervals)
     this.remoteReplySyncSubject.next(replySyncEvent)
@@ -142,7 +147,7 @@ export class SyncMessageService extends Service {
     const clock: number = content.clock
     const dependencies = content.dependencies as sync.IDotMsg[]
 
-    let logootSOp: sync.ILogootSAddMsg | sync.ILogootSDelMsg
+    let logootSOp: sync.ILogootSAddMsg | sync.ILogootSDelMsg | undefined
     if (content.logootSAddMsg) {
       logootSOp = content.logootSAddMsg
     } else if (content.logootSDelMsg) {
@@ -154,14 +159,17 @@ export class SyncMessageService extends Service {
       clock,
       logootSOp,
       dependencies,
-    })
+    }) as RichLogootSOperation
   }
 
   generateQuerySyncMsg(vector: StateVector): Uint8Array {
     const querySyncMsg = sync.QuerySyncMsg.create()
 
-    vector.forEach((clock: number, id: number) => {
-      querySyncMsg.vector[id] = clock
+    // FIXME: clock and id must not be undefined
+    vector.forEach((clock, id) => {
+      if (id && clock) {
+        querySyncMsg.vector[id] = clock
+      }
     })
 
     const msg = sync.SyncMsg.create({ querySync: querySyncMsg })

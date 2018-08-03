@@ -35,8 +35,9 @@ export class MuteCore extends Disposable {
 
   constructor({ profile, metaTitle, metaFixData }: SessionParameters) {
     super()
+    const muteCoreId = profile.muteCoreId || generateId()
     if (!profile.muteCoreId) {
-      profile.muteCoreId = generateId()
+      profile.muteCoreId = muteCoreId
     }
 
     /* FIXME: this.me object doesn't have id property set to the correct network id (it is set to 0 just below).
@@ -66,14 +67,14 @@ export class MuteCore extends Disposable {
 
     this.syncService.localLogootSOperationSource = this.docService.onLocalLogootSOperation.pipe(
       tap((operation: LogootSOperation) => {
-        this.logLocalOperation(profile.muteCoreId, operation)
+        this.logLocalOperation(muteCoreId, operation)
       })
     )
     this.syncService.remoteQuerySyncSource = this.syncMessageService.onRemoteQuerySync
     this.syncService.remoteReplySyncSource = this.syncMessageService.onRemoteReplySync
     this.syncService.remoteRichLogootSOperationSource = this.syncMessageService.onRemoteRichLogootSOperation.pipe(
       tap((operation: RichLogootSOperation) => {
-        this.logRemoteOperation(profile.muteCoreId, operation)
+        this.logRemoteOperation(muteCoreId, operation)
       })
     )
     // this.syncService.storedStateSource = this.syncStorage.onStoredState

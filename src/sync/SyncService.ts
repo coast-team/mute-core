@@ -1,11 +1,9 @@
 import { Dot, IdentifierInterval, LogootSDel, LogootSOperation } from 'mute-structs'
-import { Observable, Subject, Subscription, zip } from 'rxjs'
+import { Observable, Subject, zip } from 'rxjs'
 import { filter, take, takeUntil } from 'rxjs/operators'
 
 import { CollaboratorsService, ICollaborator } from '../collaborators'
 import { Disposable } from '../Disposable'
-import { IMessageIn, IMessageOut } from '../network'
-import { Service } from '../Service'
 import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichLogootSOperation } from './RichLogootSOperation'
@@ -150,9 +148,9 @@ export class SyncService extends Disposable {
     storedStateSource: Observable<State>
   ): void {
     this.storedStateSource = storedStateSource
-    zip(this.isReadySubject, metadataSource, joinSource, (ready, metadata, joinEvent) => joinEvent)
+    zip(this.isReadySubject, metadataSource, joinSource)
       .pipe(take(1))
-      .subscribe((joinEvent) => {
+      .subscribe(() => {
         if (this.collabsService.collaborators.size > 1) {
           this.querySyncSubject.next(this.vector)
         }
@@ -222,8 +220,6 @@ export class SyncService extends Disposable {
       const logootSOperations: LogootSOperation[] = []
       newRichLogootSOps.forEach((richLogootSOp) => {
         if (this.isDeliverable(richLogootSOp)) {
-          const id = richLogootSOp.id
-          const clock = richLogootSOp.clock
           const logootSOp = richLogootSOp.logootSOp
           this.updateState(richLogootSOp)
           logootSOperations.push(logootSOp)
@@ -248,10 +244,7 @@ export class SyncService extends Disposable {
     const clock: number = richLogootSOp.clock
     const stopSubject: Subject<void> = new Subject()
     this.appliedOperationsSubject
-      .pipe(
-        takeUntil(stopSubject),
-        filter(() => this.isDeliverable(richLogootSOp))
-      )
+      .pipe(takeUntil(stopSubject), filter(() => this.isDeliverable(richLogootSOp)))
       .subscribe(() => {
         stopSubject.next()
         stopSubject.complete()
@@ -285,9 +278,11 @@ export class SyncService extends Disposable {
 
   private getDependencies(logootSDel: LogootSDel): Dot[] {
     return logootSDel.lid.map((idInterval: IdentifierInterval) => {
-      const dependencyId = idInterval.idBegin.replicaNumber
-      const dependencyClock = this.vector.get(dependencyId)
-      return { replicaNumber: dependencyId, clock: dependencyClock }
+      const replicaNumber = idInterval.idBegin.replicaNumber
+      const clock = this.vector.get(replicaNumber)
+
+      // FIXME: should not use 'as Dot'
+      return { replicaNumber, clock } as Dot
     })
   }
 }

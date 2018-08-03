@@ -107,7 +107,6 @@ export class MetaDataService extends Service {
   }
 
   private emitMetaData(type: MetaDataType, data: string, id?: number): void {
-    const metaDataMsg = proto.MetaData.create({ type, data })
     super.send(proto.MetaData.encode(proto.MetaData.create({ type, data })).finish(), id)
   }
 }

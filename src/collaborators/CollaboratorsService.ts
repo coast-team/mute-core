@@ -1,5 +1,4 @@
 import { Observable, Subject } from 'rxjs'
-import { filter } from 'rxjs/operators'
 
 import { IMessageIn, IMessageOut } from '../network'
 import { collaborator as proto } from '../proto'
@@ -47,7 +46,7 @@ export class CollaboratorsService extends Service {
   }
 
   getCollaborator(muteCoreId: number): ICollaborator | undefined {
-    for (const [id, c] of this.collaborators) {
+    for (const c of this.collaborators.values()) {
       if (c.muteCoreId === muteCoreId) {
         return c
       }
