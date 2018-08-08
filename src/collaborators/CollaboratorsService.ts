@@ -1,7 +1,8 @@
 import { Observable, Subject } from 'rxjs'
 
+import { filter } from 'rxjs/operators'
 import { IMessageIn, IMessageOut, Service } from '../misc'
-import { collaborator as proto } from '../proto'
+import { collaborator as proto } from '../proto/index'
 import { Streams } from '../Streams'
 import { ICollaborator } from './ICollaborator'
 
@@ -26,22 +27,24 @@ export class CollaboratorsService extends Service {
     this.leaveSubject = new Subject()
     // this.collaborators.set(this.me.id, this.me)
 
-    this.newSub = messageIn.subscribe(({ sernderId, content }) => {
-      const collabUpdate = Object.assign({ id: sernderId }, proto.Collaborator.decode(content))
-      const collab = this.collaborators.get(collabUpdate.id)
-      if (collab) {
-        collab.muteCoreId = collabUpdate.muteCoreId || collab.muteCoreId
-        collab.displayName = collabUpdate.displayName || collab.displayName
-        collab.login = collabUpdate.login || collab.login
-        collab.email = collabUpdate.email || collab.email
-        collab.avatar = collabUpdate.avatar || collab.avatar
-        this.collaborators.set(collab.id, collab)
-        this.updateSubject.next(collab)
-      } else {
-        this.collaborators.set(collabUpdate.id, collabUpdate)
-        this.joinSubject.next(collabUpdate)
-      }
-    })
+    this.newSub = messageIn
+      .pipe(filter(({ streamId }) => streamId === Streams.COLLABORATORS))
+      .subscribe(({ senderId, content }) => {
+        const collabUpdate = Object.assign({ id: senderId }, proto.Collaborator.decode(content))
+        const collab = this.collaborators.get(collabUpdate.id)
+        if (collab) {
+          collab.muteCoreId = collabUpdate.muteCoreId || collab.muteCoreId
+          collab.displayName = collabUpdate.displayName || collab.displayName
+          collab.login = collabUpdate.login || collab.login
+          collab.email = collabUpdate.email || collab.email
+          collab.avatar = collabUpdate.avatar || collab.avatar
+          this.collaborators.set(collab.id, collab)
+          this.updateSubject.next(collab)
+        } else {
+          this.collaborators.set(collabUpdate.id, collabUpdate)
+          this.joinSubject.next(collabUpdate)
+        }
+      })
   }
 
   getCollaborator(muteCoreId: number): ICollaborator | undefined {

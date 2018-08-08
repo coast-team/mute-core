@@ -4,7 +4,7 @@ interface IMessage {
 }
 
 export interface IMessageIn extends IMessage {
-  sernderId: number
+  senderId: number
 }
 
 export interface IMessageOut extends IMessage {

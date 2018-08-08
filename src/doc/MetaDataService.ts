@@ -1,7 +1,8 @@
 import { Observable, Subject } from 'rxjs'
+import { filter } from 'rxjs/operators'
 
 import { IMessageIn, IMessageOut, Service } from '../misc'
-import { metadata as proto } from '../proto'
+import { metadata as proto } from '../proto/index'
 import { Streams } from '../Streams'
 import { FixDataService, FixDataState } from './FixDataService'
 import { TitleService, TitleState } from './TitleService'
@@ -47,27 +48,29 @@ export class MetaDataService extends Service {
     this.localChangeSubject = new Subject()
     this.remoteChangeSubject = new Subject()
 
-    this.newSub = messageIn.subscribe(({ content }) => {
-      const message = Object.assign({}, proto.MetaData.decode(content))
-      const type = message.type
-      const data = JSON.parse(message.data)
-      switch (type) {
-        case MetaDataType.Title:
-          this.remoteChangeSubject.next({
-            type: MetaDataType.Title,
-            data: this.titleService.handleRemoteState(data),
-          })
-          break
-        case MetaDataType.FixData:
-          this.remoteChangeSubject.next({
-            type: MetaDataType.FixData,
-            data: this.fixDataService.handleRemoteFixDataState(data),
-          })
-          break
-        default:
-          console.error('No MetaDataType for type ' + type)
-      }
-    })
+    this.newSub = messageIn
+      .pipe(filter(({ streamId }) => streamId === Streams.METADATA))
+      .subscribe(({ content }) => {
+        const message = Object.assign({}, proto.MetaData.decode(content))
+        const type = message.type
+        const data = JSON.parse(message.data)
+        switch (type) {
+          case MetaDataType.Title:
+            this.remoteChangeSubject.next({
+              type: MetaDataType.Title,
+              data: this.titleService.handleRemoteState(data),
+            })
+            break
+          case MetaDataType.FixData:
+            this.remoteChangeSubject.next({
+              type: MetaDataType.FixData,
+              data: this.fixDataService.handleRemoteFixDataState(data),
+            })
+            break
+          default:
+            console.error('No MetaDataType for type ' + type)
+        }
+      })
   }
 
   set onLocalChange(source: Observable<MetaDataMessage>) {

@@ -1,8 +1,9 @@
 import { LogootSAdd, LogootSDel, LogootSOperation } from 'mute-structs'
 import { Observable, Subject, zip } from 'rxjs'
+import { filter } from 'rxjs/operators'
 
 import { IMessageIn, IMessageOut, Service } from '../misc'
-import { sync } from '../proto'
+import { sync } from '../proto/index'
 import { Streams } from '../Streams'
 import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'
@@ -24,21 +25,23 @@ export class SyncMessageService extends Service {
     this.remoteReplySyncSubject = new Subject()
 
     // FIXME: should I save the subscription for later unsubscribe/subscribe?
-    this.newSub = messageIn.subscribe(({ sernderId, content }) => {
-      const msg = sync.SyncMsg.decode(content)
-      switch (msg.type) {
-        case 'richLogootSOpMsg':
-          this.handleRichLogootSOpMsg(msg.richLogootSOpMsg as sync.RichLogootSOperationMsg)
-          break
-        case 'querySync':
-          this.remoteQuerySyncIdSubject.next(sernderId) // Register the id of the peer
-          this.handleQuerySyncMsg(msg.querySync as sync.QuerySyncMsg)
-          break
-        case 'replySync':
-          this.handleReplySyncMsg(msg.replySync as sync.ReplySyncMsg)
-          break
-      }
-    })
+    this.newSub = messageIn
+      .pipe(filter(({ streamId }) => streamId === Streams.DOCUMENT_CONTENT))
+      .subscribe(({ senderId, content }) => {
+        const msg = sync.SyncMsg.decode(content)
+        switch (msg.type) {
+          case 'richLogootSOpMsg':
+            this.handleRichLogootSOpMsg(msg.richLogootSOpMsg as sync.RichLogootSOperationMsg)
+            break
+          case 'querySync':
+            this.remoteQuerySyncIdSubject.next(senderId) // Register the id of the peer
+            this.handleQuerySyncMsg(msg.querySync as sync.QuerySyncMsg)
+            break
+          case 'replySync':
+            this.handleReplySyncMsg(msg.replySync as sync.ReplySyncMsg)
+            break
+        }
+      })
   }
 
   set localRichLogootSOperationSource(source: Observable<RichLogootSOperation>) {

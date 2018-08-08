@@ -4,7 +4,7 @@ import { debounceTime } from 'rxjs/operators'
 
 import { ICollaborator } from '../collaborators'
 import { Disposable } from '../misc'
-import { sync } from '../proto'
+import { sync } from '../proto/index'
 
 export interface Position {
   id: Identifier
@@ -38,6 +38,20 @@ export class DocService extends Disposable {
     })
   }
 
+  // getContentAsString(state: State): string {
+  //   const res: string[] = []
+  //   for (const { logootSOp } of state.richLogootSOps) {
+  //     for (const to of this.handleRemoteOperation(logootSOp)) {
+  //       if (to instanceof TextDelete) {
+  //         res.splice(to.offset, to.length)
+  //       } else {
+  //         res.splice(to.offset, 0, to.content)
+  //       }
+  //     }
+  //   }
+  //   return res.join('')
+  // }
+
   set localTextOperationsSource(source: Observable<TextOperation[]>) {
     this.newSub = source.subscribe((textOperations: TextOperation[]) => {
       this.handleTextOperations(textOperations)
@@ -52,9 +66,9 @@ export class DocService extends Disposable {
     }>
   ) {
     this.newSub = source.subscribe(({ collaborator, operations }) => {
-      const remoteTextOps: TextOperation[] = operations
+      const remoteTextOps = operations
         .map((op) => this.handleRemoteOperation(op))
-        .reduce((acc: TextOperation[], textOps: TextOperation[]) => acc.concat(textOps), [])
+        .reduce((acc, textOps) => acc.concat(textOps), [])
       this.remoteTextOperationsSubject.next({
         collaborator,
         operations: remoteTextOps,
@@ -90,17 +104,14 @@ export class DocService extends Disposable {
   }
 
   handleTextOperations(textOperations: TextOperation[]): void {
-    textOperations.forEach((textOperation: TextOperation) => {
-      const logootSOperation: LogootSOperation = textOperation.applyTo(this.doc)
-      this.localLogootSOperationSubject.next(logootSOperation)
+    textOperations.forEach((textOperation) => {
+      this.localLogootSOperationSubject.next(textOperation.applyTo(this.doc))
     })
     // log.info('operation:doc', 'updated doc: ', this.doc)
   }
 
   handleRemoteOperation(logootSOperation: LogootSOperation): TextOperation[] {
-    const textOperations: TextOperation[] = logootSOperation.execute(this.doc)
-    // log.info('operation:doc', 'updated doc: ', this.doc)
-    return textOperations
+    return logootSOperation.execute(this.doc)
   }
 
   positionFromIndex(index: number): Position | undefined {
