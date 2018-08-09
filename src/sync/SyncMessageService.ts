@@ -109,15 +109,17 @@ export class SyncMessageService extends Service<proto.ISyncMsg, proto.SyncMsg> {
   }
 
   private handleReplySyncMsg({ richLogootSOpsMsg, intervals }: proto.ReplySyncMsg): void {
-    const richLogootSOps = richLogootSOpsMsg.map((o) => {
-      return this.deserializeRichLogootSOperation(o as proto.RichLogootSOperationMsg)
-    })
+    const richLogootSOps = richLogootSOpsMsg.map((o) =>
+      this.deserializeRichLogootSOperation(o as proto.RichLogootSOperationMsg)
+    )
 
-    // FIXME: id, begin, end must not be undefined
     this.remoteReplySyncSubject.next(
-      new ReplySyncEvent(richLogootSOps, intervals.map(
-        ({ id, begin, end }) => (id && begin && end ? new Interval(id, begin, end) : undefined)
-      ) as Interval[])
+      new ReplySyncEvent(
+        richLogootSOps,
+        intervals.map(
+          ({ id, begin, end }) => new Interval(id as number, begin as number, end as number)
+        )
+      )
     )
   }
 
