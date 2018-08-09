@@ -1,12 +1,11 @@
 import { Observable, Subject } from 'rxjs'
 
-import { filter } from 'rxjs/operators'
 import { IMessageIn, IMessageOut, Service } from '../misc'
-import { collaborator as proto } from '../proto/index'
+import { collaborator as proto } from '../proto'
 import { Streams } from '../Streams'
 import { ICollaborator } from './ICollaborator'
 
-export class CollaboratorsService extends Service {
+export class CollaboratorsService extends Service<proto.ICollaborator, proto.Collaborator> {
   public me: ICollaborator
   public collaborators: Map<number, ICollaborator>
 
@@ -15,36 +14,32 @@ export class CollaboratorsService extends Service {
   private leaveSubject: Subject<number>
 
   constructor(
-    messageIn: Observable<IMessageIn>,
-    messageOut: Subject<IMessageOut>,
+    messageIn$: Observable<IMessageIn>,
+    messageOut$: Subject<IMessageOut>,
     me: ICollaborator
   ) {
-    super(messageIn, messageOut, Streams.COLLABORATORS)
+    super(messageIn$, messageOut$, Streams.COLLABORATORS, proto.Collaborator)
     this.me = me
     this.collaborators = new Map()
     this.updateSubject = new Subject()
     this.joinSubject = new Subject()
     this.leaveSubject = new Subject()
-    // this.collaborators.set(this.me.id, this.me)
 
-    this.newSub = messageIn
-      .pipe(filter(({ streamId }) => streamId === Streams.COLLABORATORS))
-      .subscribe(({ senderId, content }) => {
-        const collabUpdate = Object.assign({ id: senderId }, proto.Collaborator.decode(content))
-        const collab = this.collaborators.get(collabUpdate.id)
-        if (collab) {
-          collab.muteCoreId = collabUpdate.muteCoreId || collab.muteCoreId
-          collab.displayName = collabUpdate.displayName || collab.displayName
-          collab.login = collabUpdate.login || collab.login
-          collab.email = collabUpdate.email || collab.email
-          collab.avatar = collabUpdate.avatar || collab.avatar
-          this.collaborators.set(collab.id, collab)
-          this.updateSubject.next(collab)
-        } else {
-          this.collaborators.set(collabUpdate.id, collabUpdate)
-          this.joinSubject.next(collabUpdate)
-        }
-      })
+    this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
+      const updated = { id: senderId, ...msg }
+      const collab = this.collaborators.get(senderId)
+      if (collab) {
+        collab.muteCoreId = updated.muteCoreId || collab.muteCoreId
+        collab.displayName = updated.displayName || collab.displayName
+        collab.login = updated.login || collab.login
+        collab.email = updated.email || collab.email
+        collab.avatar = updated.avatar || collab.avatar
+        this.updateSubject.next(collab)
+      } else {
+        this.collaborators.set(updated.id, updated)
+        this.joinSubject.next(updated)
+      }
+    })
   }
 
   getCollaborator(muteCoreId: number): ICollaborator | undefined {
@@ -56,30 +51,30 @@ export class CollaboratorsService extends Service {
     return undefined
   }
 
-  get onUpdate(): Observable<ICollaborator> {
+  get remoteUpdate$(): Observable<ICollaborator> {
     return this.updateSubject.asObservable()
   }
 
-  get onJoin(): Observable<ICollaborator> {
+  get join$(): Observable<ICollaborator> {
     return this.joinSubject.asObservable()
   }
 
-  get onLeave(): Observable<number> {
+  get leave$(): Observable<number> {
     return this.leaveSubject.asObservable()
   }
 
-  set joinSource(source: Observable<number>) {
+  set memberJoin$(source: Observable<number>) {
     this.newSub = source.subscribe((id: number) => this.emitUpdate(id))
   }
 
-  set leaveSource(source: Observable<number>) {
+  set memberLeave$(source: Observable<number>) {
     this.newSub = source.subscribe((id: number) => {
       this.collaborators.delete(id)
       this.leaveSubject.next(id)
     })
   }
 
-  set updateSource(source: Observable<ICollaborator>) {
+  set localUpdate(source: Observable<ICollaborator>) {
     this.newSub = source.subscribe((data: ICollaborator) => {
       Object.assign(this.me, data)
       this.emitUpdate()
@@ -94,8 +89,7 @@ export class CollaboratorsService extends Service {
   }
 
   private emitUpdate(recipientId?: number) {
-    const data = Object.assign({}, this.me)
-    delete data.id
-    super.send(proto.Collaborator.encode(proto.Collaborator.create(data)).finish(), recipientId)
+    const { id, ...rest } = this.me
+    super.send(rest, recipientId)
   }
 }

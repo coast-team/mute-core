@@ -26,11 +26,11 @@ test('pseudos-correct-send-and-delivery', (t: TestContext) => {
     { id: expectedId, displayName: 'Are' },
     { id: expectedId, displayName: 'You?' },
   ]
-  setTimeout(() => (collaboratorsServiceIn.updateSource = from(expectedUpdates)), 0)
+  setTimeout(() => (collaboratorsServiceIn.localUpdate = from(expectedUpdates)), 0)
 
   t.plan((expectedUpdates.length - 1) * 2)
   let counter = 1
-  return collaboratorsServiceOut.onUpdate.pipe(
+  return collaboratorsServiceOut.remoteUpdate$.pipe(
     map(
       (collaborator: ICollaborator): void => {
         const { displayName } = expectedUpdates[counter]
@@ -58,11 +58,11 @@ test('peers-joining-correct-delivery', (t: TestContext) => {
   )
 
   const expectedIds = [{ id: 3 }, { id: 1 }, { id: 7 }, { id: 42 }, { id: 80 }]
-  setTimeout(() => (collaboratorsServiceIn.updateSource = from(expectedIds)), 0)
+  setTimeout(() => (collaboratorsServiceIn.localUpdate = from(expectedIds)), 0)
 
   t.plan(expectedIds.length)
   let counter = 0
-  return collaboratorsServiceOut.onJoin.pipe(
+  return collaboratorsServiceOut.join$.pipe(
     map(
       (collaborator: ICollaborator): void => {
         const { id } = expectedIds[counter]
@@ -80,7 +80,7 @@ test('send-pseudo-to-joining-peer', (t: TestContext) => {
 
   const expectedId = 7
   setTimeout(() => {
-    collaboratorsService.joinSource = from([expectedId])
+    collaboratorsService.memberJoin$ = from([expectedId])
   }, 0)
 
   t.plan(1)

@@ -3,7 +3,7 @@ export interface TitleState {
   title: string
 }
 
-export class TitleService {
+export class Title {
   static merge(state1: TitleState, state2: TitleState): TitleState {
     const finalState = state1.titleModified > state2.titleModified ? state1 : state2
     return { title: finalState.title, titleModified: finalState.titleModified }
@@ -16,11 +16,11 @@ export class TitleService {
   }
 
   public handleLocalState(newState: TitleState) {
-    this._state = TitleService.merge(this._state, newState)
+    this._state = Title.merge(this._state, newState)
   }
 
   public handleRemoteState(newState: TitleState): TitleState {
-    this._state = TitleService.merge(this._state, newState)
+    this._state = Title.merge(this._state, newState)
     return this._state
   }
 

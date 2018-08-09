@@ -4,7 +4,7 @@ import { LogootSOperation, TextDelete, TextInsert, TextOperation } from 'mute-st
 import { from, Observable, Subject } from 'rxjs'
 import { map } from 'rxjs/operators'
 
-import { DocService } from '../src/doc'
+import { Document } from '../src/doc'
 import { disposeOf } from './Helpers'
 
 function generateTextOperations(): TextOperation[] {
@@ -18,25 +18,25 @@ function generateTextOperations(): TextOperation[] {
 }
 
 test('textOperation-correct-send-and-delivery', (t: TestContext) => {
-  const docServiceIn = new DocService(0)
+  const docServiceIn = new Document(0)
   disposeOf(docServiceIn, 200)
-  const docServiceOut = new DocService(1)
+  const docServiceOut = new Document(1)
   disposeOf(docServiceOut, 200)
 
   const textOperations: TextOperation[] = generateTextOperations()
   const array: TextOperation[][] = textOperations.map((textOp: TextOperation) => [textOp])
 
-  docServiceOut.remoteLogootSOperationSource = docServiceIn.onLocalLogootSOperation.pipe(
+  docServiceOut.remoteLogootSOperations$ = docServiceIn.localLogootSOperations$.pipe(
     map((logootSOp: LogootSOperation) => ({ collaborator: undefined, operations: [logootSOp] }))
   )
 
   setTimeout(() => {
-    docServiceIn.localTextOperationsSource = from(array)
+    docServiceIn.localTextOperations$ = from(array)
   }, 0)
 
   let counter = 0
   t.plan(textOperations.length * 2)
-  return docServiceOut.onRemoteTextOperations.pipe(
+  return docServiceOut.remoteTextOperations$.pipe(
     map(
       ({ operations }): void => {
         // Each LogootSOperation should correspond to one TextOperation

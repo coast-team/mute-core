@@ -1,4 +1,4 @@
-export * from './DocService'
+export * from './Document'
 export * from './MetaDataService'
-export * from './TitleService'
-export * from './FixDataService'
+export * from './Title'
+export * from './FixData'

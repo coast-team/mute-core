@@ -1,11 +1,10 @@
 import { Observable, Subject } from 'rxjs'
-import { filter } from 'rxjs/operators'
 
 import { IMessageIn, IMessageOut, Service } from '../misc'
-import { metadata as proto } from '../proto/index'
+import { metadata as proto } from '../proto'
 import { Streams } from '../Streams'
-import { FixDataService, FixDataState } from './FixDataService'
-import { TitleService, TitleState } from './TitleService'
+import { FixData, FixDataState } from './FixData'
+import { Title, TitleState } from './Title'
 
 export enum MetaDataType {
   Title,
@@ -19,67 +18,63 @@ export interface MetaDataMessage {
   data: MetaDataState
 }
 
-export class MetaDataService extends Service {
+export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
   static mergeTitle(s1: TitleState, s2: TitleState): TitleState {
-    return TitleService.merge(s1, s2)
+    return Title.merge(s1, s2)
   }
 
   static mergeFixData(s1: FixDataState, s2: FixDataState): FixDataState {
-    return FixDataService.merge(s1, s2)
+    return FixData.merge(s1, s2)
   }
 
-  private titleService: TitleService
-  private fixDataService: FixDataService
+  private title: Title
+  private fixData: FixData
 
-  private localChangeSubject: Subject<MetaDataMessage>
-  private remoteChangeSubject: Subject<MetaDataMessage>
+  private localUpdateSubject: Subject<MetaDataMessage>
+  private remoteUpdateSubject: Subject<MetaDataMessage>
 
   constructor(
-    messageIn: Observable<IMessageIn>,
-    messageOut: Subject<IMessageOut>,
+    messageIn$: Observable<IMessageIn>,
+    messageOut$: Subject<IMessageOut>,
     titleState: TitleState,
     fixDataState: FixDataState
   ) {
-    super(messageIn, messageOut, Streams.METADATA)
+    super(messageIn$, messageOut$, Streams.METADATA, proto.MetaData)
 
-    this.titleService = new TitleService(titleState)
-    this.fixDataService = new FixDataService(fixDataState)
+    this.title = new Title(titleState)
+    this.fixData = new FixData(fixDataState)
 
-    this.localChangeSubject = new Subject()
-    this.remoteChangeSubject = new Subject()
+    this.localUpdateSubject = new Subject()
+    this.remoteUpdateSubject = new Subject()
 
-    this.newSub = messageIn
-      .pipe(filter(({ streamId }) => streamId === Streams.METADATA))
-      .subscribe(({ content }) => {
-        const message = Object.assign({}, proto.MetaData.decode(content))
-        const type = message.type
-        const data = JSON.parse(message.data)
-        switch (type) {
-          case MetaDataType.Title:
-            this.remoteChangeSubject.next({
-              type: MetaDataType.Title,
-              data: this.titleService.handleRemoteState(data),
-            })
-            break
-          case MetaDataType.FixData:
-            this.remoteChangeSubject.next({
-              type: MetaDataType.FixData,
-              data: this.fixDataService.handleRemoteFixDataState(data),
-            })
-            break
-          default:
-            console.error('No MetaDataType for type ' + type)
-        }
-      })
+    this.newSub = this.messageIn$.subscribe(({ msg: { type, data } }) => {
+      const dataObj = JSON.parse(data)
+      switch (type) {
+        case MetaDataType.Title:
+          this.remoteUpdateSubject.next({
+            type: MetaDataType.Title,
+            data: this.title.handleRemoteState(dataObj),
+          })
+          break
+        case MetaDataType.FixData:
+          this.remoteUpdateSubject.next({
+            type: MetaDataType.FixData,
+            data: this.fixData.handleRemoteFixDataState(dataObj),
+          })
+          break
+        default:
+          console.error('No MetaDataType for type ' + type)
+      }
+    })
   }
 
-  set onLocalChange(source: Observable<MetaDataMessage>) {
+  set localUpdate$(source: Observable<MetaDataMessage>) {
     this.newSub = source.subscribe(({ type, data }) => {
       switch (type) {
         case MetaDataType.Title:
           const { title, titleModified } = data as TitleState
-          this.titleService.handleLocalState({ title, titleModified })
-          this.emitMetaData(MetaDataType.Title, JSON.stringify(this.titleService.state))
+          this.title.handleLocalState({ title, titleModified })
+          super.send({ type: MetaDataType.Title, data: JSON.stringify(this.title.state) })
           break
         case MetaDataType.FixData:
           break
@@ -89,26 +84,20 @@ export class MetaDataService extends Service {
     })
   }
 
-  set joinSource(source: Observable<number>) {
-    this.newSub = source.subscribe((id: number) => this.emitAll(id))
+  set memberJoin$(source: Observable<number>) {
+    this.newSub = source.subscribe((id) => {
+      super.send({ type: MetaDataType.FixData, data: JSON.stringify(this.fixData.state) }, id)
+      super.send({ type: MetaDataType.Title, data: JSON.stringify(this.title.state) }, id)
+    })
   }
 
-  get onChange(): Observable<MetaDataMessage> {
-    return this.remoteChangeSubject.asObservable()
+  get remoteUpdate$(): Observable<MetaDataMessage> {
+    return this.remoteUpdateSubject.asObservable()
   }
 
   dispose(): void {
-    this.localChangeSubject.complete()
-    this.remoteChangeSubject.complete()
+    this.localUpdateSubject.complete()
+    this.remoteUpdateSubject.complete()
     super.dispose()
-  }
-
-  private emitAll(id: number) {
-    this.emitMetaData(MetaDataType.FixData, JSON.stringify(this.fixDataService.state), id)
-    this.emitMetaData(MetaDataType.Title, JSON.stringify(this.titleService.state), id)
-  }
-
-  private emitMetaData(type: MetaDataType, data: string, id?: number): void {
-    super.send(proto.MetaData.encode(proto.MetaData.create({ type, data })).finish(), id)
   }
 }

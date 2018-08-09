@@ -4,7 +4,7 @@ import { tap } from 'rxjs/operators'
 
 import { CollaboratorsService, ICollaborator } from './collaborators'
 import {
-  DocService,
+  Document,
   FixDataState,
   MetaDataMessage,
   MetaDataService,
@@ -13,8 +13,8 @@ import {
 } from './doc'
 import { LocalOperation, RemoteOperation } from './logs'
 import { Disposable, generateId, IMessageIn, IMessageOut } from './misc'
-import { collaborator as proto } from './proto/index'
-import { RichLogootSOperation, State, SyncMessageService, SyncService } from './sync'
+import { collaborator as proto } from './proto'
+import { RichLogootSOperation, State, Sync, SyncMessageService } from './sync'
 
 export interface SessionParameters {
   profile: proto.ICollaborator
@@ -33,9 +33,9 @@ export class MuteCore extends Disposable {
   }
 
   private collaboratorsService: CollaboratorsService
-  private docService: DocService
+  private doc: Document
   private metaDataService: MetaDataService
-  private syncService: SyncService
+  private sync: Sync
   private syncMessageService: SyncMessageService
 
   private _localOperationForLog$: Subject<LocalOperation>
@@ -58,36 +58,37 @@ export class MuteCore extends Disposable {
     this._localOperationForLog$ = new Subject()
     this._remoteOperationForLog = new Subject()
 
-    this.collaboratorsService = new CollaboratorsService(
-      this._messageIn$,
-      this._messageOut$,
-      Object.assign({ id: 0 }, profile)
-    )
-    this.docService = new DocService(profile.muteCoreId)
+    // Initialize CollaboratorsService
+    this.collaboratorsService = new CollaboratorsService(this._messageIn$, this._messageOut$, {
+      id: 0,
+      ...profile,
+    } as ICollaborator)
+
+    // Initialize document content and metadata with local values
+    this.doc = new Document(profile.muteCoreId)
     this.metaDataService = new MetaDataService(
       this._messageIn$,
       this._messageOut$,
       metaTitle,
       metaFixData
     )
-    this.syncService = new SyncService(profile.muteCoreId, docContent, this.collaboratorsService)
+
+    // Initialize synchronization mechanism
+    this.sync = new Sync(profile.muteCoreId, docContent, this.collaboratorsService)
     this.syncMessageService = new SyncMessageService(this._messageIn$, this._messageOut$)
 
-    this.docService.remoteLogootSOperationSource = this.syncService.onRemoteLogootSOperation
-
-    this.syncService.localLogootSOperationSource = this.docService.onLocalLogootSOperation.pipe(
+    this.doc.remoteLogootSOperations$ = this.sync.remoteLogootSOperations$
+    this.sync.localLogootSOperations$ = this.doc.localLogootSOperations$.pipe(
       tap((operation) => this.logLocalOperation(muteCoreId, operation))
     )
-    this.syncService.remoteQuerySyncSource = this.syncMessageService.onRemoteQuerySync
-    this.syncService.remoteReplySyncSource = this.syncMessageService.onRemoteReplySync
-    this.syncService.remoteRichLogootSOperationSource = this.syncMessageService.onRemoteRichLogootSOperation.pipe(
+    this.sync.remoteQuerySync$ = this.syncMessageService.remoteQuerySync$
+    this.sync.remoteReplySync$ = this.syncMessageService.remoteReplySync$
+    this.sync.remoteRichLogootSOperations$ = this.syncMessageService.remoteRichLogootSOperations$.pipe(
       tap((operation) => this.logRemoteOperation(muteCoreId, operation))
     )
-    // this.syncService.storedStateSource = this.syncStorage.onStoredState
-
-    this.syncMessageService.localRichLogootSOperationSource = this.syncService.onLocalRichLogootSOperation
-    this.syncMessageService.querySyncSource = this.syncService.onQuerySync
-    this.syncMessageService.replySyncSource = this.syncService.onReplySync
+    this.syncMessageService.localRichLogootSOperations$ = this.sync.localRichLogootSOperations
+    this.syncMessageService.querySync$ = this.sync.querySync$
+    this.syncMessageService.replySync$ = this.sync.replySync$
   }
 
   get myMuteCoreId(): number {
@@ -95,7 +96,7 @@ export class MuteCore extends Disposable {
   }
 
   get state(): State {
-    return this.syncService.state
+    return this.sync.state
   }
 
   set messageIn$(source: Observable<IMessageIn>) {
@@ -118,52 +119,52 @@ export class MuteCore extends Disposable {
   }
 
   /*
-   * DocService observables
+   * Doc observables
    */
   set localTextOperations$(source: Observable<TextOperation[]>) {
-    this.docService.localTextOperationsSource = source
+    this.doc.localTextOperations$ = source
   }
 
   get remoteTextOperations$(): Observable<{
     collaborator: ICollaborator | undefined
     operations: TextOperation[]
   }> {
-    return this.docService.onRemoteTextOperations
+    return this.doc.remoteTextOperations$
   }
 
   get digestUpdate$(): Observable<number> {
-    return this.docService.onDocDigest
+    return this.doc.digest$
   }
   get treeUpdate$(): Observable<string> {
-    return this.docService.onDocTree
+    return this.doc.tree$
   }
 
   /*
    * CollaboratorsService observables
    */
   get remoteCollabUpdate$(): Observable<ICollaborator> {
-    return this.collaboratorsService.onUpdate
+    return this.collaboratorsService.remoteUpdate$
   }
 
   set localCollabUpdate$(source: Observable<ICollaborator>) {
-    this.collaboratorsService.updateSource = source
+    this.collaboratorsService.localUpdate = source
   }
 
   get collabJoin$(): Observable<ICollaborator> {
-    return this.collaboratorsService.onJoin
+    return this.collaboratorsService.join$
   }
 
   get collabLeave$(): Observable<number> {
-    return this.collaboratorsService.onLeave
+    return this.collaboratorsService.leave$
   }
 
   set memberJoin$(source: Observable<number>) {
-    this.collaboratorsService.joinSource = source
-    this.metaDataService.joinSource = source
+    this.collaboratorsService.memberJoin$ = source
+    this.metaDataService.memberJoin$ = source
   }
 
   set memberLeave$(source: Observable<number>) {
-    this.collaboratorsService.leaveSource = source
+    this.collaboratorsService.memberLeave$ = source
   }
 
   /*
@@ -171,30 +172,30 @@ export class MuteCore extends Disposable {
    */
 
   get remoteMetadataUpdate$(): Observable<MetaDataMessage> {
-    return this.metaDataService.onChange
+    return this.metaDataService.remoteUpdate$
   }
 
   set localMetadataUpdate$(source: Observable<MetaDataMessage>) {
-    this.metaDataService.onLocalChange = source
+    this.metaDataService.localUpdate$ = source
   }
 
-  sync() {
-    this.syncService.sync()
+  synchronize() {
+    this.sync.sync()
   }
 
   indexFromId(pos: any): number {
-    return this.docService.indexFromId(pos)
+    return this.doc.indexFromId(pos)
   }
 
   positionFromIndex(index: number): Position | undefined {
-    return this.docService.positionFromIndex(index)
+    return this.doc.positionFromIndex(index)
   }
 
   dispose() {
     this.collaboratorsService.dispose()
-    this.docService.dispose()
+    this.doc.dispose()
     this.metaDataService.dispose()
-    this.syncService.dispose()
+    this.sync.dispose()
     this.syncMessageService.dispose()
   }
 
@@ -204,18 +205,18 @@ export class MuteCore extends Disposable {
       this._localOperationForLog$.next({
         type: 'localInsertion',
         siteId: id,
-        clock: this.syncService.getClock,
+        clock: this.sync.getClock,
         operation: o,
-        context: this.syncService.getVector,
+        context: this.sync.getVector,
       })
     } else if (ope instanceof LogootSDel) {
       const o = ope as LogootSDel
       this._localOperationForLog$.next({
         type: 'localDeletion',
         siteId: id,
-        clock: this.syncService.getClock,
+        clock: this.sync.getClock,
         operation: o,
-        context: this.syncService.getVector,
+        context: this.sync.getVector,
       })
     }
   }
@@ -230,7 +231,7 @@ export class MuteCore extends Disposable {
         remoteSiteId: operation.id,
         remoteClock: operation.clock,
         operation: o,
-        context: this.syncService.getVector,
+        context: this.sync.getVector,
       })
     } else if (ope instanceof LogootSDel) {
       const o = ope as LogootSDel
@@ -240,7 +241,7 @@ export class MuteCore extends Disposable {
         remoteSiteId: operation.id,
         remoteClock: operation.clock,
         operation: o,
-        context: this.syncService.getVector,
+        context: this.sync.getVector,
       })
     }
   }

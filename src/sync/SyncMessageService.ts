@@ -1,23 +1,22 @@
-import { LogootSAdd, LogootSDel, LogootSOperation } from 'mute-structs'
+import { LogootSAdd, LogootSDel } from 'mute-structs'
 import { Observable, Subject, zip } from 'rxjs'
-import { filter } from 'rxjs/operators'
 
 import { IMessageIn, IMessageOut, Service } from '../misc'
-import { sync } from '../proto/index'
+import { sync as proto } from '../proto'
 import { Streams } from '../Streams'
 import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichLogootSOperation } from './RichLogootSOperation'
 import { StateVector } from './StateVector'
 
-export class SyncMessageService extends Service {
+export class SyncMessageService extends Service<proto.ISyncMsg, proto.SyncMsg> {
   private remoteQuerySyncSubject: Subject<StateVector>
   private remoteQuerySyncIdSubject: Subject<number>
   private remoteRichLogootSOperationSubject: Subject<RichLogootSOperation>
   private remoteReplySyncSubject: Subject<ReplySyncEvent>
 
-  constructor(messageIn: Observable<IMessageIn>, messageOut: Subject<IMessageOut>) {
-    super(messageIn, messageOut, Streams.DOCUMENT_CONTENT)
+  constructor(messageIn$: Observable<IMessageIn>, messageOut$: Subject<IMessageOut>) {
+    super(messageIn$, messageOut$, Streams.DOCUMENT_CONTENT, proto.SyncMsg)
 
     this.remoteQuerySyncSubject = new Subject()
     this.remoteQuerySyncIdSubject = new Subject()
@@ -25,56 +24,67 @@ export class SyncMessageService extends Service {
     this.remoteReplySyncSubject = new Subject()
 
     // FIXME: should I save the subscription for later unsubscribe/subscribe?
-    this.newSub = messageIn
-      .pipe(filter(({ streamId }) => streamId === Streams.DOCUMENT_CONTENT))
-      .subscribe(({ senderId, content }) => {
-        const msg = sync.SyncMsg.decode(content)
-        switch (msg.type) {
-          case 'richLogootSOpMsg':
-            this.handleRichLogootSOpMsg(msg.richLogootSOpMsg as sync.RichLogootSOperationMsg)
-            break
-          case 'querySync':
-            this.remoteQuerySyncIdSubject.next(senderId) // Register the id of the peer
-            this.handleQuerySyncMsg(msg.querySync as sync.QuerySyncMsg)
-            break
-          case 'replySync':
-            this.handleReplySyncMsg(msg.replySync as sync.ReplySyncMsg)
-            break
+    this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
+      switch (msg.type) {
+        case 'richLogootSOpMsg':
+          this.handleRichLogootSOpMsg(msg.richLogootSOpMsg as proto.RichLogootSOperationMsg)
+          break
+        case 'querySync':
+          this.remoteQuerySyncIdSubject.next(senderId) // Register the id of the peer
+          this.handleQuerySyncMsg(msg.querySync as proto.QuerySyncMsg)
+          break
+        case 'replySync':
+          this.handleReplySyncMsg(msg.replySync as proto.ReplySyncMsg)
+          break
+      }
+    })
+  }
+
+  set localRichLogootSOperations$(source: Observable<RichLogootSOperation>) {
+    this.newSub = source.subscribe((richLogootSOp) => {
+      super.send({ richLogootSOpMsg: this.serializeRichLogootSOperation(richLogootSOp) })
+    })
+  }
+
+  set querySync$(source: Observable<StateVector>) {
+    this.newSub = source.subscribe((vector) => {
+      const querySync = proto.QuerySyncMsg.create()
+
+      // FIXME: clock and id must not be undefined
+      vector.forEach((clock, id) => {
+        if (id && clock) {
+          querySync.vector[id] = clock
         }
       })
-  }
-
-  set localRichLogootSOperationSource(source: Observable<RichLogootSOperation>) {
-    this.newSub = source.subscribe((richLogootSOp: RichLogootSOperation) => {
-      super.send(this.generateRichLogootSOpMsg(richLogootSOp))
+      super.send({ querySync })
     })
   }
 
-  set querySyncSource(source: Observable<StateVector>) {
-    this.newSub = source.subscribe((vector: StateVector) => {
-      super.send(this.generateQuerySyncMsg(vector))
-    })
-  }
-
-  set replySyncSource(source: Observable<ReplySyncEvent>) {
+  set replySync$(source: Observable<ReplySyncEvent>) {
     this.newSub = zip(
       source,
       this.remoteQuerySyncIdSubject.asObservable(),
-      (replySyncEvent: ReplySyncEvent, id: number) => ({ id, replySyncEvent })
+      (replySyncEvent, id) => ({ id, replySyncEvent })
     ).subscribe(({ id, replySyncEvent: { richLogootSOps, intervals } }) => {
-      super.send(this.generateReplySyncMsg(richLogootSOps, intervals), id)
+      const replySync = proto.ReplySyncMsg.create()
+
+      replySync.richLogootSOpsMsg = richLogootSOps.map((o) => this.serializeRichLogootSOperation(o))
+      replySync.intervals = intervals.map(({ id, begin, end }) =>
+        proto.IntervalMsg.create({ id, begin, end })
+      )
+      super.send({ replySync }, id)
     })
   }
 
-  get onRemoteRichLogootSOperation(): Observable<RichLogootSOperation> {
+  get remoteRichLogootSOperations$(): Observable<RichLogootSOperation> {
     return this.remoteRichLogootSOperationSubject.asObservable()
   }
 
-  get onRemoteQuerySync(): Observable<StateVector> {
+  get remoteQuerySync$(): Observable<StateVector> {
     return this.remoteQuerySyncSubject.asObservable()
   }
 
-  get onRemoteReplySync(): Observable<ReplySyncEvent> {
+  get remoteReplySync$(): Observable<ReplySyncEvent> {
     return this.remoteReplySyncSubject.asObservable()
   }
 
@@ -86,118 +96,60 @@ export class SyncMessageService extends Service {
     super.dispose()
   }
 
-  handleRichLogootSOpMsg(content: sync.RichLogootSOperationMsg): void {
-    const richLogootSOp: RichLogootSOperation | null = this.deserializeRichLogootSOperation(content)
-
-    this.remoteRichLogootSOperationSubject.next(richLogootSOp)
+  private handleRichLogootSOpMsg(content: proto.RichLogootSOperationMsg): void {
+    this.remoteRichLogootSOperationSubject.next(this.deserializeRichLogootSOperation(content))
   }
 
-  handleQuerySyncMsg(content: sync.QuerySyncMsg): void {
+  private handleQuerySyncMsg(content: proto.QuerySyncMsg): void {
     const map: Map<number, number> = new Map()
-    Object.keys(content.vector).forEach((key: string) => {
-      const newKey = parseInt(key, 10)
-      map.set(newKey, content.vector[key])
+    Object.keys(content.vector).forEach((key) => {
+      map.set(parseInt(key, 10), content.vector[key])
     })
-    const vector: StateVector = new StateVector(map)
-    this.remoteQuerySyncSubject.next(vector)
+    this.remoteQuerySyncSubject.next(new StateVector(map))
   }
 
-  handleReplySyncMsg(content: sync.ReplySyncMsg): void {
-    const richLogootSOpsList = content.richLogootSOpsMsg
-    const richLogootSOps: RichLogootSOperation[] = richLogootSOpsList.map((richLogootSOpMsg) => {
-      return this.deserializeRichLogootSOperation(richLogootSOpMsg as sync.RichLogootSOperationMsg)
+  private handleReplySyncMsg({ richLogootSOpsMsg, intervals }: proto.ReplySyncMsg): void {
+    const richLogootSOps = richLogootSOpsMsg.map((o) => {
+      return this.deserializeRichLogootSOperation(o as proto.RichLogootSOperationMsg)
     })
 
     // FIXME: id, begin, end must not be undefined
-    const intervals = content.intervals.map(({ id, begin, end }) => {
-      if (id && begin && end) {
-        return new Interval(id, begin, end)
-      } else {
-        return undefined
-      }
-    }) as Interval[]
-
-    const replySyncEvent: ReplySyncEvent = new ReplySyncEvent(richLogootSOps, intervals)
-    this.remoteReplySyncSubject.next(replySyncEvent)
-  }
-
-  generateRichLogootSOpMsg(richLogootSOp: RichLogootSOperation): Uint8Array {
-    const richLogootSOperationMsg = this.serializeRichLogootSOperation(richLogootSOp)
-    const msg = sync.SyncMsg.create({ richLogootSOpMsg: richLogootSOperationMsg })
-    return sync.SyncMsg.encode(msg).finish()
+    this.remoteReplySyncSubject.next(
+      new ReplySyncEvent(richLogootSOps, intervals.map(
+        ({ id, begin, end }) => (id && begin && end ? new Interval(id, begin, end) : undefined)
+      ) as Interval[])
+    )
   }
 
   // TODO: Watch this function
-  serializeRichLogootSOperation(richLogootSOp: RichLogootSOperation): sync.RichLogootSOperationMsg {
-    const richLogootSOperationMsg = sync.RichLogootSOperationMsg.create({
-      id: richLogootSOp.id,
-      clock: richLogootSOp.clock,
-      dependencies: richLogootSOp.dependencies,
-    })
-    const logootSOp: LogootSOperation = richLogootSOp.logootSOp
+  private serializeRichLogootSOperation({
+    id,
+    clock,
+    dependencies,
+    logootSOp,
+  }: RichLogootSOperation): proto.RichLogootSOperationMsg {
+    const res = proto.RichLogootSOperationMsg.create({ id, clock, dependencies })
     if (logootSOp instanceof LogootSDel) {
-      richLogootSOperationMsg.logootSDelMsg = sync.LogootSDelMsg.create(logootSOp)
+      res.logootSDelMsg = proto.LogootSDelMsg.create(logootSOp)
     } else if (logootSOp instanceof LogootSAdd) {
-      richLogootSOperationMsg.logootSAddMsg = sync.LogootSAddMsg.create(logootSOp)
+      res.logootSAddMsg = proto.LogootSAddMsg.create(logootSOp)
     }
 
-    return richLogootSOperationMsg
+    return res
   }
 
-  deserializeRichLogootSOperation(content: sync.RichLogootSOperationMsg): RichLogootSOperation {
-    const id: number = content.id
-    const clock: number = content.clock
-    const dependencies = content.dependencies as sync.IDotMsg[]
-
-    let logootSOp: sync.ILogootSAddMsg | sync.ILogootSDelMsg | undefined
-    if (content.logootSAddMsg) {
-      logootSOp = content.logootSAddMsg
-    } else if (content.logootSDelMsg) {
-      logootSOp = content.logootSDelMsg
-    }
-
+  private deserializeRichLogootSOperation({
+    id,
+    clock,
+    dependencies,
+    logootSAddMsg,
+    logootSDelMsg,
+  }: proto.RichLogootSOperationMsg): RichLogootSOperation {
     return RichLogootSOperation.fromPlain({
       id,
       clock,
-      logootSOp,
+      logootSOp: logootSAddMsg || logootSDelMsg,
       dependencies,
     }) as RichLogootSOperation
-  }
-
-  generateQuerySyncMsg(vector: StateVector): Uint8Array {
-    const querySyncMsg = sync.QuerySyncMsg.create()
-
-    // FIXME: clock and id must not be undefined
-    vector.forEach((clock, id) => {
-      if (id && clock) {
-        querySyncMsg.vector[id] = clock
-      }
-    })
-
-    const msg = sync.SyncMsg.create({ querySync: querySyncMsg })
-
-    return sync.SyncMsg.encode(msg).finish()
-  }
-
-  generateReplySyncMsg(richLogootSOps: RichLogootSOperation[], intervals: Interval[]): Uint8Array {
-    const replySyncMsg = sync.ReplySyncMsg.create()
-
-    replySyncMsg.richLogootSOpsMsg = richLogootSOps.map((richLogootSOp: RichLogootSOperation) => {
-      return this.serializeRichLogootSOperation(richLogootSOp)
-    })
-
-    const intervalsMsg = intervals.map((interval: Interval) => {
-      const intervalMsg = sync.IntervalMsg.create({
-        id: interval.id,
-        begin: interval.begin,
-        end: interval.end,
-      })
-      return intervalMsg
-    })
-    replySyncMsg.intervals = intervalsMsg
-
-    const msg = sync.SyncMsg.create({ replySync: replySyncMsg })
-
-    return sync.SyncMsg.encode(msg).finish()
   }
 }

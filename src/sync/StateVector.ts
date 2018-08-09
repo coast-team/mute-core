@@ -10,7 +10,7 @@ export class StateVector {
   // FIXME: otherMap must not be an optional
   constructor(otherMap?: Map<number, number>) {
     if (otherMap) {
-      otherMap.forEach((value: number) => {
+      otherMap.forEach((value) => {
         console.assert(value >= 0, 'Each value of a state vector must be positive')
       })
     }
@@ -33,7 +33,7 @@ export class StateVector {
     this.vector.set(id, clock)
   }
 
-  clear(): void {
+  clear() {
     this.vector.clear()
   }
 
@@ -70,7 +70,7 @@ export class StateVector {
     return clock === v + 1
   }
 
-  forEach(f: (clock?: number, id?: number) => void): void {
+  forEach(f: (clock?: number, id?: number) => void) {
     this.vector.forEach(f)
   }
 
@@ -84,16 +84,12 @@ export class StateVector {
    */
   computeMissingIntervals(other: StateVector): Interval[] {
     const missingIntervals: Interval[] = []
-    other.vector.forEach((clock: number, id: number) => {
+    other.vector.forEach((clock, id) => {
       const v = this.get(id)
       if (v === undefined) {
-        const begin = 0
-        const end: number = clock
-        missingIntervals.push(new Interval(id, begin, end))
+        missingIntervals.push(new Interval(id, 0, clock))
       } else if (v < clock) {
-        const begin: number = v + 1
-        const end: number = clock
-        missingIntervals.push(new Interval(id, begin, end))
+        missingIntervals.push(new Interval(id, v + 1, clock))
       }
     })
 

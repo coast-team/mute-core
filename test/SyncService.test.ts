@@ -5,7 +5,7 @@ import { Observable, Subject } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
 
 import { CollaboratorsService } from '../src/collaborators'
-import { ReplySyncEvent, RichLogootSOperation, SyncService } from '../src/sync'
+import { ReplySyncEvent, RichLogootSOperation, Sync } from '../src/sync'
 import {
   disposeOf,
   generateCausalRichLogootSOps,
@@ -13,14 +13,14 @@ import {
 } from './Helpers'
 
 test('deliver-operations-in-sequential-order', (t: TestContext) => {
-  const syncService = new SyncService(0, new CollaboratorsService(Object.assign({ id: 0 })))
+  const syncService = new Sync(0, new CollaboratorsService(Object.assign({ id: 0 })))
   disposeOf(syncService, 200)
 
   const richLogootSOps: RichLogootSOperation[] = generateSequentialRichLogootSOps()
   const [firstRichLogootSOp, ...tailRichLogootSOps] = richLogootSOps
 
   const remoteRichLogootSOpSubject = new Subject<RichLogootSOperation>()
-  syncService.remoteRichLogootSOperationSource = remoteRichLogootSOpSubject
+  syncService.remoteRichLogootSOperations$ = remoteRichLogootSOpSubject
 
   tailRichLogootSOps.forEach((richLogootSOp: RichLogootSOperation) => {
     remoteRichLogootSOpSubject.next(richLogootSOp)
@@ -31,7 +31,7 @@ test('deliver-operations-in-sequential-order', (t: TestContext) => {
 
   let counter = 0
   t.plan(richLogootSOps.length * 2)
-  return syncService.onRemoteLogootSOperation.pipe(
+  return syncService.remoteLogootSOperations$.pipe(
     map(({ operations }) => {
       const expectedLogootSOp: LogootSOperation = richLogootSOps[counter].logootSOp
       t.is(operations.length, 1)
@@ -42,14 +42,14 @@ test('deliver-operations-in-sequential-order', (t: TestContext) => {
 })
 
 test('deliver-operations-in-causal-order', (t: TestContext) => {
-  const syncService = new SyncService(0, new CollaboratorsService(Object.assign({ id: 0 })))
+  const syncService = new Sync(0, new CollaboratorsService(Object.assign({ id: 0 })))
   disposeOf(syncService, 200)
 
   const richLogootSOps: RichLogootSOperation[] = generateCausalRichLogootSOps()
   const [firstRichLogootSOp, secondRichLogootSOp]: RichLogootSOperation[] = richLogootSOps
 
   const remoteRichLogootSOpSubject = new Subject<RichLogootSOperation>()
-  syncService.remoteRichLogootSOperationSource = remoteRichLogootSOpSubject
+  syncService.remoteRichLogootSOperations$ = remoteRichLogootSOpSubject
 
   remoteRichLogootSOpSubject.next(secondRichLogootSOp)
   const expectedLogootSOp: LogootSOperation = secondRichLogootSOp.logootSOp
@@ -60,7 +60,7 @@ test('deliver-operations-in-causal-order', (t: TestContext) => {
 
   let counter = 0
   t.plan(richLogootSOps.length * 2)
-  return syncService.onRemoteLogootSOperation.pipe(
+  return syncService.remoteLogootSOperations$.pipe(
     map(({ operations }) => {
       const expectedLogootSOp: LogootSOperation = richLogootSOps[counter].logootSOp
       t.is(operations.length, 1)

@@ -15,12 +15,12 @@ export class RichLogootSOperation {
       o.dependencies instanceof Array &&
       o.dependencies.every(isDot)
     ) {
-      const logootSAdd: LogootSAdd | null = LogootSAdd.fromPlain(o.logootSOp)
+      const logootSAdd = LogootSAdd.fromPlain(o.logootSOp)
       if (logootSAdd instanceof LogootSAdd) {
         return new RichLogootSOperation(o.id, o.clock, logootSAdd)
       }
 
-      const logootSDel: LogootSDel | null = LogootSDel.fromPlain(o.logootSOp)
+      const logootSDel = LogootSDel.fromPlain(o.logootSOp)
       if (logootSDel instanceof LogootSDel && o.dependencies.length > 0) {
         return new RichLogootSOperation(o.id, o.clock, logootSDel, o.dependencies)
       }
@@ -43,19 +43,16 @@ export class RichLogootSOperation {
   }
 
   equals(aOther: RichLogootSOperation): boolean {
-    const result: boolean = this.id === aOther.id && this.clock === aOther.clock
+    const result = this.id === aOther.id && this.clock === aOther.clock
     if (this.logootSOp instanceof LogootSAdd && aOther.logootSOp instanceof LogootSAdd) {
       return result && this.logootSOp.equals(aOther.logootSOp)
     } else if (this.logootSOp instanceof LogootSDel && aOther.logootSOp instanceof LogootSDel) {
       return (
         result &&
         this.logootSOp.equals(aOther.logootSOp) &&
-        this.dependencies.every((dependency: Dot, index: number) => {
-          const otherDependency: Dot = aOther.dependencies[index]
-          return (
-            dependency.replicaNumber === otherDependency.replicaNumber &&
-            dependency.clock === otherDependency.clock
-          )
+        this.dependencies.every(({ replicaNumber, clock }, index) => {
+          const { replicaNumber: rn, clock: c } = aOther.dependencies[index]
+          return replicaNumber === rn && clock === c
         })
       )
     }

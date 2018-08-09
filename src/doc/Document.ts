@@ -4,18 +4,19 @@ import { debounceTime } from 'rxjs/operators'
 
 import { ICollaborator } from '../collaborators'
 import { Disposable } from '../misc'
-import { sync } from '../proto/index'
+import { sync } from '../proto'
 
 export interface Position {
   id: Identifier
   index: number
 }
 
-export class DocService extends Disposable {
+export class Document extends Disposable {
   private doc: LogootSRopes
-  private docDigestSubject: Subject<number>
-  private docTreeSubject: Subject<string>
-  private localLogootSOperationSubject: Subject<LogootSOperation>
+
+  private digestSubject: Subject<number>
+  private treeSubject: Subject<string>
+  private localLogootSOperationsSubject: Subject<LogootSOperation>
   private remoteTextOperationsSubject: Subject<{
     collaborator: ICollaborator | undefined
     operations: TextOperation[]
@@ -26,15 +27,15 @@ export class DocService extends Disposable {
     super()
     this.doc = new LogootSRopes(id)
 
-    this.docDigestSubject = new Subject()
-    this.docTreeSubject = new Subject()
-    this.localLogootSOperationSubject = new Subject()
+    this.digestSubject = new Subject()
+    this.treeSubject = new Subject()
+    this.localLogootSOperationsSubject = new Subject()
     this.remoteTextOperationsSubject = new Subject()
     this.updateSubject = new Subject()
 
     this.newSub = this.updateSubject.pipe(debounceTime(1000)).subscribe(() => {
-      this.docTreeSubject.next(JSON.stringify(this.doc))
-      this.docDigestSubject.next(this.doc.digest())
+      this.treeSubject.next(JSON.stringify(this.doc))
+      this.digestSubject.next(this.doc.digest())
     })
   }
 
@@ -52,14 +53,14 @@ export class DocService extends Disposable {
   //   return res.join('')
   // }
 
-  set localTextOperationsSource(source: Observable<TextOperation[]>) {
-    this.newSub = source.subscribe((textOperations: TextOperation[]) => {
+  set localTextOperations$(source: Observable<TextOperation[]>) {
+    this.newSub = source.subscribe((textOperations) => {
       this.handleTextOperations(textOperations)
       this.updateSubject.next()
     })
   }
 
-  set remoteLogootSOperationSource(
+  set remoteLogootSOperations$(
     source: Observable<{
       collaborator: ICollaborator | undefined
       operations: LogootSOperation[]
@@ -77,19 +78,19 @@ export class DocService extends Disposable {
     })
   }
 
-  get onDocDigest(): Observable<number> {
-    return this.docDigestSubject.asObservable()
+  get digest$(): Observable<number> {
+    return this.digestSubject.asObservable()
   }
 
-  get onDocTree(): Observable<string> {
-    return this.docTreeSubject.asObservable()
+  get tree$(): Observable<string> {
+    return this.treeSubject.asObservable()
   }
 
-  get onLocalLogootSOperation(): Observable<LogootSOperation> {
-    return this.localLogootSOperationSubject.asObservable()
+  get localLogootSOperations$(): Observable<LogootSOperation> {
+    return this.localLogootSOperationsSubject.asObservable()
   }
 
-  get onRemoteTextOperations(): Observable<{
+  get remoteTextOperations$(): Observable<{
     collaborator: ICollaborator | undefined
     operations: TextOperation[]
   }> {
@@ -97,7 +98,7 @@ export class DocService extends Disposable {
   }
 
   dispose(): void {
-    this.localLogootSOperationSubject.complete()
+    this.localLogootSOperationsSubject.complete()
     this.remoteTextOperationsSubject.complete()
     this.updateSubject.complete()
     super.dispose()
@@ -105,7 +106,7 @@ export class DocService extends Disposable {
 
   handleTextOperations(textOperations: TextOperation[]): void {
     textOperations.forEach((textOperation) => {
-      this.localLogootSOperationSubject.next(textOperation.applyTo(this.doc))
+      this.localLogootSOperationsSubject.next(textOperation.applyTo(this.doc))
     })
     // log.info('operation:doc', 'updated doc: ', this.doc)
   }
@@ -118,9 +119,8 @@ export class DocService extends Disposable {
     const respIntnode = this.doc.searchNode(index)
     if (respIntnode !== null) {
       const offset = respIntnode.node.actualBegin + respIntnode.i
-      const id = Identifier.fromBase(respIntnode.node.getIdBegin(), offset)
       return {
-        id,
+        id: Identifier.fromBase(respIntnode.node.getIdBegin(), offset),
         index: respIntnode.i,
       }
     }

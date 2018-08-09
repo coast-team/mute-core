@@ -52,12 +52,12 @@ test('richLogootSOperations-correct-send-and-delivery', (t: TestContext) => {
 
   const richLogootSOps: RichLogootSOperation[] = generateSequentialRichLogootSOps()
   setTimeout(() => {
-    syncMsgServiceIn.localRichLogootSOperationSource = from(richLogootSOps)
+    syncMsgServiceIn.localRichLogootSOperations$ = from(richLogootSOps)
   }, 0)
 
   let counter = 0
   t.plan(richLogootSOps.length)
-  return syncMsgServiceOut.onRemoteRichLogootSOperation.pipe(
+  return syncMsgServiceOut.remoteRichLogootSOperations$.pipe(
     map(
       (actual: RichLogootSOperation): void => {
         const expected: RichLogootSOperation = richLogootSOps[counter]
@@ -85,11 +85,11 @@ test('querySync-correct-send-and-delivery', (t: TestContext) => {
 
   const expectedVector: StateVector = generateVector()
   setTimeout(() => {
-    syncMsgServiceIn.querySyncSource = from([expectedVector])
+    syncMsgServiceIn.querySync$ = from([expectedVector])
   }, 0)
 
   t.plan(expectedVector.size)
-  return syncMsgServiceOut.onRemoteQuerySync.pipe(
+  return syncMsgServiceOut.remoteQuerySync$.pipe(
     map(
       (actualVector: StateVector): void => {
         actualVector.forEach(
@@ -109,8 +109,8 @@ test('replySync-correct-recipient', (t: TestContext) => {
   // Simulate the generation of a ReplySyncEvent
   // when delivering a remote QuerySync
   const replySyncSubject: Subject<ReplySyncEvent> = new Subject<ReplySyncEvent>()
-  syncMsgService.replySyncSource = replySyncSubject.asObservable()
-  syncMsgService.onRemoteQuerySync.subscribe(
+  syncMsgService.replySync$ = replySyncSubject.asObservable()
+  syncMsgService.remoteQuerySync$.subscribe(
     (vector: StateVector): void => {
       const replySyncEvent: ReplySyncEvent = generateReplySync()
       replySyncSubject.next(replySyncEvent)
@@ -145,9 +145,9 @@ test('replySync-correct-send-and-delivery', (t: TestContext) => {
   // Simulate the generation of a ReplySyncEvent
   // when delivering a remote QuerySync
   const replySyncSubject: Subject<ReplySyncEvent> = new Subject<ReplySyncEvent>()
-  syncMsgServiceIn.replySyncSource = replySyncSubject.asObservable()
+  syncMsgServiceIn.replySync$ = replySyncSubject.asObservable()
   const expected: ReplySyncEvent = generateReplySync()
-  syncMsgServiceIn.onRemoteQuerySync.subscribe(
+  syncMsgServiceIn.remoteQuerySync$.subscribe(
     (vector: StateVector): void => {
       replySyncSubject.next(expected)
     }
@@ -170,7 +170,7 @@ test('replySync-correct-send-and-delivery', (t: TestContext) => {
   }, 0)
 
   t.plan(1)
-  return syncMsgServiceOut.onRemoteReplySync.pipe(
+  return syncMsgServiceOut.remoteReplySync$.pipe(
     map(
       (actual: ReplySyncEvent): void => {
         t.true(actual.equals(expected))
