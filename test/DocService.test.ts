@@ -1,59 +1,59 @@
-import test from 'ava'
-import { TestContext } from 'ava'
-import { LogootSOperation, TextDelete, TextInsert, TextOperation } from 'mute-structs'
-import { from, Observable, Subject } from 'rxjs'
-import { map } from 'rxjs/operators'
+// import test from 'ava'
+// import { TestContext } from 'ava'
+// import { LogootSOperation, TextDelete, TextInsert, TextOperation } from 'mute-structs'
+// import { from, Observable, Subject } from 'rxjs'
+// import { map } from 'rxjs/operators'
 
-import { Document } from '../src/doc'
-import { disposeOf } from './Helpers'
+// import { Document } from '../src/doc'
+// import { disposeOf } from './Helpers'
 
-function generateTextOperations(): TextOperation[] {
-  const textOperations: TextOperation[] = []
+// function generateTextOperations(): TextOperation[] {
+//   const textOperations: TextOperation[] = []
 
-  textOperations.push(new TextInsert(0, 'Hello'))
-  textOperations.push(new TextInsert(5, ' world!'))
-  textOperations.push(new TextDelete(3, 4))
+//   textOperations.push(new TextInsert(0, 'Hello'))
+//   textOperations.push(new TextInsert(5, ' world!'))
+//   textOperations.push(new TextDelete(3, 4))
 
-  return textOperations
-}
+//   return textOperations
+// }
 
-test('textOperation-correct-send-and-delivery', (t: TestContext) => {
-  const docServiceIn = new Document(0)
-  disposeOf(docServiceIn, 200)
-  const docServiceOut = new Document(1)
-  disposeOf(docServiceOut, 200)
+// test('textOperation-correct-send-and-delivery', (t: TestContext) => {
+//   const docServiceIn = new Document(0)
+//   disposeOf(docServiceIn, 200)
+//   const docServiceOut = new Document(1)
+//   disposeOf(docServiceOut, 200)
 
-  const textOperations: TextOperation[] = generateTextOperations()
-  const array: TextOperation[][] = textOperations.map((textOp: TextOperation) => [textOp])
+//   const textOperations: TextOperation[] = generateTextOperations()
+//   const array: TextOperation[][] = textOperations.map((textOp: TextOperation) => [textOp])
 
-  docServiceOut.remoteLogootSOperations$ = docServiceIn.localLogootSOperations$.pipe(
-    map((logootSOp: LogootSOperation) => ({ collaborator: undefined, operations: [logootSOp] }))
-  )
+//   docServiceOut.remoteLogootSOperations$ = docServiceIn.localLogootSOperations$.pipe(
+//     map((logootSOp: LogootSOperation) => ({ collaborator: undefined, operations: [logootSOp] }))
+//   )
 
-  setTimeout(() => {
-    docServiceIn.localTextOperations$ = from(array)
-  }, 0)
+//   setTimeout(() => {
+//     docServiceIn.localTextOperations$ = from(array)
+//   }, 0)
 
-  let counter = 0
-  t.plan(textOperations.length * 2)
-  return docServiceOut.remoteTextOperations$.pipe(
-    map(
-      ({ operations }): void => {
-        // Each LogootSOperation should correspond to one TextOperation
-        t.is(operations.length, 1)
+//   let counter = 0
+//   t.plan(textOperations.length * 2)
+//   return docServiceOut.remoteTextOperations$.pipe(
+//     map(
+//       ({ operations }): void => {
+//         // Each LogootSOperation should correspond to one TextOperation
+//         t.is(operations.length, 1)
 
-        const actual: TextOperation = operations[0]
-        const expected: TextOperation = textOperations[counter]
-        if (actual instanceof TextDelete && expected instanceof TextDelete) {
-          t.true(actual.equals(expected))
-        } else if (actual instanceof TextInsert && expected instanceof TextInsert) {
-          t.true(actual.equals(expected))
-        } else {
-          t.fail('actual and expected must be of the same type')
-        }
+//         const actual: TextOperation = operations[0]
+//         const expected: TextOperation = textOperations[counter]
+//         if (actual instanceof TextDelete && expected instanceof TextDelete) {
+//           t.true(actual.equals(expected))
+//         } else if (actual instanceof TextInsert && expected instanceof TextInsert) {
+//           t.true(actual.equals(expected))
+//         } else {
+//           t.fail('actual and expected must be of the same type')
+//         }
 
-        counter++
-      }
-    )
-  )
-})
+//         counter++
+//       }
+//     )
+//   )
+// })
