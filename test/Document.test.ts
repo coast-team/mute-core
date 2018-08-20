@@ -1,4 +1,4 @@
-import { test } from 'ava'
+import test from 'ava'
 import { TextDelete, TextInsert } from 'mute-structs'
 import { from } from 'rxjs'
 import { map } from 'rxjs/operators'

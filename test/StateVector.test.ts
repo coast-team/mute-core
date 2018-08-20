@@ -1,11 +1,11 @@
 import { AssertionError } from 'assert'
-import { AssertContext, test } from 'ava'
+import test, { ExecutionContext } from 'ava'
 
 import { Interval, StateVector } from '../src/sync'
 import { generateVector } from './Helpers'
 
 function isAlreadyDeliveredMacro(
-  t: AssertContext,
+  t: ExecutionContext,
   vector: StateVector,
   key: number,
   value: number,
@@ -15,7 +15,7 @@ function isAlreadyDeliveredMacro(
 }
 
 function isDeliverableMacro(
-  t: AssertContext,
+  t: ExecutionContext,
   vector: StateVector,
   key: number,
   value: number,
@@ -25,7 +25,7 @@ function isDeliverableMacro(
 }
 
 function computeMissingIntervalsMacro(
-  t: AssertContext,
+  t: ExecutionContext,
   vector: StateVector,
   other: StateVector,
   expectedMissingIntervals: Interval[]
