@@ -1,6 +1,6 @@
 {
-  "name": "mute-core",
-  "description": "",
+  "name": "@coast-team/mute-core",
+  "description": "Core component of MUTE collaborative editor",
   "version": "0.0.0-development",
   "main": "./dist/mute-core.node.es5.cjs.js",
   "module": "./dist/mutecore.node.es5.esm.js",
@@ -28,6 +28,9 @@
     "Cedric Enclos"
   ],
   "license": "GPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "prepack": "npm run build",
     "prebuild": "rm -rf dist && npm run proto",
