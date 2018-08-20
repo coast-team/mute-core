@@ -26,6 +26,7 @@ const tsConfigDeclaration = {
   useTsconfigDeclarationDir: true,
   tsconfigOverride: {
     compilerOptions: {
+      declarationDir: 'dist/types',
       declaration: true,
     },
   },

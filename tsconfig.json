@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "declarationDir": "dist/types",
     "lib": ["es2017", "dom"],
     "outDir": "dist",
     "target": "es5",
@@ -14,7 +13,6 @@
     "noFallthroughCasesInSwitch": true,
     "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,
-    "pretty": true,
     "removeComments": true,
     "sourceMap": true
   },
