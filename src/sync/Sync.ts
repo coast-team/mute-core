@@ -151,7 +151,6 @@ export class Sync extends Disposable {
             this.bufferOperation(op)
           }
         })
-
         if (logootSOperations.length > 0) {
           this.remoteLogootSOperationsSubject.next({
             collaborator: this.collabsService.getCollaborator(newRichLogootSOps[0].id),
