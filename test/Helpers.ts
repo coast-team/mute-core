@@ -7,6 +7,7 @@ import {
   LogootSDel,
 } from 'mute-structs'
 
+import { sync } from '../src/proto'
 import { RichLogootSOperation, StateVector } from '../src/sync'
 
 export function generateSequentialRichLogootSOps(): RichLogootSOperation[] {
@@ -66,4 +67,16 @@ export function generateVector(): StateVector {
   vector.set(53, 1)
 
   return new StateVector(vector)
+}
+
+export function generateQuerySyncMsg(vector: StateVector) {
+  const querySyncMsg = sync.QuerySyncMsg.create()
+
+  vector.forEach((clock, id) => {
+    if (id !== undefined && clock !== undefined) {
+      querySyncMsg.vector[id] = clock
+    }
+  })
+
+  return sync.SyncMsg.encode(sync.SyncMsg.create({ querySync: querySyncMsg })).finish()
 }

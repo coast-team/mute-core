@@ -1,180 +1,143 @@
-// import test from 'ava'
-// import { TestContext } from 'ava'
-// import { Identifier, IdentifierInterval, LogootSAdd, LogootSDel } from 'mute-structs'
-// import { from, Observable, Subject } from 'rxjs'
-// import { map } from 'rxjs/operators'
-// import {
-//   BroadcastMessage,
-//   NetworkMessage,
-//   SendRandomlyMessage,
-//   SendToMessage,
-// } from '../src/misc/IMessage'
-// import {
-//   Interval,
-//   ReplySyncEvent,
-//   RichLogootSOperation,
-//   StateVector,
-//   SyncMessageService,
-// } from '../src/sync'
+import test from 'ava'
+import { from, Subject } from 'rxjs'
+import { map } from 'rxjs/operators'
 
-// import { disposeOf, generateSequentialRichLogootSOps, generateVector } from './Helpers'
+import { IMessageIn, IMessageOut } from '../src/misc'
+import { Streams } from '../src/Streams'
+import { Interval, ReplySyncEvent, SyncMessageService } from '../src/sync'
+import { generateQuerySyncMsg, generateSequentialRichLogootSOps, generateVector } from './Helpers'
 
-// function generateIntervals(): Interval[] {
-//   const intervals: Interval[] = []
-//   intervals.push(new Interval(0, 0, 5))
-//   intervals.push(new Interval(1, 10, 30))
-//   intervals.push(new Interval(42, 3, 3))
+function generateReplySync(): ReplySyncEvent {
+  const richLogootSOps = generateSequentialRichLogootSOps()
+  const intervals = [new Interval(0, 0, 5), new Interval(1, 10, 30), new Interval(42, 3, 3)]
 
-//   return intervals
-// }
+  return new ReplySyncEvent(richLogootSOps, intervals)
+}
 
-// function generateReplySync(): ReplySyncEvent {
-//   const richLogootSOps: RichLogootSOperation[] = generateSequentialRichLogootSOps()
-//   const intervals: Interval[] = generateIntervals()
+test('richLogootSOperations-correct-send-and-delivery', (context) => {
+  const msgOut1 = new Subject<IMessageOut>()
+  const syncMsgIn = new SyncMessageService(new Subject<IMessageIn>(), msgOut1)
+  const syncMsgOut = new SyncMessageService(
+    msgOut1.pipe(
+      map((msg) => {
+        const { recipientId, ...rest } = msg
+        return { senderId: recipientId || 0, ...rest }
+      })
+    ),
+    new Subject<IMessageOut>()
+  )
 
-//   return new ReplySyncEvent(richLogootSOps, intervals)
-// }
+  const richLogootSOps = generateSequentialRichLogootSOps()
+  setTimeout(() => {
+    syncMsgIn.localRichLogootSOperations$ = from(richLogootSOps)
+    syncMsgIn.dispose()
+    syncMsgOut.dispose()
+  })
 
-// test('richLogootSOperations-correct-send-and-delivery', (t: TestContext) => {
-//   const syncMsgServiceIn = new SyncMessageService()
-//   disposeOf(syncMsgServiceIn, 200)
-//   const syncMsgServiceOut = new SyncMessageService()
-//   disposeOf(syncMsgServiceOut, 200)
+  let counter = 0
+  context.plan(richLogootSOps.length)
+  return syncMsgOut.remoteRichLogootSOperations$.pipe(
+    map(
+      (actual): void => {
+        context.true(actual.equals(richLogootSOps[counter++]))
+      }
+    )
+  )
+})
 
-//   // Simulate the network between the two instances of the service
-//   syncMsgServiceOut.messageSource = syncMsgServiceIn.onMsgToBroadcast.pipe(
-//     map(
-//       (msg: BroadcastMessage): NetworkMessage => {
-//         return new NetworkMessage(msg.service, 0, true, msg.content)
-//       }
-//     )
-//   )
+test('querySync-correct-send-and-delivery', (context) => {
+  const msgOut1 = new Subject<IMessageOut>()
+  const syncMsgIn = new SyncMessageService(new Subject<IMessageIn>(), msgOut1)
+  const syncMsgOut = new SyncMessageService(
+    msgOut1.pipe(
+      map((msg) => {
+        const { recipientId, ...rest } = msg
+        return { senderId: recipientId || 0, ...rest }
+      })
+    ),
+    new Subject<IMessageOut>()
+  )
 
-//   const richLogootSOps: RichLogootSOperation[] = generateSequentialRichLogootSOps()
-//   setTimeout(() => {
-//     syncMsgServiceIn.localRichLogootSOperations$ = from(richLogootSOps)
-//   }, 0)
+  const expectedVector = generateVector()
+  setTimeout(() => {
+    syncMsgIn.querySync$ = from([expectedVector])
+    syncMsgIn.dispose()
+    syncMsgOut.dispose()
+  })
 
-//   let counter = 0
-//   t.plan(richLogootSOps.length)
-//   return syncMsgServiceOut.remoteRichLogootSOperations$.pipe(
-//     map(
-//       (actual: RichLogootSOperation): void => {
-//         const expected: RichLogootSOperation = richLogootSOps[counter]
-//         t.true(actual.equals(expected))
+  context.plan(expectedVector.size)
+  return syncMsgOut.remoteQuerySync$.pipe(
+    map((actualVector) => {
+      actualVector.forEach((actual, key) => {
+        context.is(actual, expectedVector.get(key as number))
+      })
+    })
+  )
+})
 
-//         counter++
-//       }
-//     )
-//   )
-// })
+test('replySync-correct-recipient', (context) => {
+  const msgIn = new Subject<IMessageIn>()
+  const msgOut = new Subject<IMessageOut>()
+  const syncMsg = new SyncMessageService(msgIn, msgOut)
 
-// test('querySync-correct-send-and-delivery', (t: TestContext) => {
-//   const syncMsgServiceIn = new SyncMessageService()
-//   disposeOf(syncMsgServiceIn, 200)
-//   const syncMsgServiceOut = new SyncMessageService()
-//   disposeOf(syncMsgServiceOut, 200)
+  // Simulate the generation of a ReplySyncEvent
+  // when delivering a remote QuerySync
+  const replySyncSubject = new Subject<ReplySyncEvent>()
+  syncMsg.replySync$ = replySyncSubject
+  syncMsg.remoteQuerySync$.subscribe(() => replySyncSubject.next(generateReplySync()))
 
-//   syncMsgServiceOut.messageSource = syncMsgServiceIn.onMsgToSendRandomly.pipe(
-//     map(
-//       (msg: SendRandomlyMessage): NetworkMessage => {
-//         return new NetworkMessage(msg.service, 0, true, msg.content)
-//       }
-//     )
-//   )
+  const expected = 42
 
-//   const expectedVector: StateVector = generateVector()
-//   setTimeout(() => {
-//     syncMsgServiceIn.querySync$ = from([expectedVector])
-//   }, 0)
+  setTimeout(() => {
+    msgIn.next({
+      streamId: Streams.DOCUMENT_CONTENT,
+      senderId: expected,
+      content: generateQuerySyncMsg(generateVector()),
+    })
+    syncMsg.dispose()
+    msgIn.complete()
+    msgOut.complete()
+  })
 
-//   t.plan(expectedVector.size)
-//   return syncMsgServiceOut.remoteQuerySync$.pipe(
-//     map(
-//       (actualVector: StateVector): void => {
-//         actualVector.forEach(
-//           (actual: number, key: number): void => {
-//             t.is(actual, expectedVector.get(key))
-//           }
-//         )
-//       }
-//     )
-//   )
-// })
+  context.plan(1)
+  return msgOut.pipe(map(({ recipientId: id }) => context.is(id, expected)))
+})
 
-// test('replySync-correct-recipient', (t: TestContext) => {
-//   const syncMsgService = new SyncMessageService()
-//   disposeOf(syncMsgService, 200)
+test('replySync-correct-send-and-delivery', (context) => {
+  const msgOut = new Subject<IMessageOut>()
+  const msgIn = new Subject<IMessageIn>()
+  const syncMsgIn = new SyncMessageService(msgIn, msgOut)
+  const syncMsgOut = new SyncMessageService(
+    msgOut.pipe(
+      map((msg) => {
+        const { recipientId, ...rest } = msg
+        return { senderId: recipientId || 0, ...rest }
+      })
+    ),
+    new Subject<IMessageOut>()
+  )
 
-//   // Simulate the generation of a ReplySyncEvent
-//   // when delivering a remote QuerySync
-//   const replySyncSubject: Subject<ReplySyncEvent> = new Subject<ReplySyncEvent>()
-//   syncMsgService.replySync$ = replySyncSubject.asObservable()
-//   syncMsgService.remoteQuerySync$.subscribe(
-//     (vector: StateVector): void => {
-//       const replySyncEvent: ReplySyncEvent = generateReplySync()
-//       replySyncSubject.next(replySyncEvent)
-//     }
-//   )
+  // Simulate the generation of a ReplySyncEvent
+  // when delivering a remote QuerySync
+  const replySyncSubject = new Subject<ReplySyncEvent>()
+  syncMsgIn.replySync$ = replySyncSubject
+  const expected = generateReplySync()
+  syncMsgIn.remoteQuerySync$.subscribe(() => replySyncSubject.next(expected))
 
-//   const expected = 42
-//   const vector: StateVector = generateVector()
-//   const querySyncMsg = syncMsgService.generateQuerySyncMsg(vector)
-//   const msgSubject: Subject<NetworkMessage> = new Subject<NetworkMessage>()
-//   syncMsgService.messageSource = msgSubject.asObservable()
-//   setTimeout(() => {
-//     msgSubject.next(new NetworkMessage(SyncMessageService.ID, expected, false, querySyncMsg))
-//   }, 0)
+  setTimeout(() => {
+    msgIn.next({
+      streamId: Streams.DOCUMENT_CONTENT,
+      senderId: 0,
+      content: generateQuerySyncMsg(generateVector()),
+    })
+    syncMsgIn.dispose()
+    syncMsgOut.dispose()
+    msgIn.complete()
+    msgOut.complete()
+  })
 
-//   t.plan(1)
-//   return syncMsgService.onMsgToSendTo.pipe(
-//     map(
-//       (msg: SendToMessage): void => {
-//         t.is(msg.id, expected)
-//       }
-//     )
-//   )
-// })
-
-// test('replySync-correct-send-and-delivery', (t: TestContext) => {
-//   const syncMsgServiceIn = new SyncMessageService()
-//   disposeOf(syncMsgServiceIn, 200)
-//   const syncMsgServiceOut = new SyncMessageService()
-//   disposeOf(syncMsgServiceOut, 200)
-
-//   // Simulate the generation of a ReplySyncEvent
-//   // when delivering a remote QuerySync
-//   const replySyncSubject: Subject<ReplySyncEvent> = new Subject<ReplySyncEvent>()
-//   syncMsgServiceIn.replySync$ = replySyncSubject.asObservable()
-//   const expected: ReplySyncEvent = generateReplySync()
-//   syncMsgServiceIn.remoteQuerySync$.subscribe(
-//     (vector: StateVector): void => {
-//       replySyncSubject.next(expected)
-//     }
-//   )
-
-//   syncMsgServiceOut.messageSource = syncMsgServiceIn.onMsgToSendTo.pipe(
-//     map(
-//       (msg: SendToMessage): NetworkMessage => {
-//         return new NetworkMessage(msg.service, 0, true, msg.content)
-//       }
-//     )
-//   )
-
-//   const vector: StateVector = generateVector()
-//   const querySyncMsg = syncMsgServiceIn.generateQuerySyncMsg(vector)
-//   const msgSubject: Subject<NetworkMessage> = new Subject<NetworkMessage>()
-//   syncMsgServiceIn.messageSource = msgSubject.asObservable()
-//   setTimeout(() => {
-//     msgSubject.next(new NetworkMessage(SyncMessageService.ID, 0, false, querySyncMsg))
-//   }, 0)
-
-//   t.plan(1)
-//   return syncMsgServiceOut.remoteReplySync$.pipe(
-//     map(
-//       (actual: ReplySyncEvent): void => {
-//         t.true(actual.equals(expected))
-//       }
-//     )
-//   )
-// })
+  context.plan(1)
+  return syncMsgOut.remoteReplySync$.pipe(
+    map((actual): void => context.true(actual.equals(expected)))
+  )
+})

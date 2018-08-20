@@ -52,7 +52,7 @@ export class SyncMessageService extends Service<proto.ISyncMsg, proto.SyncMsg> {
 
       // FIXME: clock and id must not be undefined
       vector.forEach((clock, id) => {
-        if (id && clock) {
+        if (id !== undefined && clock !== undefined) {
           querySync.vector[id] = clock
         }
       })
@@ -101,7 +101,7 @@ export class SyncMessageService extends Service<proto.ISyncMsg, proto.SyncMsg> {
   }
 
   private handleQuerySyncMsg(content: proto.QuerySyncMsg): void {
-    const map: Map<number, number> = new Map()
+    const map = new Map()
     Object.keys(content.vector).forEach((key) => {
       map.set(parseInt(key, 10), content.vector[key])
     })
