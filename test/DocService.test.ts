@@ -1,59 +1,47 @@
-// import test from 'ava'
-// import { TestContext } from 'ava'
-// import { LogootSOperation, TextDelete, TextInsert, TextOperation } from 'mute-structs'
-// import { from, Observable, Subject } from 'rxjs'
-// import { map } from 'rxjs/operators'
+import { test } from 'ava'
+import { TextDelete, TextInsert } from 'mute-structs'
+import { from } from 'rxjs'
+import { map } from 'rxjs/operators'
 
-// import { Document } from '../src/doc'
-// import { disposeOf } from './Helpers'
+import { Document } from '../src/doc'
 
-// function generateTextOperations(): TextOperation[] {
-//   const textOperations: TextOperation[] = []
+test('textOperation-correct-send-and-delivery', (context) => {
+  const docIn = new Document(0)
+  const docOut = new Document(1)
+  const textOperations = [
+    new TextInsert(0, 'Hello'),
+    new TextInsert(5, ' world!'),
+    new TextDelete(3, 4),
+  ]
 
-//   textOperations.push(new TextInsert(0, 'Hello'))
-//   textOperations.push(new TextInsert(5, ' world!'))
-//   textOperations.push(new TextDelete(3, 4))
+  docOut.remoteLogootSOperations$ = docIn.localLogootSOperations$.pipe(
+    map((logootSOp) => ({ collaborator: undefined, operations: [logootSOp] }))
+  )
 
-//   return textOperations
-// }
+  setTimeout(() => {
+    docIn.localTextOperations$ = from(textOperations.map((textOp) => [textOp]))
+    docIn.dispose()
+    docOut.dispose()
+  })
 
-// test('textOperation-correct-send-and-delivery', (t: TestContext) => {
-//   const docServiceIn = new Document(0)
-//   disposeOf(docServiceIn, 200)
-//   const docServiceOut = new Document(1)
-//   disposeOf(docServiceOut, 200)
+  let counter = 0
+  context.plan(textOperations.length * 2)
+  return docOut.remoteTextOperations$.pipe(
+    map(
+      ({ operations }): void => {
+        // Each LogootSOperation should correspond to one TextOperation
+        context.is(operations.length, 1)
 
-//   const textOperations: TextOperation[] = generateTextOperations()
-//   const array: TextOperation[][] = textOperations.map((textOp: TextOperation) => [textOp])
-
-//   docServiceOut.remoteLogootSOperations$ = docServiceIn.localLogootSOperations$.pipe(
-//     map((logootSOp: LogootSOperation) => ({ collaborator: undefined, operations: [logootSOp] }))
-//   )
-
-//   setTimeout(() => {
-//     docServiceIn.localTextOperations$ = from(array)
-//   }, 0)
-
-//   let counter = 0
-//   t.plan(textOperations.length * 2)
-//   return docServiceOut.remoteTextOperations$.pipe(
-//     map(
-//       ({ operations }): void => {
-//         // Each LogootSOperation should correspond to one TextOperation
-//         t.is(operations.length, 1)
-
-//         const actual: TextOperation = operations[0]
-//         const expected: TextOperation = textOperations[counter]
-//         if (actual instanceof TextDelete && expected instanceof TextDelete) {
-//           t.true(actual.equals(expected))
-//         } else if (actual instanceof TextInsert && expected instanceof TextInsert) {
-//           t.true(actual.equals(expected))
-//         } else {
-//           t.fail('actual and expected must be of the same type')
-//         }
-
-//         counter++
-//       }
-//     )
-//   )
-// })
+        const actual = operations[0]
+        const expected = textOperations[counter++]
+        if (actual instanceof TextDelete && expected instanceof TextDelete) {
+          context.true(actual.equals(expected))
+        } else if (actual instanceof TextInsert && expected instanceof TextInsert) {
+          context.true(actual.equals(expected))
+        } else {
+          context.fail('actual and expected must be of the same type')
+        }
+      }
+    )
+  )
+})
