@@ -49,6 +49,10 @@
     "semantic-release": "semantic-release",
     "travis-deploy-once": "travis-deploy-once"
   },
+  "dependencies": {
+    "mute-structs": "^0.4.2",
+    "safe-any": "^1.0.2"
+  },
   "peerDependencies": {
     "rxjs": "^6.2.2"
   },
@@ -63,7 +67,6 @@
     "husky": "^0.14.3",
     "lint-staged": "^7.2.2",
     "markdownlint-cli": "^0.13.0",
-    "mute-structs": "^0.4.2",
     "prettier": "^1.14.2",
     "protobufjs": "^6.8.8",
     "rollup": "^0.64.1",
@@ -73,7 +76,6 @@
     "rollup-plugin-node-resolve": "^3.3.0",
     "rollup-plugin-re": "^1.0.7",
     "rollup-plugin-typescript2": "^0.16.1",
-    "safe-any": "^1.0.2",
     "semantic-release": "^15.9.9",
     "travis-deploy-once": "^5.0.2",
     "tslint": "^5.11.0",
