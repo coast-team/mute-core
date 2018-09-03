@@ -1,7 +1,3 @@
-import { env } from './misc'
-
-env.crypto = window.crypto
-
 export { ICollaborator } from './collaborators'
 export { Position, MetaDataMessage, MetaDataType, TitleState, FixDataState } from './doc'
 export { MuteCore } from './MuteCore'

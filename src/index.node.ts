@@ -8,4 +8,4 @@ try {
   console.error(err.message)
 }
 
-export * from '.'
+export * from './index.common'

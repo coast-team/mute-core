@@ -65,7 +65,7 @@ export default [
     ],
   },
   {
-    input: 'src/index.ts',
+    input: 'src/index.browser.ts',
     output: {
       file: 'dist/mute-core.browser.es5.esm.js',
       format: 'es',
@@ -75,7 +75,7 @@ export default [
     plugins: [typescript(), resolve(), commonjs(), filesize(filesizeConfig), cleanup()],
   },
   {
-    input: 'src/index.ts',
+    input: 'src/index.browser.ts',
     output: {
       file: 'dist/mute-core.browser.es2015.esm.js',
       format: 'es',
@@ -91,7 +91,7 @@ export default [
     ],
   },
   {
-    input: 'src/index.ts',
+    input: 'src/index.browser.ts',
     output: {
       file: 'dist/mute-core.browser.esnext.esm.js',
       format: 'es',
