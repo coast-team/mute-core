@@ -72,7 +72,13 @@ export default [
       sourcemap: true,
     },
     external: ['rxjs', 'rxjs/operators'],
-    plugins: [typescript(), resolve(), commonjs(), filesize(filesizeConfig), cleanup()],
+    plugins: [
+      typescript(),
+      resolve({ browser: true }),
+      commonjs(),
+      filesize(filesizeConfig),
+      cleanup(),
+    ],
   },
   {
     input: 'src/index.browser.ts',
@@ -84,7 +90,7 @@ export default [
     external: ['rxjs', 'rxjs/operators'],
     plugins: [
       typescript(tsConfigEs2015),
-      resolve(),
+      resolve({ browser: true }),
       commonjs(),
       filesize(filesizeConfig),
       cleanup(),
@@ -100,7 +106,7 @@ export default [
     external: ['rxjs', 'rxjs/operators'],
     plugins: [
       typescript(tsConfigEsNext),
-      resolve(),
+      resolve({ browser: true }),
       commonjs(),
       filesize(filesizeConfig),
       cleanup(),
