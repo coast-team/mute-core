@@ -25,7 +25,7 @@ export class LogCrdt {
 
   setShare(newShare: boolean) {
     this.share = newShare
-    if (this.state.get(this.id)) {
+    if (this.state.get(this.id) !== undefined) {
       this.state.set(this.id, this.state.get(this.id) + 1)
     } else {
       this.state.set(this.id, 0)

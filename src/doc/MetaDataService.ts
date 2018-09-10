@@ -97,6 +97,10 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
         case MetaDataType.Logs:
           const { share } = data as LogState
           this.logService.handleLocalLogState(share)
+          this.remoteUpdateSubject.next({
+            type: MetaDataType.Logs,
+            data: this.logService.state,
+          })
           const state = this.logService.state
           super.send({
             type: MetaDataType.Logs,
@@ -127,6 +131,5 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
   dispose(): void {
     this.localUpdateSubject.complete()
     this.remoteUpdateSubject.complete()
-    super.dispose()
   }
 }
