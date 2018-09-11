@@ -1,4 +1,4 @@
-import { State, StateVector } from '../sync'
+import { StateVector } from '../sync'
 import { StateVectorOrder } from '../sync/StateVector'
 
 export class LogCrdt {
@@ -25,8 +25,9 @@ export class LogCrdt {
 
   setShare(newShare: boolean) {
     this.share = newShare
-    if (this.state.get(this.id) !== undefined) {
-      this.state.set(this.id, this.state.get(this.id) + 1)
+    const stateId = this.state.get(this.id)
+    if (stateId !== undefined) {
+      this.state.set(this.id, stateId + 1)
     } else {
       this.state.set(this.id, 0)
     }
