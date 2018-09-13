@@ -4,7 +4,7 @@ import { IMessageIn, IMessageOut, Service } from '../misc'
 import { metadata as proto } from '../proto'
 import { Streams } from '../Streams'
 import { FixData, FixDataState } from './FixData'
-import { LogsService, LogState } from './LogsService'
+import { Logs, LogState } from './Logs'
 import { Title, TitleState } from './Title'
 
 export enum MetaDataType {
@@ -31,7 +31,7 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
 
   private title: Title
   private fixData: FixData
-  private logService: LogsService
+  private logs: Logs
 
   private localUpdateSubject: Subject<MetaDataMessage>
   private remoteUpdateSubject: Subject<MetaDataMessage>
@@ -48,7 +48,7 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
 
     this.title = new Title(titleState)
     this.fixData = new FixData(fixDataState)
-    this.logService = new LogsService(id, logState)
+    this.logs = new Logs(id, logState)
 
     this.localUpdateSubject = new Subject()
     this.remoteUpdateSubject = new Subject()
@@ -69,10 +69,10 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
           })
           break
         case MetaDataType.Logs:
-          dataObj.vector = new Map(dataObj.vector) // in the message, the map is written as an array like [[1, 2], [2, 3]]
+          dataObj.vector = new Map<number, number>(dataObj.vector)
           this.remoteUpdateSubject.next({
             type: MetaDataType.Logs,
-            data: this.logService.handleRemoteLogState(dataObj.id, {
+            data: this.logs.handleRemoteLogState(dataObj.id, {
               share: dataObj.share,
               vector: dataObj.vector,
             }),
@@ -96,16 +96,16 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
           break
         case MetaDataType.Logs:
           const { share } = data as LogState
-          this.logService.handleLocalLogState(share)
+          this.logs.handleLocalLogState(share)
           this.remoteUpdateSubject.next({
             type: MetaDataType.Logs,
-            data: this.logService.state,
+            data: this.logs.state,
           })
-          const state = this.logService.state
+          const state = this.logs.state
           super.send({
             type: MetaDataType.Logs,
             data: JSON.stringify({
-              id: this.logService.id,
+              id: this.logs.id,
               share: state.share,
               vector: Array.from(state.vector || new Map<number, number>()),
             }),
@@ -121,6 +121,14 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
     this.newSub = source.subscribe((id) => {
       super.send({ type: MetaDataType.FixData, data: JSON.stringify(this.fixData.state) }, id)
       super.send({ type: MetaDataType.Title, data: JSON.stringify(this.title.state) }, id)
+      const state = this.logs.stateWithVectorAsArray
+      super.send(
+        {
+          type: MetaDataType.Logs,
+          data: JSON.stringify({ share: state.share, vector: state.vector }),
+        },
+        id
+      )
     })
   }
 

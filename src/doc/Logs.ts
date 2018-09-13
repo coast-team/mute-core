@@ -5,7 +5,7 @@ export interface LogState {
   vector?: Map<number, number>
 }
 
-export class LogsService {
+export class Logs {
   private _id: number
   private crdt: LogCrdt
 
@@ -30,5 +30,12 @@ export class LogsService {
 
   get state(): LogState {
     return this.crdt.getState() as LogState
+  }
+
+  get stateWithVectorAsArray() {
+    const state = this.state
+    const vectorAsMap = state.vector || new Map<number, number>()
+    const vectorAsArray = Array.from(vectorAsMap)
+    return { share: state.share, vector: vectorAsArray }
   }
 }

@@ -110,9 +110,9 @@ export class StateVector {
     let order = this.size < other.size ? StateVectorOrder.INFERIOR : StateVectorOrder.EQUAL
     this.forEach((clock, id) => {
       const otherID = other.get(id)
-      if (!otherID && this.size === other.size) {
+      if (typeof otherID === 'undefined' && this.size === other.size) {
         order = StateVectorOrder.CONCURRENT
-      } else if (!otherID) {
+      } else if (typeof otherID === 'undefined') {
         order =
           order === StateVectorOrder.INFERIOR
             ? StateVectorOrder.CONCURRENT

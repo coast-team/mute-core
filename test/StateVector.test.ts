@@ -282,6 +282,30 @@ test('compareTo-concurrentDifferentSize', (t) => {
   t.is(s1.compareTo(s2), StateVectorOrder.CONCURRENT)
 })
 
+test('compareTo-inferior id = 0', (t) => {
+  const s1 = new StateVector(new Map([[-90441190, 0], [1852420671, 0]]))
+  const s2 = new StateVector(new Map([[-90441190, 0], [1852420671, 0], [1488605160, 0]]))
+  t.is(s1.compareTo(s2), StateVectorOrder.INFERIOR)
+})
+
+test('compareTo-superior id = 0', (t) => {
+  const s1 = new StateVector(new Map([[-90441190, 0], [1852420671, 0], [1488605160, 0]]))
+  const s2 = new StateVector(new Map([[-90441190, 0], [1852420671, 0]]))
+  t.is(s1.compareTo(s2), StateVectorOrder.SUPERIOR)
+})
+
+test('compareTo-equal id = 0', (t) => {
+  const s1 = new StateVector(new Map([[-90441190, 0], [1852420671, 0], [1488605160, 0]]))
+  const s2 = new StateVector(new Map([[-90441190, 0], [1852420671, 0], [1488605160, 0]]))
+  t.is(s1.compareTo(s2), StateVectorOrder.EQUAL)
+})
+
+test('compareTo-concurrent id = 0', (t) => {
+  const s1 = new StateVector(new Map([[-90441190, 0], [1852420671, 0], [63254125, 0]]))
+  const s2 = new StateVector(new Map([[-90441190, 0], [1852420671, 0], [1488605160, 0]]))
+  t.is(s1.compareTo(s2), StateVectorOrder.CONCURRENT)
+})
+
 test('maxPairwise', (t) => {
   const s1 = new StateVector(new Map([[1, 10], [2, 7], [4, 65]]))
   const s2 = new StateVector(new Map([[1, 10], [2, 6], [3, 3]]))
@@ -290,7 +314,7 @@ test('maxPairwise', (t) => {
   s1.maxPairwise(s2)
 
   t.is(s1.size, expected.size)
-  s1.forEach((clock, id) => {
+  s1.forEach((_clock, id) => {
     t.is(s1.get(id), expected.get(id))
   })
 })

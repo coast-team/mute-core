@@ -11,7 +11,7 @@ import {
   Position,
   TitleState,
 } from './doc'
-import { LogState } from './doc/LogsService'
+import { LogState } from './doc/Logs'
 import { LocalOperation, RemoteOperation } from './logs'
 import { Disposable, generateId, IMessageIn, IMessageOut } from './misc'
 import { collaborator as proto } from './proto'
