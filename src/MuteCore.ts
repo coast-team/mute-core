@@ -1,6 +1,12 @@
-import { LogootSAdd, LogootSDel, LogootSOperation, TextOperation } from 'mute-structs'
-import { Observable, Subject } from 'rxjs'
-import { tap } from 'rxjs/operators'
+import {
+  LogootSAdd,
+  LogootSDel,
+  LogootSOperation,
+  TextDelete,
+  TextInsert,
+  TextOperation,
+} from 'mute-structs'
+import { Observable, Subject, zip } from 'rxjs'
 
 import { CollaboratorsService, ICollaborator } from './collaborators'
 import {
@@ -15,7 +21,7 @@ import { LogState } from './doc/Logs'
 import { LocalOperation, RemoteOperation } from './logs'
 import { Disposable, generateId, IMessageIn, IMessageOut } from './misc'
 import { collaborator as proto } from './proto'
-import { RichLogootSOperation, State, Sync, SyncMessageService } from './sync'
+import { State, Sync, SyncMessageService } from './sync'
 
 export interface SessionParameters {
   profile: proto.ICollaborator
@@ -82,17 +88,25 @@ export class MuteCore extends Disposable {
     this.syncMessageService = new SyncMessageService(this._messageIn$, this._messageOut$)
 
     this.doc.remoteLogootSOperations$ = this.sync.remoteLogootSOperations$
-    this.sync.localLogootSOperations$ = this.doc.localLogootSOperations$.pipe(
-      tap((operation) => this.logLocalOperation(muteCoreId, operation))
-    )
+    this.sync.localLogootSOperations$ = this.doc.localLogootSOperations$
     this.sync.remoteQuerySync$ = this.syncMessageService.remoteQuerySync$
     this.sync.remoteReplySync$ = this.syncMessageService.remoteReplySync$
-    this.sync.remoteRichLogootSOperations$ = this.syncMessageService.remoteRichLogootSOperations$.pipe(
-      tap((operation) => this.logRemoteOperation(muteCoreId, operation))
-    )
+    this.sync.remoteRichLogootSOperations$ = this.syncMessageService.remoteRichLogootSOperations$
     this.syncMessageService.localRichLogootSOperations$ = this.sync.localRichLogootSOperations
     this.syncMessageService.querySync$ = this.sync.querySync$
     this.syncMessageService.replySync$ = this.sync.replySync$
+
+    this.newSub = this.doc.localOperationLog$.subscribe((op) => {
+      this.logLocalOperation(muteCoreId, op.textop, op.logootsop)
+    })
+    const e = zip(
+      this.doc.remoteOperationLog$,
+      this.sync.logsRemoteRichLogootsOperations$,
+      (v1, v2) => ({ v1, v2 })
+    )
+    this.newSub = e.subscribe(({ v1, v2 }) => {
+      this.logRemoteOperation(muteCoreId, v1.textop, v1.logootsop, v2.clock, v2.author)
+    })
   }
 
   get myMuteCoreId(): number {
@@ -203,14 +217,15 @@ export class MuteCore extends Disposable {
     this.syncMessageService.dispose()
   }
 
-  logLocalOperation(id: number, ope: LogootSOperation) {
+  logLocalOperation(id: number, textope: TextOperation, ope: LogootSOperation) {
     if (ope instanceof LogootSAdd) {
       const o = ope as LogootSAdd
       this._localOperationForLog$.next({
         type: 'localInsertion',
         siteId: id,
         clock: this.sync.getClock,
-        operation: o,
+        textOperation: textope as TextInsert,
+        logootsOperation: o,
         context: this.sync.getVector,
       })
     } else if (ope instanceof LogootSDel) {
@@ -219,22 +234,29 @@ export class MuteCore extends Disposable {
         type: 'localDeletion',
         siteId: id,
         clock: this.sync.getClock,
-        operation: o,
+        textOperation: textope as TextDelete,
+        logootsOperation: o,
         context: this.sync.getVector,
       })
     }
   }
 
-  logRemoteOperation(id: number, operation: RichLogootSOperation) {
-    const ope = operation.logootSOp
+  logRemoteOperation(
+    id: number,
+    texteope: TextOperation[],
+    ope: LogootSOperation,
+    clock: number,
+    author: number
+  ) {
     if (ope instanceof LogootSAdd) {
       const o = ope as LogootSAdd
       this._remoteOperationForLog.next({
         type: 'remoteInsertion',
         siteId: id,
-        remoteSiteId: operation.id,
-        remoteClock: operation.clock,
-        operation: o,
+        remoteSiteId: author,
+        remoteClock: clock,
+        textOperation: texteope,
+        logootsOperation: o,
         context: this.sync.getVector,
       })
     } else if (ope instanceof LogootSDel) {
@@ -242,9 +264,10 @@ export class MuteCore extends Disposable {
       this._remoteOperationForLog.next({
         type: 'remoteDeletion',
         siteId: id,
-        remoteSiteId: operation.id,
-        remoteClock: operation.clock,
-        operation: o,
+        remoteSiteId: author,
+        remoteClock: clock,
+        textOperation: texteope,
+        logootsOperation: o,
         context: this.sync.getVector,
       })
     }

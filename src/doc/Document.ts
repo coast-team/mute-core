@@ -21,6 +21,11 @@ export class Document extends Disposable {
     collaborator: ICollaborator | undefined
     operations: TextOperation[]
   }>
+  private localOperationLogsSubject: Subject<{ textop: TextOperation; logootsop: LogootSOperation }>
+  private remoteOperationLogsSubject: Subject<{
+    textop: TextOperation[]
+    logootsop: LogootSOperation
+  }>
   private updateSubject: Subject<void>
 
   constructor(id: number) {
@@ -31,6 +36,8 @@ export class Document extends Disposable {
     this.treeSubject = new Subject()
     this.localLogootSOperationsSubject = new Subject()
     this.remoteTextOperationsSubject = new Subject()
+    this.localOperationLogsSubject = new Subject()
+    this.remoteOperationLogsSubject = new Subject()
     this.updateSubject = new Subject()
 
     this.newSub = this.updateSubject.pipe(debounceTime(1000)).subscribe(() => {
@@ -97,6 +104,14 @@ export class Document extends Disposable {
     return this.remoteTextOperationsSubject.asObservable()
   }
 
+  get localOperationLog$(): Observable<{ textop: TextOperation; logootsop: LogootSOperation }> {
+    return this.localOperationLogsSubject.asObservable()
+  }
+
+  get remoteOperationLog$(): Observable<{ textop: TextOperation[]; logootsop: LogootSOperation }> {
+    return this.remoteOperationLogsSubject.asObservable()
+  }
+
   dispose(): void {
     this.localLogootSOperationsSubject.complete()
     this.remoteTextOperationsSubject.complete()
@@ -106,13 +121,17 @@ export class Document extends Disposable {
 
   handleTextOperations(textOperations: TextOperation[]): void {
     textOperations.forEach((textOperation) => {
-      this.localLogootSOperationsSubject.next(textOperation.applyTo(this.doc))
+      const logootsop = textOperation.applyTo(this.doc)
+      this.localOperationLogsSubject.next({ textop: textOperation, logootsop })
+      this.localLogootSOperationsSubject.next(logootsop)
     })
     // log.info('operation:doc', 'updated doc: ', this.doc)
   }
 
   handleRemoteOperation(logootSOperation: LogootSOperation): TextOperation[] {
-    return logootSOperation.execute(this.doc)
+    const result = logootSOperation.execute(this.doc)
+    this.remoteOperationLogsSubject.next({ textop: result, logootsop: logootSOperation })
+    return result
   }
 
   positionFromIndex(index: number): Position | undefined {

@@ -22,6 +22,11 @@ export class Sync extends Disposable {
     collaborator: ICollaborator | undefined
     operations: LogootSOperation[]
   }>
+  private logsRemoteRichLogootsOperationsSubject: Subject<{
+    clock: number
+    author: number
+    operation: LogootSOperation
+  }>
   private replySyncSubject: Subject<ReplySyncEvent>
   private collabsService: CollaboratorsService
 
@@ -35,6 +40,7 @@ export class Sync extends Disposable {
     this.localRichLogootSOperationsSubject = new Subject()
     this.querySyncSubject = new Subject()
     this.remoteLogootSOperationsSubject = new Subject()
+    this.logsRemoteRichLogootsOperationsSubject = new Subject()
     this.replySyncSubject = new Subject()
 
     // Initialize local state
@@ -60,6 +66,14 @@ export class Sync extends Disposable {
     operations: LogootSOperation[]
   }> {
     return this.remoteLogootSOperationsSubject.asObservable()
+  }
+
+  get logsRemoteRichLogootsOperations$(): Observable<{
+    clock: number
+    author: number
+    operation: LogootSOperation
+  }> {
+    return this.logsRemoteRichLogootsOperationsSubject.asObservable()
   }
 
   get replySync$(): Observable<ReplySyncEvent> {
@@ -147,6 +161,11 @@ export class Sync extends Disposable {
             const logootSOp = op.logootSOp
             this.updateState(op)
             logootSOperations.push(logootSOp)
+            this.logsRemoteRichLogootsOperationsSubject.next({
+              clock: op.clock,
+              author: op.id,
+              operation: op.logootSOp,
+            })
           } else {
             this.bufferOperation(op)
           }
