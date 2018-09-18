@@ -11,7 +11,7 @@ export class CollaboratorsService extends Service<proto.ICollaborator, proto.Col
 
   private updateSubject: Subject<ICollaborator>
   private joinSubject: Subject<ICollaborator>
-  private leaveSubject: Subject<number>
+  private leaveSubject: Subject<ICollaborator>
 
   constructor(
     messageIn$: Observable<IMessageIn>,
@@ -59,7 +59,7 @@ export class CollaboratorsService extends Service<proto.ICollaborator, proto.Col
     return this.joinSubject.asObservable()
   }
 
-  get leave$(): Observable<number> {
+  get leave$(): Observable<ICollaborator> {
     return this.leaveSubject.asObservable()
   }
 
@@ -69,8 +69,11 @@ export class CollaboratorsService extends Service<proto.ICollaborator, proto.Col
 
   set memberLeave$(source: Observable<number>) {
     this.newSub = source.subscribe((id: number) => {
+      const collab = this.collaborators.get(id)
+      if (collab) {
+        this.leaveSubject.next(collab)
+      }
       this.collaborators.delete(id)
-      this.leaveSubject.next(id)
     })
   }
 

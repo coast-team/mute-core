@@ -172,7 +172,7 @@ export class MuteCore extends Disposable {
     return this.collaboratorsService.join$
   }
 
-  get collabLeave$(): Observable<number> {
+  get collabLeave$(): Observable<ICollaborator> {
     return this.collaboratorsService.leave$
   }
 
@@ -220,21 +220,26 @@ export class MuteCore extends Disposable {
   logLocalOperation(id: number, textope: TextOperation, ope: LogootSOperation) {
     if (ope instanceof LogootSAdd) {
       const o = ope as LogootSAdd
+      const textoperation = textope as TextInsert
       this._localOperationForLog$.next({
         type: 'localInsertion',
         siteId: id,
         clock: this.sync.getClock,
-        textOperation: textope as TextInsert,
+        position: textoperation.offset,
+        content: textoperation.content,
+        length: textoperation.content.length,
         logootsOperation: o,
         context: this.sync.getVector,
       })
     } else if (ope instanceof LogootSDel) {
       const o = ope as LogootSDel
+      const textoperation = textope as TextDelete
       this._localOperationForLog$.next({
         type: 'localDeletion',
         siteId: id,
         clock: this.sync.getClock,
-        textOperation: textope as TextDelete,
+        position: textoperation.offset,
+        length: textoperation.length,
         logootsOperation: o,
         context: this.sync.getVector,
       })
