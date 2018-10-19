@@ -112,6 +112,10 @@ export class Document extends Disposable {
     return this.remoteOperationLogsSubject.asObservable()
   }
 
+  get stateElements(): LogootSRopes {
+    return this.doc
+  }
+
   dispose(): void {
     this.localLogootSOperationsSubject.complete()
     this.remoteTextOperationsSubject.complete()

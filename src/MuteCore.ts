@@ -114,7 +114,14 @@ export class MuteCore extends Disposable {
   }
 
   get state(): State {
-    return this.sync.state
+    const { vector, richLogootSOps, networkClock } = this.sync.stateElements
+    return new State(
+      vector,
+      richLogootSOps,
+      this.doc.stateElements,
+      networkClock,
+      this.myMuteCoreId
+    )
   }
 
   set messageIn$(source: Observable<IMessageIn>) {

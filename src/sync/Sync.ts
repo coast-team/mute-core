@@ -9,6 +9,12 @@ import { RichLogootSOperation } from './RichLogootSOperation'
 import { State } from './State'
 import { StateVector } from './StateVector'
 
+export interface SyncState {
+  vector: Map<number, number>
+  richLogootSOps: RichLogootSOperation[]
+  networkClock: number
+}
+
 export class Sync extends Disposable {
   private id: number
   private clock: number
@@ -80,8 +86,12 @@ export class Sync extends Disposable {
     return this.replySyncSubject.asObservable()
   }
 
-  get state(): State {
-    return new State(this.vector.asMap(), this.richLogootSOps)
+  get stateElements(): SyncState {
+    return {
+      vector: this.vector.asMap(),
+      richLogootSOps: this.richLogootSOps,
+      networkClock: this.clock,
+    }
   }
 
   get getClock(): number {
