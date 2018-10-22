@@ -50,9 +50,9 @@ export class Sync extends Disposable {
     this.replySyncSubject = new Subject()
 
     // Initialize local state
-    this.richLogootSOps = []
-    this.vector.clear()
-    this.applyRichLogootSOperations(localState.richLogootSOps)
+    this.richLogootSOps = localState.richLogootSOps
+    this.vector = new StateVector(localState.vector)
+    this.clock = localState.networkClock
   }
 
   sync() {

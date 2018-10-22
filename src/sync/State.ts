@@ -30,15 +30,7 @@ export class State {
   }
 
   static fromPlainText(o: SafeAny<StateJSON>): State | null {
-    if (
-      o !== null &&
-      typeof o === 'object' &&
-      o.richLogootSOps instanceof Array &&
-      typeof o.networkClock === 'number' &&
-      Number.isInteger(o.networkClock) &&
-      typeof o.id === 'number' &&
-      Number.isInteger(o.id)
-    ) {
+    if (o !== null && typeof o === 'object' && o.richLogootSOps instanceof Array) {
       // If one operation is null -> error
       const richLogootSOps = o.richLogootSOps.map((rich) => {
         return RichLogootSOperation.fromPlain(rich)
@@ -66,14 +58,30 @@ export class State {
         if (!logootsRopes) {
           return null
         }
-        return new State(vector, richLogootSOps, logootsRopes, o.networkClock, o.id)
+
+        let networkClock
+        if (typeof o.networkClock === 'number' && Number.isInteger(o.networkClock)) {
+          networkClock = o.networkClock
+        } else {
+          return null
+        }
+
+        let id
+        if (typeof o.id === 'number' && Number.isInteger(o.id)) {
+          id = o.id
+        } else {
+          return null
+        }
+
+        return new State(vector, richLogootSOps, logootsRopes, networkClock, id)
       } else {
         // We create the state thanks to operations / we assume that operations are ordered
-        const state = new State(new Map(), [], new LogootSRopes(), 0, o.id)
+        const state = new State(new Map(), [], new LogootSRopes(), 0, 0)
         richLogootSOps.forEach((richOp) => {
           state.vector.set(richOp.id, richOp.clock)
           richOp.logootSOp.execute(state.logootsRopes)
         })
+        return state
       }
     }
     return null
@@ -83,7 +91,7 @@ export class State {
   readonly richLogootSOps: RichLogootSOperation[]
   readonly logootsRopes: LogootSRopes
   readonly networkClock: number
-  readonly id: number
+  id: number
 
   constructor(
     vector: Map<number, number>,

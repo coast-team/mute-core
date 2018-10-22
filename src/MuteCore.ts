@@ -53,9 +53,15 @@ export class MuteCore extends Disposable {
 
   constructor({ profile, docContent, metaTitle, metaFixData, metaLogs }: SessionParameters) {
     super()
-    const muteCoreId = profile.muteCoreId || generateId()
-    if (!profile.muteCoreId) {
+    let muteCoreId: number
+    if (docContent.id !== 0) {
+      muteCoreId = docContent.id
       profile.muteCoreId = muteCoreId
+    } else {
+      muteCoreId = profile.muteCoreId || generateId()
+      if (!profile.muteCoreId) {
+        profile.muteCoreId = muteCoreId
+      }
     }
 
     /* FIXME: this.me object doesn't have id property set to the correct network id (it is set to 0 just below).
@@ -73,7 +79,7 @@ export class MuteCore extends Disposable {
     } as ICollaborator)
 
     // Initialize document content and metadata with local values
-    this.doc = new Document(profile.muteCoreId)
+    this.doc = new Document(docContent.logootsRopes)
     this.metaDataService = new MetaDataService(
       this._messageIn$,
       this._messageOut$,

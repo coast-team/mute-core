@@ -1,13 +1,13 @@
 import test from 'ava'
-import { TextDelete, TextInsert } from 'mute-structs'
+import { LogootSRopes, TextDelete, TextInsert } from 'mute-structs'
 import { from } from 'rxjs'
 import { map } from 'rxjs/operators'
 
 import { Document } from '../src/doc'
 
 test('textOperation-correct-send-and-delivery', (context) => {
-  const docIn = new Document(0)
-  const docOut = new Document(1)
+  const docIn = new Document(new LogootSRopes(0))
+  const docOut = new Document(new LogootSRopes(1))
   const textOperations = [
     new TextInsert(0, 'Hello'),
     new TextInsert(5, ' world!'),

@@ -1,13 +1,13 @@
 import test from 'ava'
 
-import { TextInsert } from 'mute-structs'
+import { LogootSRopes, TextInsert } from 'mute-structs'
 import { isUndefined } from 'util'
 import { Document } from '../src/doc'
 
 test('toto', (t) => {
-  const a: Document = new Document(1)
-  const b: Document = new Document(2)
-  const c: Document = new Document(3)
+  const a: Document = new Document(new LogootSRopes(1))
+  const b: Document = new Document(new LogootSRopes(2))
+  const c: Document = new Document(new LogootSRopes(3))
 
   let remoteA
   let remoteB

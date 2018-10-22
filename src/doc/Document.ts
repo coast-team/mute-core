@@ -28,9 +28,9 @@ export class Document extends Disposable {
   }>
   private updateSubject: Subject<void>
 
-  constructor(id: number) {
+  constructor(logootsRopes: LogootSRopes) {
     super()
-    this.doc = new LogootSRopes(id)
+    this.doc = logootsRopes
 
     this.digestSubject = new Subject()
     this.treeSubject = new Subject()

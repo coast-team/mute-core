@@ -15,11 +15,14 @@ test('deliver-operations-in-sequential-order', (context) => {
 
   const richLogootSOps = generateSequentialRichLogootSOps()
   const [firstRichLogootSOp, ...tailRichLogootSOps] = richLogootSOps
-  const sync = new Sync(0, new State(new Map(), tailRichLogootSOps, new LogootSRopes(), 0, 1), cs)
+  const sync = new Sync(0, new State(new Map(), [], new LogootSRopes(0), 0, 0), cs)
 
   const remoteRichLogootSOpSubject = new Subject<RichLogootSOperation>()
   sync.remoteRichLogootSOperations$ = remoteRichLogootSOpSubject
 
+  tailRichLogootSOps.forEach((op) => {
+    remoteRichLogootSOpSubject.next(op)
+  })
   setTimeout(() => {
     remoteRichLogootSOpSubject.next(firstRichLogootSOp)
     setTimeout(() => {
@@ -44,14 +47,12 @@ test('deliver-operations-in-causal-order', (context) => {
   })
   const richLogootSOps = generateCausalRichLogootSOps()
   const [firstRichLogootSOp, secondRichLogootSOp] = richLogootSOps
-  const sync = new Sync(
-    0,
-    new State(new Map(), [secondRichLogootSOp], new LogootSRopes(), 0, 1),
-    cs
-  )
+  const sync = new Sync(0, new State(new Map(), [], new LogootSRopes(0), 0, 0), cs)
+
   const remoteRichLogootSOpSubject = new Subject<RichLogootSOperation>()
 
   sync.remoteRichLogootSOperations$ = remoteRichLogootSOpSubject
+  remoteRichLogootSOpSubject.next(secondRichLogootSOp)
   setTimeout(() => {
     remoteRichLogootSOpSubject.next(firstRichLogootSOp)
     setTimeout(() => {
@@ -62,6 +63,7 @@ test('deliver-operations-in-causal-order', (context) => {
 
   let counter = 0
   context.plan(richLogootSOps.length * 2)
+  sync.remoteLogootSOperations$.subscribe((o) => console.log(o))
   return sync.remoteLogootSOperations$.pipe(
     map(({ operations }) => {
       context.is(operations.length, 1)
