@@ -29,6 +29,10 @@ export class State {
     return res
   }
 
+  static emptyState() {
+    return new State(new Map(), [], new LogootSRopes(), 0, 0)
+  }
+
   static fromPlainText(o: SafeAny<StateJSON>): State | null {
     if (o !== null && typeof o === 'object' && o.richLogootSOps instanceof Array) {
       // If one operation is null -> error
