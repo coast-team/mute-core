@@ -22,7 +22,7 @@ export class RichLogootSOperation {
 
       const logootSDel = LogootSDel.fromPlain(o.logootSOp)
       if (logootSDel instanceof LogootSDel && o.dependencies.length > 0) {
-        return new RichLogootSOperation(o.id, o.clock, logootSDel, o.dependencies)
+        return new RichLogootSOperation(o.id, o.clock, logootSDel, o.dependencies as Dot[])
       }
     }
 

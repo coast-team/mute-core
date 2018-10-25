@@ -63,7 +63,6 @@ test('deliver-operations-in-causal-order', (context) => {
 
   let counter = 0
   context.plan(richLogootSOps.length * 2)
-  sync.remoteLogootSOperations$.subscribe((o) => console.log(o))
   return sync.remoteLogootSOperations$.pipe(
     map(({ operations }) => {
       context.is(operations.length, 1)
