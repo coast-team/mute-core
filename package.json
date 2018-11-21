@@ -50,7 +50,7 @@
     "travis-deploy-once": "travis-deploy-once"
   },
   "dependencies": {
-    "mute-structs": "^0.4.2",
+    "mute-structs": "^0.5.3",
     "rxjs": "^6.3.3",
     "safe-any": "^1.0.2"
   },
