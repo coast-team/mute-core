@@ -1,5 +1,6 @@
 import { LogootSRopes } from 'mute-structs'
 import { SafeAny } from 'safe-any'
+import { generateId } from '../misc'
 import { RichLogootSOperation } from './RichLogootSOperation'
 
 interface StateJSON {
@@ -30,7 +31,8 @@ export class State {
   }
 
   static emptyState() {
-    return new State(new Map(), [], new LogootSRopes(), 0, 0)
+    const id = generateId()
+    return new State(new Map(), [], new LogootSRopes(id), 0, id)
   }
 
   static fromPlainText(o: SafeAny<StateJSON>): State | null {
