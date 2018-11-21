@@ -38,6 +38,7 @@ message IdentifierTupleMsg {
 
 message LogootSDelMsg {
   repeated IdentifierIntervalMsg lid = 1;
+  int32 author = 2;
 }
 
 message IdentifierIntervalMsg {

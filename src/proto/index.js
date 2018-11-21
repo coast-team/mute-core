@@ -1566,6 +1566,7 @@ var sync = $root.sync = (function () {
                         this[keys[i]] = properties[keys[i]];
         }
         LogootSDelMsg.prototype.lid = $util.emptyArray;
+        LogootSDelMsg.prototype.author = 0;
         LogootSDelMsg.create = function create(properties) {
             return new LogootSDelMsg(properties);
         };
@@ -1575,6 +1576,8 @@ var sync = $root.sync = (function () {
             if (message.lid != null && message.lid.length)
                 for (var i = 0; i < message.lid.length; ++i)
                     $root.sync.IdentifierIntervalMsg.encode(message.lid[i], writer.uint32(10).fork()).ldelim();
+            if (message.author != null && message.hasOwnProperty("author"))
+                writer.uint32(16).int32(message.author);
             return writer;
         };
         LogootSDelMsg.decode = function decode(reader, length) {
@@ -1588,6 +1591,9 @@ var sync = $root.sync = (function () {
                         if (!(message.lid && message.lid.length))
                             message.lid = [];
                         message.lid.push($root.sync.IdentifierIntervalMsg.decode(reader, reader.uint32()));
+                        break;
+                    case 2:
+                        message.author = reader.int32();
                         break;
                     default:
                         reader.skipType(tag & 7);

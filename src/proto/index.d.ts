@@ -298,6 +298,9 @@ export namespace sync {
 
         /** LogootSDelMsg lid */
         lid?: (sync.IIdentifierIntervalMsg[]|null);
+
+        /** LogootSDelMsg author */
+        author?: (number|null);
     }
 
     /** Represents a LogootSDelMsg. */
@@ -311,6 +314,9 @@ export namespace sync {
 
         /** LogootSDelMsg lid. */
         public lid: sync.IIdentifierIntervalMsg[];
+
+        /** LogootSDelMsg author. */
+        public author: number;
 
         /**
          * Creates a new LogootSDelMsg instance using the specified properties.
