@@ -28,7 +28,7 @@ export function generateSequentialRichLogootSOps(): RichLogootSOperation[] {
   const otherClock = 0
   const id3 = Identifier.fromBase(id1, 3)
   const idInterval1 = new IdentifierInterval(id3, 7)
-  const deleteOp1 = new LogootSDel([idInterval1])
+  const deleteOp1 = new LogootSDel([idInterval1], 0)
   const dependencies = [{ replicaNumber, clock: clock + 1 }] as Dot[]
   const richLogootSOp3 = new RichLogootSOperation(
     otherReplicaNumber,
@@ -53,7 +53,7 @@ export function generateCausalRichLogootSOps(): RichLogootSOperation[] {
   const clockB = 0
   const id2 = Identifier.fromBase(id1, 4) // 'o'
   const idInterval1 = new IdentifierInterval(id2, 4) // 'o'
-  const deleteOp1 = new LogootSDel([idInterval1])
+  const deleteOp1 = new LogootSDel([idInterval1], 0)
   const dependencies = [{ replicaNumber: replicaNumberA, clock: clockA }] as Dot[]
   const richLogootSOp2 = new RichLogootSOperation(replicaNumberB, clockB, deleteOp1, dependencies)
 

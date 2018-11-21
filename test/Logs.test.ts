@@ -14,8 +14,8 @@ test('toto', (t) => {
   let cpt = 0
 
   const result: object[][] = [
-    [new TextInsert(0, 'l')],
-    [new TextInsert(0, 'He'), new TextInsert(3, 'lo')],
+    [new TextInsert(0, 'l', 2)],
+    [new TextInsert(0, 'He', 1), new TextInsert(3, 'lo', 1)],
   ]
 
   a.localLogootSOperations$.subscribe((v) => {
@@ -28,12 +28,12 @@ test('toto', (t) => {
     t.deepEqual(v.textop, result[cpt])
     cpt++
   })
-  a.handleTextOperations([new TextInsert(0, 'Helo')])
+  a.handleTextOperations([new TextInsert(0, 'Helo', 0)])
   if (isUndefined(remoteA)) {
     return
   }
   b.handleRemoteOperation(remoteA)
-  b.handleTextOperations([new TextInsert(2, 'l')])
+  b.handleTextOperations([new TextInsert(2, 'l', 0)])
   if (isUndefined(remoteB)) {
     return
   }

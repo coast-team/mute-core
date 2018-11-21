@@ -9,9 +9,9 @@ test('textOperation-correct-send-and-delivery', (context) => {
   const docIn = new Document(new LogootSRopes(0))
   const docOut = new Document(new LogootSRopes(1))
   const textOperations = [
-    new TextInsert(0, 'Hello'),
-    new TextInsert(5, ' world!'),
-    new TextDelete(3, 4),
+    new TextInsert(0, 'Hello', 0),
+    new TextInsert(5, ' world!', 0),
+    new TextDelete(3, 4, 0),
   ]
 
   docOut.remoteLogootSOperations$ = docIn.localLogootSOperations$.pipe(
