@@ -149,7 +149,6 @@ export class SyncMessageService extends Service<proto.ISyncMsg, proto.SyncMsg> {
   }: proto.RichLogootSOperationMsg): RichLogootSOperation {
     const addOpe = LogootSAdd.fromPlain(logootSAddMsg)
     const delOpe = LogootSDel.fromPlain(logootSDelMsg)
-    console.log('operation :', addOpe, delOpe)
     return RichLogootSOperation.fromPlain({
       id,
       clock,

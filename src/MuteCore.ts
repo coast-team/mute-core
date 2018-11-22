@@ -111,7 +111,7 @@ export class MuteCore extends Disposable {
       (v1, v2) => ({ v1, v2 })
     )
     this.newSub = e.subscribe(({ v1, v2 }) => {
-      this.logRemoteOperation(muteCoreId, v1.textop, v1.logootsop, v2.clock, v1.logootsop.author)
+      this.logRemoteOperation(muteCoreId, v1.textop, v1.logootsop, v2.clock, v2.author)
     })
   }
 

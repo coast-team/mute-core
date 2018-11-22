@@ -30,6 +30,7 @@ export class Sync extends Disposable {
   }>
   private logsRemoteRichLogootsOperationsSubject: Subject<{
     clock: number
+    author: number
     operation: LogootSOperation
   }>
   private replySyncSubject: Subject<ReplySyncEvent>
@@ -75,6 +76,7 @@ export class Sync extends Disposable {
 
   get logsRemoteRichLogootsOperations$(): Observable<{
     clock: number
+    author: number
     operation: LogootSOperation
   }> {
     return this.logsRemoteRichLogootsOperationsSubject.asObservable()
@@ -171,6 +173,7 @@ export class Sync extends Disposable {
             logootSOperations.push(logootSOp)
             this.logsRemoteRichLogootsOperationsSubject.next({
               clock: op.clock,
+              author: op.id,
               operation: op.logootSOp,
             })
           } else {
