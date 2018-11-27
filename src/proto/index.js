@@ -1294,6 +1294,48 @@ var $Reader = minimal_1, $Writer = minimal_2, $util = minimal_3;
 var $root = minimal_4["default"] || (minimal_4["default"] = {});
 var sync = $root.sync = (function () {
     var sync = {};
+    sync.RichOperationMsg = (function () {
+        function RichOperationMsg(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        RichOperationMsg.prototype.richLogootSOpsMsg = null;
+        var $oneOfFields;
+        Object.defineProperty(RichOperationMsg.prototype, "type", {
+            get: $util.oneOfGetter($oneOfFields = ["richLogootSOpsMsg"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+        RichOperationMsg.create = function create(properties) {
+            return new RichOperationMsg(properties);
+        };
+        RichOperationMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.richLogootSOpsMsg != null && message.hasOwnProperty("richLogootSOpsMsg"))
+                $root.sync.RichLogootSOperationMsg.encode(message.richLogootSOpsMsg, writer.uint32(10).fork()).ldelim();
+            return writer;
+        };
+        RichOperationMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.RichOperationMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.richLogootSOpsMsg = $root.sync.RichLogootSOperationMsg.decode(reader, reader.uint32());
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return RichOperationMsg;
+    })();
     sync.SyncMsg = (function () {
         function SyncMsg(properties) {
             if (properties)
@@ -1301,12 +1343,12 @@ var sync = $root.sync = (function () {
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
-        SyncMsg.prototype.richLogootSOpMsg = null;
+        SyncMsg.prototype.richOpMsg = null;
         SyncMsg.prototype.querySync = null;
         SyncMsg.prototype.replySync = null;
         var $oneOfFields;
         Object.defineProperty(SyncMsg.prototype, "type", {
-            get: $util.oneOfGetter($oneOfFields = ["richLogootSOpMsg", "querySync", "replySync"]),
+            get: $util.oneOfGetter($oneOfFields = ["richOpMsg", "querySync", "replySync"]),
             set: $util.oneOfSetter($oneOfFields)
         });
         SyncMsg.create = function create(properties) {
@@ -1315,8 +1357,8 @@ var sync = $root.sync = (function () {
         SyncMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.richLogootSOpMsg != null && message.hasOwnProperty("richLogootSOpMsg"))
-                $root.sync.RichLogootSOperationMsg.encode(message.richLogootSOpMsg, writer.uint32(10).fork()).ldelim();
+            if (message.richOpMsg != null && message.hasOwnProperty("richOpMsg"))
+                $root.sync.RichOperationMsg.encode(message.richOpMsg, writer.uint32(10).fork()).ldelim();
             if (message.querySync != null && message.hasOwnProperty("querySync"))
                 $root.sync.QuerySyncMsg.encode(message.querySync, writer.uint32(18).fork()).ldelim();
             if (message.replySync != null && message.hasOwnProperty("replySync"))
@@ -1331,7 +1373,7 @@ var sync = $root.sync = (function () {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
                     case 1:
-                        message.richLogootSOpMsg = $root.sync.RichLogootSOperationMsg.decode(reader, reader.uint32());
+                        message.richOpMsg = $root.sync.RichOperationMsg.decode(reader, reader.uint32());
                         break;
                     case 2:
                         message.querySync = $root.sync.QuerySyncMsg.decode(reader, reader.uint32());
@@ -1347,6 +1389,332 @@ var sync = $root.sync = (function () {
             return message;
         };
         return SyncMsg;
+    })();
+    sync.QuerySyncMsg = (function () {
+        function QuerySyncMsg(properties) {
+            this.vector = {};
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        QuerySyncMsg.prototype.vector = $util.emptyObject;
+        QuerySyncMsg.create = function create(properties) {
+            return new QuerySyncMsg(properties);
+        };
+        QuerySyncMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.vector != null && message.hasOwnProperty("vector"))
+                for (var keys = Object.keys(message.vector), i = 0; i < keys.length; ++i)
+                    writer.uint32(10).fork().uint32(8).int32(keys[i]).uint32(16).int32(message.vector[keys[i]]).ldelim();
+            return writer;
+        };
+        QuerySyncMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.QuerySyncMsg(), key;
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        reader.skip().pos++;
+                        if (message.vector === $util.emptyObject)
+                            message.vector = {};
+                        key = reader.int32();
+                        reader.pos++;
+                        message.vector[key] = reader.int32();
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return QuerySyncMsg;
+    })();
+    sync.ReplySyncMsg = (function () {
+        function ReplySyncMsg(properties) {
+            this.richOpsMsg = [];
+            this.intervals = [];
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        ReplySyncMsg.prototype.richOpsMsg = $util.emptyArray;
+        ReplySyncMsg.prototype.intervals = $util.emptyArray;
+        ReplySyncMsg.create = function create(properties) {
+            return new ReplySyncMsg(properties);
+        };
+        ReplySyncMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.richOpsMsg != null && message.richOpsMsg.length)
+                for (var i = 0; i < message.richOpsMsg.length; ++i)
+                    $root.sync.RichOperationMsg.encode(message.richOpsMsg[i], writer.uint32(10).fork()).ldelim();
+            if (message.intervals != null && message.intervals.length)
+                for (var i = 0; i < message.intervals.length; ++i)
+                    $root.sync.IntervalMsg.encode(message.intervals[i], writer.uint32(18).fork()).ldelim();
+            return writer;
+        };
+        ReplySyncMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.ReplySyncMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        if (!(message.richOpsMsg && message.richOpsMsg.length))
+                            message.richOpsMsg = [];
+                        message.richOpsMsg.push($root.sync.RichOperationMsg.decode(reader, reader.uint32()));
+                        break;
+                    case 2:
+                        if (!(message.intervals && message.intervals.length))
+                            message.intervals = [];
+                        message.intervals.push($root.sync.IntervalMsg.decode(reader, reader.uint32()));
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return ReplySyncMsg;
+    })();
+    sync.IdentifierMsg = (function () {
+        function IdentifierMsg(properties) {
+            this.tuples = [];
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        IdentifierMsg.prototype.tuples = $util.emptyArray;
+        IdentifierMsg.create = function create(properties) {
+            return new IdentifierMsg(properties);
+        };
+        IdentifierMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.tuples != null && message.tuples.length)
+                for (var i = 0; i < message.tuples.length; ++i)
+                    $root.sync.IdentifierTupleMsg.encode(message.tuples[i], writer.uint32(10).fork()).ldelim();
+            return writer;
+        };
+        IdentifierMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.IdentifierMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        if (!(message.tuples && message.tuples.length))
+                            message.tuples = [];
+                        message.tuples.push($root.sync.IdentifierTupleMsg.decode(reader, reader.uint32()));
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return IdentifierMsg;
+    })();
+    sync.IdentifierTupleMsg = (function () {
+        function IdentifierTupleMsg(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        IdentifierTupleMsg.prototype.random = 0;
+        IdentifierTupleMsg.prototype.replicaNumber = 0;
+        IdentifierTupleMsg.prototype.clock = 0;
+        IdentifierTupleMsg.prototype.offset = 0;
+        IdentifierTupleMsg.create = function create(properties) {
+            return new IdentifierTupleMsg(properties);
+        };
+        IdentifierTupleMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.random != null && message.hasOwnProperty("random"))
+                writer.uint32(8).int32(message.random);
+            if (message.replicaNumber != null && message.hasOwnProperty("replicaNumber"))
+                writer.uint32(16).int32(message.replicaNumber);
+            if (message.clock != null && message.hasOwnProperty("clock"))
+                writer.uint32(24).int32(message.clock);
+            if (message.offset != null && message.hasOwnProperty("offset"))
+                writer.uint32(32).int32(message.offset);
+            return writer;
+        };
+        IdentifierTupleMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.IdentifierTupleMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.random = reader.int32();
+                        break;
+                    case 2:
+                        message.replicaNumber = reader.int32();
+                        break;
+                    case 3:
+                        message.clock = reader.int32();
+                        break;
+                    case 4:
+                        message.offset = reader.int32();
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return IdentifierTupleMsg;
+    })();
+    sync.IdentifierIntervalMsg = (function () {
+        function IdentifierIntervalMsg(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        IdentifierIntervalMsg.prototype.idBegin = null;
+        IdentifierIntervalMsg.prototype.end = 0;
+        IdentifierIntervalMsg.create = function create(properties) {
+            return new IdentifierIntervalMsg(properties);
+        };
+        IdentifierIntervalMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.idBegin != null && message.hasOwnProperty("idBegin"))
+                $root.sync.IdentifierMsg.encode(message.idBegin, writer.uint32(10).fork()).ldelim();
+            if (message.end != null && message.hasOwnProperty("end"))
+                writer.uint32(16).int32(message.end);
+            return writer;
+        };
+        IdentifierIntervalMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.IdentifierIntervalMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.idBegin = $root.sync.IdentifierMsg.decode(reader, reader.uint32());
+                        break;
+                    case 2:
+                        message.end = reader.int32();
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return IdentifierIntervalMsg;
+    })();
+    sync.IntervalMsg = (function () {
+        function IntervalMsg(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        IntervalMsg.prototype.id = 0;
+        IntervalMsg.prototype.begin = 0;
+        IntervalMsg.prototype.end = 0;
+        IntervalMsg.create = function create(properties) {
+            return new IntervalMsg(properties);
+        };
+        IntervalMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.id != null && message.hasOwnProperty("id"))
+                writer.uint32(8).int32(message.id);
+            if (message.begin != null && message.hasOwnProperty("begin"))
+                writer.uint32(16).int32(message.begin);
+            if (message.end != null && message.hasOwnProperty("end"))
+                writer.uint32(24).int32(message.end);
+            return writer;
+        };
+        IntervalMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.IntervalMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.id = reader.int32();
+                        break;
+                    case 2:
+                        message.begin = reader.int32();
+                        break;
+                    case 3:
+                        message.end = reader.int32();
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return IntervalMsg;
+    })();
+    sync.DotMsg = (function () {
+        function DotMsg(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        DotMsg.prototype.replicaNumber = 0;
+        DotMsg.prototype.clock = 0;
+        DotMsg.create = function create(properties) {
+            return new DotMsg(properties);
+        };
+        DotMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.replicaNumber != null && message.hasOwnProperty("replicaNumber"))
+                writer.uint32(8).int32(message.replicaNumber);
+            if (message.clock != null && message.hasOwnProperty("clock"))
+                writer.uint32(16).int32(message.clock);
+            return writer;
+        };
+        DotMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.DotMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.replicaNumber = reader.int32();
+                        break;
+                    case 2:
+                        message.clock = reader.int32();
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return DotMsg;
     })();
     sync.RichLogootSOperationMsg = (function () {
         function RichLogootSOperationMsg(properties) {
@@ -1461,102 +1829,6 @@ var sync = $root.sync = (function () {
         };
         return LogootSAddMsg;
     })();
-    sync.IdentifierMsg = (function () {
-        function IdentifierMsg(properties) {
-            this.tuples = [];
-            if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-        IdentifierMsg.prototype.tuples = $util.emptyArray;
-        IdentifierMsg.create = function create(properties) {
-            return new IdentifierMsg(properties);
-        };
-        IdentifierMsg.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.tuples != null && message.tuples.length)
-                for (var i = 0; i < message.tuples.length; ++i)
-                    $root.sync.IdentifierTupleMsg.encode(message.tuples[i], writer.uint32(10).fork()).ldelim();
-            return writer;
-        };
-        IdentifierMsg.decode = function decode(reader, length) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.IdentifierMsg();
-            while (reader.pos < end) {
-                var tag = reader.uint32();
-                switch (tag >>> 3) {
-                    case 1:
-                        if (!(message.tuples && message.tuples.length))
-                            message.tuples = [];
-                        message.tuples.push($root.sync.IdentifierTupleMsg.decode(reader, reader.uint32()));
-                        break;
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                }
-            }
-            return message;
-        };
-        return IdentifierMsg;
-    })();
-    sync.IdentifierTupleMsg = (function () {
-        function IdentifierTupleMsg(properties) {
-            if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-        IdentifierTupleMsg.prototype.random = 0;
-        IdentifierTupleMsg.prototype.replicaNumber = 0;
-        IdentifierTupleMsg.prototype.clock = 0;
-        IdentifierTupleMsg.prototype.offset = 0;
-        IdentifierTupleMsg.create = function create(properties) {
-            return new IdentifierTupleMsg(properties);
-        };
-        IdentifierTupleMsg.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.random != null && message.hasOwnProperty("random"))
-                writer.uint32(8).int32(message.random);
-            if (message.replicaNumber != null && message.hasOwnProperty("replicaNumber"))
-                writer.uint32(16).int32(message.replicaNumber);
-            if (message.clock != null && message.hasOwnProperty("clock"))
-                writer.uint32(24).int32(message.clock);
-            if (message.offset != null && message.hasOwnProperty("offset"))
-                writer.uint32(32).int32(message.offset);
-            return writer;
-        };
-        IdentifierTupleMsg.decode = function decode(reader, length) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.IdentifierTupleMsg();
-            while (reader.pos < end) {
-                var tag = reader.uint32();
-                switch (tag >>> 3) {
-                    case 1:
-                        message.random = reader.int32();
-                        break;
-                    case 2:
-                        message.replicaNumber = reader.int32();
-                        break;
-                    case 3:
-                        message.clock = reader.int32();
-                        break;
-                    case 4:
-                        message.offset = reader.int32();
-                        break;
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                }
-            }
-            return message;
-        };
-        return IdentifierTupleMsg;
-    })();
     sync.LogootSDelMsg = (function () {
         function LogootSDelMsg(properties) {
             this.lid = [];
@@ -1603,236 +1875,6 @@ var sync = $root.sync = (function () {
             return message;
         };
         return LogootSDelMsg;
-    })();
-    sync.IdentifierIntervalMsg = (function () {
-        function IdentifierIntervalMsg(properties) {
-            if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-        IdentifierIntervalMsg.prototype.idBegin = null;
-        IdentifierIntervalMsg.prototype.end = 0;
-        IdentifierIntervalMsg.create = function create(properties) {
-            return new IdentifierIntervalMsg(properties);
-        };
-        IdentifierIntervalMsg.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.idBegin != null && message.hasOwnProperty("idBegin"))
-                $root.sync.IdentifierMsg.encode(message.idBegin, writer.uint32(10).fork()).ldelim();
-            if (message.end != null && message.hasOwnProperty("end"))
-                writer.uint32(16).int32(message.end);
-            return writer;
-        };
-        IdentifierIntervalMsg.decode = function decode(reader, length) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.IdentifierIntervalMsg();
-            while (reader.pos < end) {
-                var tag = reader.uint32();
-                switch (tag >>> 3) {
-                    case 1:
-                        message.idBegin = $root.sync.IdentifierMsg.decode(reader, reader.uint32());
-                        break;
-                    case 2:
-                        message.end = reader.int32();
-                        break;
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                }
-            }
-            return message;
-        };
-        return IdentifierIntervalMsg;
-    })();
-    sync.QuerySyncMsg = (function () {
-        function QuerySyncMsg(properties) {
-            this.vector = {};
-            if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-        QuerySyncMsg.prototype.vector = $util.emptyObject;
-        QuerySyncMsg.create = function create(properties) {
-            return new QuerySyncMsg(properties);
-        };
-        QuerySyncMsg.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.vector != null && message.hasOwnProperty("vector"))
-                for (var keys = Object.keys(message.vector), i = 0; i < keys.length; ++i)
-                    writer.uint32(10).fork().uint32(8).int32(keys[i]).uint32(16).int32(message.vector[keys[i]]).ldelim();
-            return writer;
-        };
-        QuerySyncMsg.decode = function decode(reader, length) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.QuerySyncMsg(), key;
-            while (reader.pos < end) {
-                var tag = reader.uint32();
-                switch (tag >>> 3) {
-                    case 1:
-                        reader.skip().pos++;
-                        if (message.vector === $util.emptyObject)
-                            message.vector = {};
-                        key = reader.int32();
-                        reader.pos++;
-                        message.vector[key] = reader.int32();
-                        break;
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                }
-            }
-            return message;
-        };
-        return QuerySyncMsg;
-    })();
-    sync.ReplySyncMsg = (function () {
-        function ReplySyncMsg(properties) {
-            this.richLogootSOpsMsg = [];
-            this.intervals = [];
-            if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-        ReplySyncMsg.prototype.richLogootSOpsMsg = $util.emptyArray;
-        ReplySyncMsg.prototype.intervals = $util.emptyArray;
-        ReplySyncMsg.create = function create(properties) {
-            return new ReplySyncMsg(properties);
-        };
-        ReplySyncMsg.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.richLogootSOpsMsg != null && message.richLogootSOpsMsg.length)
-                for (var i = 0; i < message.richLogootSOpsMsg.length; ++i)
-                    $root.sync.RichLogootSOperationMsg.encode(message.richLogootSOpsMsg[i], writer.uint32(10).fork()).ldelim();
-            if (message.intervals != null && message.intervals.length)
-                for (var i = 0; i < message.intervals.length; ++i)
-                    $root.sync.IntervalMsg.encode(message.intervals[i], writer.uint32(18).fork()).ldelim();
-            return writer;
-        };
-        ReplySyncMsg.decode = function decode(reader, length) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.ReplySyncMsg();
-            while (reader.pos < end) {
-                var tag = reader.uint32();
-                switch (tag >>> 3) {
-                    case 1:
-                        if (!(message.richLogootSOpsMsg && message.richLogootSOpsMsg.length))
-                            message.richLogootSOpsMsg = [];
-                        message.richLogootSOpsMsg.push($root.sync.RichLogootSOperationMsg.decode(reader, reader.uint32()));
-                        break;
-                    case 2:
-                        if (!(message.intervals && message.intervals.length))
-                            message.intervals = [];
-                        message.intervals.push($root.sync.IntervalMsg.decode(reader, reader.uint32()));
-                        break;
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                }
-            }
-            return message;
-        };
-        return ReplySyncMsg;
-    })();
-    sync.IntervalMsg = (function () {
-        function IntervalMsg(properties) {
-            if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-        IntervalMsg.prototype.id = 0;
-        IntervalMsg.prototype.begin = 0;
-        IntervalMsg.prototype.end = 0;
-        IntervalMsg.create = function create(properties) {
-            return new IntervalMsg(properties);
-        };
-        IntervalMsg.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.id != null && message.hasOwnProperty("id"))
-                writer.uint32(8).int32(message.id);
-            if (message.begin != null && message.hasOwnProperty("begin"))
-                writer.uint32(16).int32(message.begin);
-            if (message.end != null && message.hasOwnProperty("end"))
-                writer.uint32(24).int32(message.end);
-            return writer;
-        };
-        IntervalMsg.decode = function decode(reader, length) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.IntervalMsg();
-            while (reader.pos < end) {
-                var tag = reader.uint32();
-                switch (tag >>> 3) {
-                    case 1:
-                        message.id = reader.int32();
-                        break;
-                    case 2:
-                        message.begin = reader.int32();
-                        break;
-                    case 3:
-                        message.end = reader.int32();
-                        break;
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                }
-            }
-            return message;
-        };
-        return IntervalMsg;
-    })();
-    sync.DotMsg = (function () {
-        function DotMsg(properties) {
-            if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-        DotMsg.prototype.replicaNumber = 0;
-        DotMsg.prototype.clock = 0;
-        DotMsg.create = function create(properties) {
-            return new DotMsg(properties);
-        };
-        DotMsg.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.replicaNumber != null && message.hasOwnProperty("replicaNumber"))
-                writer.uint32(8).int32(message.replicaNumber);
-            if (message.clock != null && message.hasOwnProperty("clock"))
-                writer.uint32(16).int32(message.clock);
-            return writer;
-        };
-        DotMsg.decode = function decode(reader, length) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.DotMsg();
-            while (reader.pos < end) {
-                var tag = reader.uint32();
-                switch (tag >>> 3) {
-                    case 1:
-                        message.replicaNumber = reader.int32();
-                        break;
-                    case 2:
-                        message.clock = reader.int32();
-                        break;
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                }
-            }
-            return message;
-        };
-        return DotMsg;
     })();
     return sync;
 })();
