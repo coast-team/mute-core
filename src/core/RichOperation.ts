@@ -28,8 +28,6 @@ export class RichOperation<Op> {
       }
     })
 
-    // FIXME: equals between operations
-
     return result && dependenciesResult
   }
 }

@@ -1,7 +1,13 @@
-import { TextOperation } from 'mute-structs'
+import { Identifier, TextOperation } from 'mute-structs'
 import { Observable, Subject } from 'rxjs'
 import { ICollaborator } from '../collaborators'
 import { Disposable } from '../misc'
+import { sync } from '../proto'
+
+export interface Position {
+  id: Identifier
+  index: number
+}
 
 export abstract class Document<Seq, Op> extends Disposable {
   protected _doc: Seq
@@ -97,4 +103,7 @@ export abstract class Document<Seq, Op> extends Disposable {
 
   public abstract handleLocalOperation(operation: TextOperation[]): void
   public abstract handleRemoteOperation(operation: Op): TextOperation[]
+
+  public abstract positionFromIndex(index: number): Position | undefined
+  public abstract indexFromId(id: sync.IdentifierMsg): number
 }

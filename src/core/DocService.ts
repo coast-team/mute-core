@@ -1,9 +1,7 @@
 import { TextOperation } from 'mute-structs'
-import { Observable, Subject } from 'rxjs'
+import { Observable } from 'rxjs'
 import { CollaboratorsService, ICollaborator } from '../collaborators'
-import { IMessageIn, IMessageOut } from '../misc'
-import { Document } from './Document'
-import { RichOperation } from './RichOperation'
+import { Document, Position } from './Document'
 import { State } from './State'
 import { Sync } from './Sync'
 import { SyncMessage } from './SyncMessage'
@@ -17,23 +15,17 @@ export abstract class DocService<Seq, Op> {
   protected collaboratorService: CollaboratorsService
 
   constructor(
-    messageIn$: Observable<IMessageIn>,
-    messageOut$: Subject<IMessageOut>,
     id: number,
-    state: State<Seq, Op>,
-    collaboratorService: CollaboratorsService
+    collaboratorService: CollaboratorsService,
+    document: Document<Seq, Op>,
+    sync: Sync<Op>,
+    syncMessage: SyncMessage<Op>
   ) {
     this.id = id
     this.collaboratorService = collaboratorService
-    this.document = this.concreteDocument(state.sequenceCRDT)
-    this.sync = this.concreteSync(
-      id,
-      state.networkClock,
-      state.vector,
-      state.remoteOperations,
-      collaboratorService
-    )
-    this.syncMsg = this.concreteSyncMessage(messageIn$, messageOut$)
+    this.document = document
+    this.sync = sync
+    this.syncMsg = syncMessage
 
     this.document.remoteOperations$ = this.sync.remoteOperations$
     this.sync.localOperations$ = this.document.localOperations$
@@ -45,18 +37,17 @@ export abstract class DocService<Seq, Op> {
     this.syncMsg.replySync$ = this.sync.replySync$
   }
 
-  protected abstract concreteDocument(sequenceCRDT: Seq): Document<Seq, Op>
-  protected abstract concreteSync(
-    id: number,
-    networkClock: number,
-    vector: Map<number, number>,
-    rOps: Array<RichOperation<Op>>,
-    collaboratorsService: CollaboratorsService
-  ): Sync<Op>
-  protected abstract concreteSyncMessage(
-    messageIn$: Observable<IMessageIn>,
-    messageOut$: Subject<IMessageOut>
-  ): SyncMessage<Op>
+  synchronize() {
+    this.sync.sync()
+  }
+
+  indexFromId(pos: any): number {
+    return this.document.indexFromId(pos)
+  }
+
+  positionFromIndex(index: number): Position | undefined {
+    return this.document.positionFromIndex(index)
+  }
 
   abstract get state(): State<Seq, Op>
 

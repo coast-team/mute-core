@@ -8,7 +8,7 @@ import { RichOperation } from './RichOperation'
 
 export interface SyncState<Op> {
   networkClock: number
-  author: number
+  vector: Map<number, number>
   richOperations: Array<RichOperation<Op>>
 }
 
@@ -99,7 +99,7 @@ export abstract class Sync<Op> extends Disposable {
   get stateElements(): SyncState<Op> {
     return {
       networkClock: this.clock,
-      author: this.id,
+      vector: this.vector.asMap(),
       richOperations: this.richOperations,
     }
   }

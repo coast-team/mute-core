@@ -1,6 +1,32 @@
 import { RichOperation } from './RichOperation'
 
+export interface StateJSON<Seq, Op> {
+  readonly vector: Array<[number, number]>
+  readonly richOps: Array<RichOperation<Op>>
+  readonly sequenceCRDT: Seq
+  readonly networkClock: number
+  readonly id: number
+}
+
 export abstract class State<Seq, Op> {
+  static isArray(o: any): o is Array<[number, number]> {
+    let res = true
+    if (o instanceof Array) {
+      o.forEach((value) => {
+        if (value instanceof Array) {
+          if (value.length !== 2 || typeof value[0] !== 'number' || typeof value[1] !== 'number') {
+            res = false
+          }
+        } else {
+          res = false
+        }
+      })
+    } else {
+      res = false
+    }
+    return res
+  }
+
   protected _sequenceCRDT: Seq
   protected _remoteOperations: Array<RichOperation<Op>>
   protected _networkClock: number
