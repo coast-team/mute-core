@@ -51,8 +51,8 @@ message IntervalMsg {
   int32 end = 3;
 }
 
-message DotMsg {
+/*message DotMsg {
   int32 replicaNumber = 1;
   int32 clock = 2;
-}
+}*/
 

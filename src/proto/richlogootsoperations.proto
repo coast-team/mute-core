@@ -9,7 +9,7 @@ message RichLogootSOperationMsg {
     LogootSAddMsg logootSAddMsg = 3;
     LogootSDelMsg logootSDelMsg = 4;
   }
-  repeated DotMsg dependencies = 5;
+  map<int32, int32> dependencies = 5;
 }
 
 message LogootSAddMsg {
