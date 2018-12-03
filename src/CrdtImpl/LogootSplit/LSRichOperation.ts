@@ -1,9 +1,9 @@
-import { isDot, LogootSAdd, LogootSDel, LogootSOperation } from "mute-structs";
-import { SafeAny } from "safe-any";
-import { RichOperation } from "../../core";
+import { LogootSAdd, LogootSDel, LogootSOperation } from 'mute-structs'
+import { SafeAny } from 'safe-any'
+import { RichOperation } from '../../core'
 
 export class LSRichOperation extends RichOperation<LogootSOperation> {
-  static fromPlain (o: SafeAny<LSRichOperation>): LSRichOperation | null {
+  static fromPlain(o: SafeAny<LSRichOperation>): LSRichOperation | null {
     if (
       typeof o === 'object' &&
       o !== null &&
@@ -11,8 +11,7 @@ export class LSRichOperation extends RichOperation<LogootSOperation> {
       Number.isInteger(o.id) &&
       typeof o.clock === 'number' &&
       Number.isInteger(o.clock) &&
-      o.dependencies instanceof Array &&
-      o.dependencies.every(isDot)
+      o.dependencies instanceof Map
     ) {
       const logootSAdd = LogootSAdd.fromPlain(o.operation)
       if (logootSAdd instanceof LogootSAdd) {
@@ -20,14 +19,14 @@ export class LSRichOperation extends RichOperation<LogootSOperation> {
       }
 
       const logootSDel = LogootSDel.fromPlain(o.operation)
-      if (logootSDel instanceof LogootSDel && o.dependencies.length > 0) {
+      if (logootSDel instanceof LogootSDel && o.dependencies.size > 0) {
         return new LSRichOperation(o.id, o.clock, logootSDel, new Map(o.dependencies))
       }
     }
     return null
   }
 
-  equals (aOther: LSRichOperation): boolean {
+  equals(aOther: LSRichOperation): boolean {
     let areOpsEquals = false
     if (this.operation instanceof LogootSAdd && aOther.operation instanceof LogootSAdd) {
       areOpsEquals = this.operation.equals(aOther.operation)
