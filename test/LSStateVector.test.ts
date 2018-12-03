@@ -4,7 +4,7 @@ import test, { ExecutionContext } from 'ava'
 import { Interval, StateVector } from '../src/sync'
 
 import { StateVectorOrder } from '../src/sync/StateVector'
-import { generateVector } from './Helpers'
+import { generateVector } from './LSHelpers'
 
 function isAlreadyDeliveredMacro(
   t: ExecutionContext,
