@@ -44,4 +44,12 @@ export class StateStrategy {
     }
     return state
   }
+
+  static getStr(state: StateTypes): string | undefined {
+    if (state instanceof LSState) {
+      return state.sequenceCRDT.str
+    } else {
+      return undefined
+    }
+  }
 }
