@@ -1,21 +1,20 @@
-import { LogootSOperation, LogootSRopes } from "mute-structs";
-import { SafeAny } from "safe-any";
-import { State, StateJSON } from "../../core";
-import { generateId } from "../../misc";
-import { LSRichOperation } from "./LSRichOperation";
+import { LogootSOperation, LogootSRopes } from 'mute-structs'
+import { SafeAny } from 'safe-any'
+import { State, StateJSON } from '../../core'
+import { generateId } from '../../misc'
+import { LSRichOperation } from './LSRichOperation'
 
 export class LSState extends State<LogootSRopes, LogootSOperation> {
-
-  static emptyState (): LSState {
+  static emptyState(): LSState {
     const id = generateId()
     return new LSState(id, new LogootSRopes(id), [], new Map(), 0)
   }
 
-  static fromPlain (o: SafeAny<StateJSON<LogootSRopes, LogootSOperation>>): LSState | null {
-    if (o !== null && typeof o === 'object' && o.richOps instanceof Array) {
+  static fromPlain(o: SafeAny<StateJSON<LogootSRopes, LogootSOperation>>): LSState | null {
+    if (o !== null && typeof o === 'object' && o.remoteOperations instanceof Array) {
       // If one operation is null -> error
-      const lsRichOperations = o.richOps.map((rich) => {
-        return LSRichOperation.fromPlain(rich)
+      const lsRichOperations = o.remoteOperations.map((richOp) => {
+        return LSRichOperation.fromPlain(richOp)
       }) as LSRichOperation[]
       const nbOperationNull = lsRichOperations.filter((r) => r === null).length
       if (nbOperationNull > 0) {
