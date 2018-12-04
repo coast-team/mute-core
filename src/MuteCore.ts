@@ -33,8 +33,6 @@ export class MuteCore<Seq, Op> extends Disposable {
   private metaDataService: MetaDataService
   private docService: DocService<Seq, Op>
 
-  private _localOperationForLog$: Subject<LocalOperation>
-  private _remoteOperationForLog: Subject<RemoteOperation>
   private _messageOut$: Subject<IMessageOut>
   private _messageIn$: Subject<IMessageIn>
 
@@ -59,8 +57,6 @@ export class MuteCore<Seq, Op> extends Disposable {
     */
     this._messageOut$ = new Subject()
     this._messageIn$ = new Subject()
-    this._localOperationForLog$ = new Subject()
-    this._remoteOperationForLog = new Subject()
 
     // Initialize CollaboratorsService
     this.collaboratorsService = new CollaboratorsService(this._messageIn$, this._messageOut$, {
@@ -109,12 +105,12 @@ export class MuteCore<Seq, Op> extends Disposable {
   /*
    * Observables for logging
    */
-  get localOperationForLog$(): Observable<LocalOperation> {
-    return this._localOperationForLog$.asObservable()
+  get localOperationForLog$(): Observable<LocalOperation<Op>> {
+    return this.docService.localOperationForLog$
   }
 
-  get remoteOperationForLog(): Observable<RemoteOperation> {
-    return this._remoteOperationForLog.asObservable()
+  get remoteOperationForLog(): Observable<RemoteOperation<Op>> {
+    return this.docService.remoteOperationForLog$
   }
 
   /*
