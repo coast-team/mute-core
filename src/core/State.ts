@@ -2,7 +2,7 @@ import { RichOperation } from './RichOperation'
 
 export interface StateJSON<Seq, Op> {
   readonly vector: Array<[number, number]>
-  readonly richOps: Array<RichOperation<Op>>
+  readonly remoteOperations: Array<RichOperation<Op>>
   readonly sequenceCRDT: Seq
   readonly networkClock: number
   readonly id: number
@@ -50,7 +50,7 @@ export abstract class State<Seq, Op> {
   toJSON(): string {
     return JSON.stringify({
       vector: Array.from(this._vector),
-      remoteOperations: this._remoteOperations,
+      remoteOperations: this._remoteOperations.map((richOperation) => richOperation.toJson()),
       sequenceCRDT: this._sequenceCRDT,
       networkClock: this._networkClock,
       id: this._id,

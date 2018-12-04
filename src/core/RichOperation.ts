@@ -30,4 +30,13 @@ export class RichOperation<Op> {
 
     return result && dependenciesResult
   }
+
+  toJson(): string {
+    return JSON.stringify({
+      id: this.id,
+      clock: this.clock,
+      operation: this.operation,
+      dependencies: Array.from(this.dependencies),
+    })
+  }
 }
