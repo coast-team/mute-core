@@ -10,8 +10,7 @@ export class LSRichOperation extends RichOperation<LogootSOperation> {
       typeof o.id === 'number' &&
       Number.isInteger(o.id) &&
       typeof o.clock === 'number' &&
-      Number.isInteger(o.clock) &&
-      o.dependencies instanceof Map
+      Number.isInteger(o.clock)
     ) {
       const logootSAdd = LogootSAdd.fromPlain(o.operation)
       if (logootSAdd instanceof LogootSAdd) {
@@ -19,8 +18,12 @@ export class LSRichOperation extends RichOperation<LogootSOperation> {
       }
 
       const logootSDel = LogootSDel.fromPlain(o.operation)
-      if (logootSDel instanceof LogootSDel && o.dependencies.size > 0) {
-        return new LSRichOperation(o.id, o.clock, logootSDel, new Map(o.dependencies))
+      if (logootSDel instanceof LogootSDel) {
+        if (o.dependencies instanceof Array && o.dependencies.length > 0) {
+          return new LSRichOperation(o.id, o.clock, logootSDel, new Map(o.dependencies))
+        } else if (o.dependencies instanceof Map && o.dependencies.size > 0) {
+          return new LSRichOperation(o.id, o.clock, logootSDel, o.dependencies)
+        }
       }
     }
     return null
