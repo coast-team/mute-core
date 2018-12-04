@@ -2,9 +2,9 @@ import { Observable, Subject } from 'rxjs'
 import { first } from 'rxjs/operators'
 import { CollaboratorsService, ICollaborator } from '../collaborators'
 import { Disposable } from '../misc'
-import { StateVector } from '../sync'
 import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichOperation } from './RichOperation'
+import { StateVector } from './StateVector'
 
 export interface SyncState<Op> {
   networkClock: number

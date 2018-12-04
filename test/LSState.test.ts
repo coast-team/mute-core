@@ -1,5 +1,5 @@
 import test from 'ava'
-import { LSState } from '../src/CrdtImpl/LogootSplit'
+import { LSState } from '../src/crdtImpl/LogootSplit'
 
 test('isReadonlyArray-ok', (context) => {
   const o = [[1, 2], [3, 4], [5, 6]]

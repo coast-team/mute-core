@@ -3,11 +3,10 @@ import { from, Subject } from 'rxjs'
 import { map } from 'rxjs/operators'
 
 import { LogootSOperation } from 'mute-structs'
-import { ReplySyncEvent } from '../src/core'
-import { LSSyncMessage } from '../src/CrdtImpl/LogootSplit'
+import { Interval, ReplySyncEvent, StateVector } from '../src/core'
+import { LSSyncMessage } from '../src/crdtImpl/LogootSplit'
 import { IMessageIn, IMessageOut } from '../src/misc'
 import { Streams } from '../src/Streams'
-import { Interval } from '../src/sync'
 import { generateQuerySyncMsg, generateSequentialRichLogootSOps, generateVector } from './LSHelpers'
 
 function generateReplySync(): ReplySyncEvent<LogootSOperation> {
@@ -70,7 +69,7 @@ test('querySync-correct-send-and-delivery', (context) => {
 
   context.plan(expectedVector.size)
   return syncMsgOut.remoteQuerySync$.pipe(
-    map((actualVector) => {
+    map((actualVector: StateVector) => {
       actualVector.forEach((actual, key) => {
         context.is(actual, expectedVector.get(key as number))
       })

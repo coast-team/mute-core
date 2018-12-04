@@ -1,9 +1,7 @@
 import { AssertionError } from 'assert'
 import test, { ExecutionContext } from 'ava'
 
-import { Interval, StateVector } from '../src/sync'
-
-import { StateVectorOrder } from '../src/sync/StateVector'
+import { Interval, StateVector, StateVectorOrder } from '../src/core'
 import { generateVector } from './LSHelpers'
 
 function isAlreadyDeliveredMacro(

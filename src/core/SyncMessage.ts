@@ -2,9 +2,10 @@ import { Observable, Subject, zip } from 'rxjs'
 import { IMessageIn, IMessageOut, Service } from '../misc'
 import { sync as proto } from '../proto'
 import { Streams } from '../Streams'
-import { Interval, StateVector } from '../sync'
+import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichOperation } from './RichOperation'
+import { StateVector } from './StateVector'
 
 export abstract class SyncMessage<Op> extends Service<proto.ISyncMsg, proto.SyncMsg> {
   protected remoteQuerySyncSubject: Subject<StateVector>

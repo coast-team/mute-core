@@ -1,4 +1,4 @@
-import { Interval } from '../sync'
+import { Interval } from './Interval'
 import { RichOperation } from './RichOperation'
 
 export class ReplySyncEvent<Op> {

@@ -7,9 +7,8 @@ import {
   LogootSOperation,
 } from 'mute-structs'
 
-import { RichOperation } from '../src/core'
+import { RichOperation, StateVector } from '../src/core'
 import { sync } from '../src/proto'
-import { StateVector } from '../src/sync'
 
 export function generateSequentialRichLogootSOps(): Array<RichOperation<LogootSOperation>> {
   const replicaNumber = 0

@@ -1,2 +1,2 @@
-export * from './FIFOSync'
-export * from './LSSync'
+export { FIFOSync } from './FIFOSync'
+export { LSSync } from './LSSync'

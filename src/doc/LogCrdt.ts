@@ -1,5 +1,4 @@
-import { StateVector } from '../sync'
-import { StateVectorOrder } from '../sync/StateVector'
+import { StateVector, StateVectorOrder } from '../core'
 
 export class LogCrdt {
   private id: number

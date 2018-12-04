@@ -1,3 +1,3 @@
 export enum Strategy {
-  LOGOOTSPLIT = 100
+  LOGOOTSPLIT = 100,
 }

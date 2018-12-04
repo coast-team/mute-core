@@ -3,7 +3,7 @@ import { LogootSRopes, TextDelete, TextInsert } from 'mute-structs'
 import { from } from 'rxjs'
 import { map } from 'rxjs/operators'
 
-import { LSDocument } from '../src/CrdtImpl/LogootSplit'
+import { LSDocument } from '../src/crdtImpl/LogootSplit'
 
 test('textOperation-correct-send-and-delivery', (context) => {
   const docIn = new LSDocument(new LogootSRopes(0))

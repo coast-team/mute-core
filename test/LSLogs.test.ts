@@ -2,7 +2,7 @@ import test from 'ava'
 
 import { LogootSRopes, TextInsert } from 'mute-structs'
 import { isUndefined } from 'util'
-import { LSDocument } from '../src/CrdtImpl/LogootSplit'
+import { LSDocument } from '../src/crdtImpl/LogootSplit'
 
 test('toto', (t) => {
   const a: LSDocument = new LSDocument(new LogootSRopes(1))
