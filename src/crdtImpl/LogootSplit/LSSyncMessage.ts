@@ -14,12 +14,15 @@ export class LSSyncMessage extends SyncMessage<LogootSOperation> {
     richOperation: RichOperation<LogootSOperation>
   ): proto.RichOperationMsg {
     const { id, clock, operation: logootSOp, dependencies } = richOperation
-    const d = Array.from(dependencies).reduce((acc: object, v) => {
-      const key: string = v[0] + ''
-      const obj = Object.create({})
-      obj[key] = v[1]
-      return { ...acc, ...obj }
-    }, {})
+    const d: { [k: string]: number } = Array.from(dependencies).reduce(
+      (acc: { [k: string]: number }, v) => {
+        const key: string = v[0] + ''
+        const obj = Object.create({})
+        obj[key] = v[1]
+        return { ...acc, ...obj }
+      },
+      {}
+    )
     const logootMsg = proto.RichLogootSOperationMsg.create({ id, clock, dependencies: d })
 
     const res = proto.RichOperationMsg.create({ richLogootSOpsMsg: logootMsg })
