@@ -65,6 +65,10 @@ export abstract class State<Seq, Op> {
     return this._remoteOperations
   }
 
+  set remoteOperations(ops: Array<RichOperation<Op>>) {
+    this._remoteOperations = ops
+  }
+
   get sequenceCRDT(): Seq {
     return this._sequenceCRDT
   }
