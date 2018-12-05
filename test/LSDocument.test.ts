@@ -3,18 +3,18 @@ import { LogootSRopes, TextDelete, TextInsert } from 'mute-structs'
 import { from } from 'rxjs'
 import { map } from 'rxjs/operators'
 
-import { Document } from '../src/doc'
+import { LSDocument } from '../src/crdtImpl/LogootSplit'
 
 test('textOperation-correct-send-and-delivery', (context) => {
-  const docIn = new Document(new LogootSRopes(0))
-  const docOut = new Document(new LogootSRopes(1))
+  const docIn = new LSDocument(new LogootSRopes(0))
+  const docOut = new LSDocument(new LogootSRopes(1))
   const textOperations = [
     new TextInsert(0, 'Hello', 0),
     new TextInsert(5, ' world!', 0),
     new TextDelete(3, 4, 0),
   ]
 
-  docOut.remoteLogootSOperations$ = docIn.localLogootSOperations$.pipe(
+  docOut.remoteOperations$ = docIn.localOperations$.pipe(
     map((logootSOp) => ({ collaborator: undefined, operations: [logootSOp] }))
   )
 

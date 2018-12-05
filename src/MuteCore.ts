@@ -1,37 +1,26 @@
-import {
-  LogootSAdd,
-  LogootSDel,
-  LogootSOperation,
-  TextDelete,
-  TextInsert,
-  TextOperation,
-} from 'mute-structs'
-import { Observable, Subject, zip } from 'rxjs'
-
+import { LogootSOperation, LogootSRopes, TextOperation } from 'mute-structs'
+import { Observable, Subject } from 'rxjs'
 import { CollaboratorsService, ICollaborator } from './collaborators'
-import {
-  Document,
-  FixDataState,
-  MetaDataMessage,
-  MetaDataService,
-  Position,
-  TitleState,
-} from './doc'
-import { LogState } from './doc/Logs'
+import { DocService, Position, State } from './core'
+import { DocServiceStrategy, DocServiceStrategyMethod, StateTypes, Strategy } from './crdtImpl'
+import { LSState } from './crdtImpl/LogootSplit'
+import { FixDataState, LogState, MetaDataMessage, MetaDataService, TitleState } from './doc'
 import { LocalOperation, RemoteOperation } from './logs'
 import { Disposable, generateId, IMessageIn, IMessageOut } from './misc'
 import { collaborator as proto } from './proto'
-import { State, Sync, SyncMessageService } from './sync'
+
+export type MuteCoreTypes = MuteCore<LogootSRopes, LogootSOperation>
 
 export interface SessionParameters {
+  strategy: Strategy
   profile: proto.ICollaborator
-  docContent: State
+  docContent: StateTypes
   metaTitle: TitleState
   metaFixData: FixDataState
   metaLogs: LogState
 }
 
-export class MuteCore extends Disposable {
+export class MuteCore<Seq, Op> extends Disposable {
   public static mergeTitle(s1: TitleState, s2: TitleState): TitleState {
     return MetaDataService.mergeTitle(s1, s2)
   }
@@ -41,17 +30,16 @@ export class MuteCore extends Disposable {
   }
 
   private collaboratorsService: CollaboratorsService
-  private doc: Document
   private metaDataService: MetaDataService
-  private sync: Sync
-  private syncMessageService: SyncMessageService
+  private docService: DocService<Seq, Op>
 
-  private _localOperationForLog$: Subject<LocalOperation>
-  private _remoteOperationForLog: Subject<RemoteOperation>
   private _messageOut$: Subject<IMessageOut>
   private _messageIn$: Subject<IMessageIn>
 
-  constructor({ profile, docContent, metaTitle, metaFixData, metaLogs }: SessionParameters) {
+  constructor(
+    { profile, strategy, docContent, metaTitle, metaFixData, metaLogs }: SessionParameters,
+    docServiceMethod: DocServiceStrategyMethod<Seq, Op>
+  ) {
     super()
     let muteCoreId: number
     if (docContent.id !== 0) {
@@ -69,8 +57,6 @@ export class MuteCore extends Disposable {
     */
     this._messageOut$ = new Subject()
     this._messageIn$ = new Subject()
-    this._localOperationForLog$ = new Subject()
-    this._remoteOperationForLog = new Subject()
 
     // Initialize CollaboratorsService
     this.collaboratorsService = new CollaboratorsService(this._messageIn$, this._messageOut$, {
@@ -78,8 +64,6 @@ export class MuteCore extends Disposable {
       ...profile,
     } as ICollaborator)
 
-    // Initialize document content and metadata with local values
-    this.doc = new Document(docContent.logootsRopes)
     this.metaDataService = new MetaDataService(
       this._messageIn$,
       this._messageOut$,
@@ -89,45 +73,25 @@ export class MuteCore extends Disposable {
       muteCoreId
     )
 
-    // Initialize synchronization mechanism
-    this.sync = new Sync(profile.muteCoreId, docContent, this.collaboratorsService)
-    this.syncMessageService = new SyncMessageService(this._messageIn$, this._messageOut$)
-
-    this.doc.remoteLogootSOperations$ = this.sync.remoteLogootSOperations$
-    this.sync.localLogootSOperations$ = this.doc.localLogootSOperations$
-    this.sync.remoteQuerySync$ = this.syncMessageService.remoteQuerySync$
-    this.sync.remoteReplySync$ = this.syncMessageService.remoteReplySync$
-    this.sync.remoteRichLogootSOperations$ = this.syncMessageService.remoteRichLogootSOperations$
-    this.syncMessageService.localRichLogootSOperations$ = this.sync.localRichLogootSOperations
-    this.syncMessageService.querySync$ = this.sync.querySync$
-    this.syncMessageService.replySync$ = this.sync.replySync$
-
-    this.newSub = this.doc.localOperationLog$.subscribe((op) => {
-      this.logLocalOperation(muteCoreId, op.textop, op.logootsop)
-    })
-    const e = zip(
-      this.doc.remoteOperationLog$,
-      this.sync.logsRemoteRichLogootsOperations$,
-      (v1, v2) => ({ v1, v2 })
+    this.docService = docServiceMethod(
+      strategy,
+      this._messageIn$,
+      this._messageOut$,
+      muteCoreId,
+      docContent,
+      this.collaboratorsService
     )
-    this.newSub = e.subscribe(({ v1, v2 }) => {
-      this.logRemoteOperation(muteCoreId, v1.textop, v1.logootsop, v2.clock, v2.author)
-    })
+
+    // Subscription for logs
+    // TODO
   }
 
   get myMuteCoreId(): number {
     return this.collaboratorsService.me.muteCoreId || 0
   }
 
-  get state(): State {
-    const { vector, richLogootSOps, networkClock } = this.sync.stateElements
-    return new State(
-      vector,
-      richLogootSOps,
-      this.doc.stateElements,
-      networkClock,
-      this.myMuteCoreId
-    )
+  get state(): State<Seq, Op> {
+    return this.docService.state
   }
 
   set messageIn$(source: Observable<IMessageIn>) {
@@ -141,33 +105,30 @@ export class MuteCore extends Disposable {
   /*
    * Observables for logging
    */
-  get localOperationForLog$(): Observable<LocalOperation> {
-    return this._localOperationForLog$.asObservable()
+  get localOperationForLog$(): Observable<LocalOperation<Op>> {
+    return this.docService.localOperationForLog$
   }
 
-  get remoteOperationForLog(): Observable<RemoteOperation> {
-    return this._remoteOperationForLog.asObservable()
+  get remoteOperationForLog(): Observable<RemoteOperation<Op>> {
+    return this.docService.remoteOperationForLog$
   }
 
   /*
    * Doc observables
    */
   set localTextOperations$(source: Observable<TextOperation[]>) {
-    this.doc.localTextOperations$ = source
+    this.docService.localTextOperations$ = source
   }
 
   get remoteTextOperations$(): Observable<{
     collaborator: ICollaborator | undefined
     operations: TextOperation[]
   }> {
-    return this.doc.remoteTextOperations$
+    return this.docService.remoteTextOperations$
   }
 
   get digestUpdate$(): Observable<number> {
-    return this.doc.digest$
-  }
-  get treeUpdate$(): Observable<string> {
-    return this.doc.tree$
+    return this.docService.digestUpdate$
   }
 
   /*
@@ -211,83 +172,30 @@ export class MuteCore extends Disposable {
   }
 
   synchronize() {
-    this.sync.sync()
+    this.docService.synchronize()
   }
 
   indexFromId(pos: any): number {
-    return this.doc.indexFromId(pos)
+    return this.docService.indexFromId(pos)
   }
 
   positionFromIndex(index: number): Position | undefined {
-    return this.doc.positionFromIndex(index)
+    return this.docService.positionFromIndex(index)
   }
+}
 
-  dispose() {
-    this.collaboratorsService.dispose()
-    this.doc.dispose()
-    this.metaDataService.dispose()
-    this.sync.dispose()
-    this.syncMessageService.dispose()
-  }
-
-  logLocalOperation(id: number, textope: TextOperation, ope: LogootSOperation) {
-    if (ope instanceof LogootSAdd) {
-      const o = ope as LogootSAdd
-      const textoperation = textope as TextInsert
-      this._localOperationForLog$.next({
-        type: 'localInsertion',
-        siteId: id,
-        clock: this.sync.getClock,
-        position: textoperation.index,
-        content: textoperation.content,
-        length: textoperation.content.length,
-        logootsOperation: o,
-        context: this.sync.getVector,
-      })
-    } else if (ope instanceof LogootSDel) {
-      const o = ope as LogootSDel
-      const textoperation = textope as TextDelete
-      this._localOperationForLog$.next({
-        type: 'localDeletion',
-        siteId: id,
-        clock: this.sync.getClock,
-        position: textoperation.index,
-        length: textoperation.length,
-        logootsOperation: o,
-        context: this.sync.getVector,
-      })
-    }
-  }
-
-  logRemoteOperation(
-    id: number,
-    texteope: TextOperation[],
-    ope: LogootSOperation,
-    clock: number,
-    author: number
-  ) {
-    if (ope instanceof LogootSAdd) {
-      const o = ope as LogootSAdd
-      this._remoteOperationForLog.next({
-        type: 'remoteInsertion',
-        siteId: id,
-        remoteSiteId: author,
-        remoteClock: clock,
-        textOperation: texteope,
-        logootsOperation: o,
-        context: this.sync.getVector,
-      })
-    } else if (ope instanceof LogootSDel) {
-      const o = ope as LogootSDel
-      this._remoteOperationForLog.next({
-        type: 'remoteDeletion',
-        siteId: id,
-        remoteSiteId: author,
-        remoteClock: clock,
-        textOperation: texteope,
-        logootsOperation: o,
-        context: this.sync.getVector,
-      })
+export class MuteCoreFactory {
+  static createMuteCore(constructorParam: SessionParameters) {
+    switch (constructorParam.strategy) {
+      case Strategy.LOGOOTSPLIT:
+        if (constructorParam.docContent instanceof LSState) {
+          return new MuteCore<LogootSRopes, LogootSOperation>(
+            constructorParam,
+            DocServiceStrategy.createDocService
+          )
+        } else {
+          throw new Error('')
+        }
     }
   }
 }

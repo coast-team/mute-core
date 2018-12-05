@@ -1294,6 +1294,48 @@ var $Reader = minimal_1, $Writer = minimal_2, $util = minimal_3;
 var $root = minimal_4["default"] || (minimal_4["default"] = {});
 var sync = $root.sync = (function () {
     var sync = {};
+    sync.RichOperationMsg = (function () {
+        function RichOperationMsg(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        RichOperationMsg.prototype.richLogootSOpsMsg = null;
+        var $oneOfFields;
+        Object.defineProperty(RichOperationMsg.prototype, "type", {
+            get: $util.oneOfGetter($oneOfFields = ["richLogootSOpsMsg"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+        RichOperationMsg.create = function create(properties) {
+            return new RichOperationMsg(properties);
+        };
+        RichOperationMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.richLogootSOpsMsg != null && message.hasOwnProperty("richLogootSOpsMsg"))
+                $root.sync.RichLogootSOperationMsg.encode(message.richLogootSOpsMsg, writer.uint32(10).fork()).ldelim();
+            return writer;
+        };
+        RichOperationMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.RichOperationMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.richLogootSOpsMsg = $root.sync.RichLogootSOperationMsg.decode(reader, reader.uint32());
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return RichOperationMsg;
+    })();
     sync.SyncMsg = (function () {
         function SyncMsg(properties) {
             if (properties)
@@ -1301,12 +1343,12 @@ var sync = $root.sync = (function () {
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
-        SyncMsg.prototype.richLogootSOpMsg = null;
+        SyncMsg.prototype.richOpMsg = null;
         SyncMsg.prototype.querySync = null;
         SyncMsg.prototype.replySync = null;
         var $oneOfFields;
         Object.defineProperty(SyncMsg.prototype, "type", {
-            get: $util.oneOfGetter($oneOfFields = ["richLogootSOpMsg", "querySync", "replySync"]),
+            get: $util.oneOfGetter($oneOfFields = ["richOpMsg", "querySync", "replySync"]),
             set: $util.oneOfSetter($oneOfFields)
         });
         SyncMsg.create = function create(properties) {
@@ -1315,8 +1357,8 @@ var sync = $root.sync = (function () {
         SyncMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.richLogootSOpMsg != null && message.hasOwnProperty("richLogootSOpMsg"))
-                $root.sync.RichLogootSOperationMsg.encode(message.richLogootSOpMsg, writer.uint32(10).fork()).ldelim();
+            if (message.richOpMsg != null && message.hasOwnProperty("richOpMsg"))
+                $root.sync.RichOperationMsg.encode(message.richOpMsg, writer.uint32(10).fork()).ldelim();
             if (message.querySync != null && message.hasOwnProperty("querySync"))
                 $root.sync.QuerySyncMsg.encode(message.querySync, writer.uint32(18).fork()).ldelim();
             if (message.replySync != null && message.hasOwnProperty("replySync"))
@@ -1331,7 +1373,7 @@ var sync = $root.sync = (function () {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
                     case 1:
-                        message.richLogootSOpMsg = $root.sync.RichLogootSOperationMsg.decode(reader, reader.uint32());
+                        message.richOpMsg = $root.sync.RichOperationMsg.decode(reader, reader.uint32());
                         break;
                     case 2:
                         message.querySync = $root.sync.QuerySyncMsg.decode(reader, reader.uint32());
@@ -1348,66 +1390,40 @@ var sync = $root.sync = (function () {
         };
         return SyncMsg;
     })();
-    sync.RichLogootSOperationMsg = (function () {
-        function RichLogootSOperationMsg(properties) {
-            this.dependencies = [];
+    sync.QuerySyncMsg = (function () {
+        function QuerySyncMsg(properties) {
+            this.vector = {};
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
-        RichLogootSOperationMsg.prototype.id = 0;
-        RichLogootSOperationMsg.prototype.clock = 0;
-        RichLogootSOperationMsg.prototype.logootSAddMsg = null;
-        RichLogootSOperationMsg.prototype.logootSDelMsg = null;
-        RichLogootSOperationMsg.prototype.dependencies = $util.emptyArray;
-        var $oneOfFields;
-        Object.defineProperty(RichLogootSOperationMsg.prototype, "type", {
-            get: $util.oneOfGetter($oneOfFields = ["logootSAddMsg", "logootSDelMsg"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-        RichLogootSOperationMsg.create = function create(properties) {
-            return new RichLogootSOperationMsg(properties);
+        QuerySyncMsg.prototype.vector = $util.emptyObject;
+        QuerySyncMsg.create = function create(properties) {
+            return new QuerySyncMsg(properties);
         };
-        RichLogootSOperationMsg.encode = function encode(message, writer) {
+        QuerySyncMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.id != null && message.hasOwnProperty("id"))
-                writer.uint32(8).int32(message.id);
-            if (message.clock != null && message.hasOwnProperty("clock"))
-                writer.uint32(16).int32(message.clock);
-            if (message.logootSAddMsg != null && message.hasOwnProperty("logootSAddMsg"))
-                $root.sync.LogootSAddMsg.encode(message.logootSAddMsg, writer.uint32(26).fork()).ldelim();
-            if (message.logootSDelMsg != null && message.hasOwnProperty("logootSDelMsg"))
-                $root.sync.LogootSDelMsg.encode(message.logootSDelMsg, writer.uint32(34).fork()).ldelim();
-            if (message.dependencies != null && message.dependencies.length)
-                for (var i = 0; i < message.dependencies.length; ++i)
-                    $root.sync.DotMsg.encode(message.dependencies[i], writer.uint32(42).fork()).ldelim();
+            if (message.vector != null && message.hasOwnProperty("vector"))
+                for (var keys = Object.keys(message.vector), i = 0; i < keys.length; ++i)
+                    writer.uint32(10).fork().uint32(8).int32(keys[i]).uint32(16).int32(message.vector[keys[i]]).ldelim();
             return writer;
         };
-        RichLogootSOperationMsg.decode = function decode(reader, length) {
+        QuerySyncMsg.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.RichLogootSOperationMsg();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.QuerySyncMsg(), key;
             while (reader.pos < end) {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
                     case 1:
-                        message.id = reader.int32();
-                        break;
-                    case 2:
-                        message.clock = reader.int32();
-                        break;
-                    case 3:
-                        message.logootSAddMsg = $root.sync.LogootSAddMsg.decode(reader, reader.uint32());
-                        break;
-                    case 4:
-                        message.logootSDelMsg = $root.sync.LogootSDelMsg.decode(reader, reader.uint32());
-                        break;
-                    case 5:
-                        if (!(message.dependencies && message.dependencies.length))
-                            message.dependencies = [];
-                        message.dependencies.push($root.sync.DotMsg.decode(reader, reader.uint32()));
+                        reader.skip().pos++;
+                        if (message.vector === $util.emptyObject)
+                            message.vector = {};
+                        key = reader.int32();
+                        reader.pos++;
+                        message.vector[key] = reader.int32();
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -1416,41 +1432,49 @@ var sync = $root.sync = (function () {
             }
             return message;
         };
-        return RichLogootSOperationMsg;
+        return QuerySyncMsg;
     })();
-    sync.LogootSAddMsg = (function () {
-        function LogootSAddMsg(properties) {
+    sync.ReplySyncMsg = (function () {
+        function ReplySyncMsg(properties) {
+            this.richOpsMsg = [];
+            this.intervals = [];
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
-        LogootSAddMsg.prototype.id = null;
-        LogootSAddMsg.prototype.content = "";
-        LogootSAddMsg.create = function create(properties) {
-            return new LogootSAddMsg(properties);
+        ReplySyncMsg.prototype.richOpsMsg = $util.emptyArray;
+        ReplySyncMsg.prototype.intervals = $util.emptyArray;
+        ReplySyncMsg.create = function create(properties) {
+            return new ReplySyncMsg(properties);
         };
-        LogootSAddMsg.encode = function encode(message, writer) {
+        ReplySyncMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.id != null && message.hasOwnProperty("id"))
-                $root.sync.IdentifierMsg.encode(message.id, writer.uint32(10).fork()).ldelim();
-            if (message.content != null && message.hasOwnProperty("content"))
-                writer.uint32(18).string(message.content);
+            if (message.richOpsMsg != null && message.richOpsMsg.length)
+                for (var i = 0; i < message.richOpsMsg.length; ++i)
+                    $root.sync.RichOperationMsg.encode(message.richOpsMsg[i], writer.uint32(10).fork()).ldelim();
+            if (message.intervals != null && message.intervals.length)
+                for (var i = 0; i < message.intervals.length; ++i)
+                    $root.sync.IntervalMsg.encode(message.intervals[i], writer.uint32(18).fork()).ldelim();
             return writer;
         };
-        LogootSAddMsg.decode = function decode(reader, length) {
+        ReplySyncMsg.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.LogootSAddMsg();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.ReplySyncMsg();
             while (reader.pos < end) {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
                     case 1:
-                        message.id = $root.sync.IdentifierMsg.decode(reader, reader.uint32());
+                        if (!(message.richOpsMsg && message.richOpsMsg.length))
+                            message.richOpsMsg = [];
+                        message.richOpsMsg.push($root.sync.RichOperationMsg.decode(reader, reader.uint32()));
                         break;
                     case 2:
-                        message.content = reader.string();
+                        if (!(message.intervals && message.intervals.length))
+                            message.intervals = [];
+                        message.intervals.push($root.sync.IntervalMsg.decode(reader, reader.uint32()));
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -1459,7 +1483,7 @@ var sync = $root.sync = (function () {
             }
             return message;
         };
-        return LogootSAddMsg;
+        return ReplySyncMsg;
     })();
     sync.IdentifierMsg = (function () {
         function IdentifierMsg(properties) {
@@ -1557,53 +1581,6 @@ var sync = $root.sync = (function () {
         };
         return IdentifierTupleMsg;
     })();
-    sync.LogootSDelMsg = (function () {
-        function LogootSDelMsg(properties) {
-            this.lid = [];
-            if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-        LogootSDelMsg.prototype.lid = $util.emptyArray;
-        LogootSDelMsg.prototype.author = 0;
-        LogootSDelMsg.create = function create(properties) {
-            return new LogootSDelMsg(properties);
-        };
-        LogootSDelMsg.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.lid != null && message.lid.length)
-                for (var i = 0; i < message.lid.length; ++i)
-                    $root.sync.IdentifierIntervalMsg.encode(message.lid[i], writer.uint32(10).fork()).ldelim();
-            if (message.author != null && message.hasOwnProperty("author"))
-                writer.uint32(16).int32(message.author);
-            return writer;
-        };
-        LogootSDelMsg.decode = function decode(reader, length) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.LogootSDelMsg();
-            while (reader.pos < end) {
-                var tag = reader.uint32();
-                switch (tag >>> 3) {
-                    case 1:
-                        if (!(message.lid && message.lid.length))
-                            message.lid = [];
-                        message.lid.push($root.sync.IdentifierIntervalMsg.decode(reader, reader.uint32()));
-                        break;
-                    case 2:
-                        message.author = reader.int32();
-                        break;
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                }
-            }
-            return message;
-        };
-        return LogootSDelMsg;
-    })();
     sync.IdentifierIntervalMsg = (function () {
         function IdentifierIntervalMsg(properties) {
             if (properties)
@@ -1646,101 +1623,6 @@ var sync = $root.sync = (function () {
             return message;
         };
         return IdentifierIntervalMsg;
-    })();
-    sync.QuerySyncMsg = (function () {
-        function QuerySyncMsg(properties) {
-            this.vector = {};
-            if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-        QuerySyncMsg.prototype.vector = $util.emptyObject;
-        QuerySyncMsg.create = function create(properties) {
-            return new QuerySyncMsg(properties);
-        };
-        QuerySyncMsg.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.vector != null && message.hasOwnProperty("vector"))
-                for (var keys = Object.keys(message.vector), i = 0; i < keys.length; ++i)
-                    writer.uint32(10).fork().uint32(8).int32(keys[i]).uint32(16).int32(message.vector[keys[i]]).ldelim();
-            return writer;
-        };
-        QuerySyncMsg.decode = function decode(reader, length) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.QuerySyncMsg(), key;
-            while (reader.pos < end) {
-                var tag = reader.uint32();
-                switch (tag >>> 3) {
-                    case 1:
-                        reader.skip().pos++;
-                        if (message.vector === $util.emptyObject)
-                            message.vector = {};
-                        key = reader.int32();
-                        reader.pos++;
-                        message.vector[key] = reader.int32();
-                        break;
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                }
-            }
-            return message;
-        };
-        return QuerySyncMsg;
-    })();
-    sync.ReplySyncMsg = (function () {
-        function ReplySyncMsg(properties) {
-            this.richLogootSOpsMsg = [];
-            this.intervals = [];
-            if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-        ReplySyncMsg.prototype.richLogootSOpsMsg = $util.emptyArray;
-        ReplySyncMsg.prototype.intervals = $util.emptyArray;
-        ReplySyncMsg.create = function create(properties) {
-            return new ReplySyncMsg(properties);
-        };
-        ReplySyncMsg.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.richLogootSOpsMsg != null && message.richLogootSOpsMsg.length)
-                for (var i = 0; i < message.richLogootSOpsMsg.length; ++i)
-                    $root.sync.RichLogootSOperationMsg.encode(message.richLogootSOpsMsg[i], writer.uint32(10).fork()).ldelim();
-            if (message.intervals != null && message.intervals.length)
-                for (var i = 0; i < message.intervals.length; ++i)
-                    $root.sync.IntervalMsg.encode(message.intervals[i], writer.uint32(18).fork()).ldelim();
-            return writer;
-        };
-        ReplySyncMsg.decode = function decode(reader, length) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.ReplySyncMsg();
-            while (reader.pos < end) {
-                var tag = reader.uint32();
-                switch (tag >>> 3) {
-                    case 1:
-                        if (!(message.richLogootSOpsMsg && message.richLogootSOpsMsg.length))
-                            message.richLogootSOpsMsg = [];
-                        message.richLogootSOpsMsg.push($root.sync.RichLogootSOperationMsg.decode(reader, reader.uint32()));
-                        break;
-                    case 2:
-                        if (!(message.intervals && message.intervals.length))
-                            message.intervals = [];
-                        message.intervals.push($root.sync.IntervalMsg.decode(reader, reader.uint32()));
-                        break;
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                }
-            }
-            return message;
-        };
-        return ReplySyncMsg;
     })();
     sync.IntervalMsg = (function () {
         function IntervalMsg(properties) {
@@ -1791,39 +1673,69 @@ var sync = $root.sync = (function () {
         };
         return IntervalMsg;
     })();
-    sync.DotMsg = (function () {
-        function DotMsg(properties) {
+    sync.RichLogootSOperationMsg = (function () {
+        function RichLogootSOperationMsg(properties) {
+            this.dependencies = {};
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
-        DotMsg.prototype.replicaNumber = 0;
-        DotMsg.prototype.clock = 0;
-        DotMsg.create = function create(properties) {
-            return new DotMsg(properties);
+        RichLogootSOperationMsg.prototype.id = 0;
+        RichLogootSOperationMsg.prototype.clock = 0;
+        RichLogootSOperationMsg.prototype.logootSAddMsg = null;
+        RichLogootSOperationMsg.prototype.logootSDelMsg = null;
+        RichLogootSOperationMsg.prototype.dependencies = $util.emptyObject;
+        var $oneOfFields;
+        Object.defineProperty(RichLogootSOperationMsg.prototype, "type", {
+            get: $util.oneOfGetter($oneOfFields = ["logootSAddMsg", "logootSDelMsg"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+        RichLogootSOperationMsg.create = function create(properties) {
+            return new RichLogootSOperationMsg(properties);
         };
-        DotMsg.encode = function encode(message, writer) {
+        RichLogootSOperationMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.replicaNumber != null && message.hasOwnProperty("replicaNumber"))
-                writer.uint32(8).int32(message.replicaNumber);
+            if (message.id != null && message.hasOwnProperty("id"))
+                writer.uint32(8).int32(message.id);
             if (message.clock != null && message.hasOwnProperty("clock"))
                 writer.uint32(16).int32(message.clock);
+            if (message.logootSAddMsg != null && message.hasOwnProperty("logootSAddMsg"))
+                $root.sync.LogootSAddMsg.encode(message.logootSAddMsg, writer.uint32(26).fork()).ldelim();
+            if (message.logootSDelMsg != null && message.hasOwnProperty("logootSDelMsg"))
+                $root.sync.LogootSDelMsg.encode(message.logootSDelMsg, writer.uint32(34).fork()).ldelim();
+            if (message.dependencies != null && message.hasOwnProperty("dependencies"))
+                for (var keys = Object.keys(message.dependencies), i = 0; i < keys.length; ++i)
+                    writer.uint32(42).fork().uint32(8).int32(keys[i]).uint32(16).int32(message.dependencies[keys[i]]).ldelim();
             return writer;
         };
-        DotMsg.decode = function decode(reader, length) {
+        RichLogootSOperationMsg.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.DotMsg();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.RichLogootSOperationMsg(), key;
             while (reader.pos < end) {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
                     case 1:
-                        message.replicaNumber = reader.int32();
+                        message.id = reader.int32();
                         break;
                     case 2:
                         message.clock = reader.int32();
+                        break;
+                    case 3:
+                        message.logootSAddMsg = $root.sync.LogootSAddMsg.decode(reader, reader.uint32());
+                        break;
+                    case 4:
+                        message.logootSDelMsg = $root.sync.LogootSDelMsg.decode(reader, reader.uint32());
+                        break;
+                    case 5:
+                        reader.skip().pos++;
+                        if (message.dependencies === $util.emptyObject)
+                            message.dependencies = {};
+                        key = reader.int32();
+                        reader.pos++;
+                        message.dependencies[key] = reader.int32();
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -1832,7 +1744,97 @@ var sync = $root.sync = (function () {
             }
             return message;
         };
-        return DotMsg;
+        return RichLogootSOperationMsg;
+    })();
+    sync.LogootSAddMsg = (function () {
+        function LogootSAddMsg(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        LogootSAddMsg.prototype.id = null;
+        LogootSAddMsg.prototype.content = "";
+        LogootSAddMsg.create = function create(properties) {
+            return new LogootSAddMsg(properties);
+        };
+        LogootSAddMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.id != null && message.hasOwnProperty("id"))
+                $root.sync.IdentifierMsg.encode(message.id, writer.uint32(10).fork()).ldelim();
+            if (message.content != null && message.hasOwnProperty("content"))
+                writer.uint32(18).string(message.content);
+            return writer;
+        };
+        LogootSAddMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.LogootSAddMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.id = $root.sync.IdentifierMsg.decode(reader, reader.uint32());
+                        break;
+                    case 2:
+                        message.content = reader.string();
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return LogootSAddMsg;
+    })();
+    sync.LogootSDelMsg = (function () {
+        function LogootSDelMsg(properties) {
+            this.lid = [];
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        LogootSDelMsg.prototype.lid = $util.emptyArray;
+        LogootSDelMsg.prototype.author = 0;
+        LogootSDelMsg.create = function create(properties) {
+            return new LogootSDelMsg(properties);
+        };
+        LogootSDelMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.lid != null && message.lid.length)
+                for (var i = 0; i < message.lid.length; ++i)
+                    $root.sync.IdentifierIntervalMsg.encode(message.lid[i], writer.uint32(10).fork()).ldelim();
+            if (message.author != null && message.hasOwnProperty("author"))
+                writer.uint32(16).int32(message.author);
+            return writer;
+        };
+        LogootSDelMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.LogootSDelMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        if (!(message.lid && message.lid.length))
+                            message.lid = [];
+                        message.lid.push($root.sync.IdentifierIntervalMsg.decode(reader, reader.uint32()));
+                        break;
+                    case 2:
+                        message.author = reader.int32();
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return LogootSDelMsg;
     })();
     return sync;
 })();

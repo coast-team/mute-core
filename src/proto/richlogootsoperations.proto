@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package sync;
+
+message RichLogootSOperationMsg {
+  int32 id = 1;
+  int32 clock = 2;
+  oneof type {
+    LogootSAddMsg logootSAddMsg = 3;
+    LogootSDelMsg logootSDelMsg = 4;
+  }
+  map<int32, int32> dependencies = 5;
+}
+
+message LogootSAddMsg {
+  IdentifierMsg id = 1;
+  string content = 2;
+}
+
+message LogootSDelMsg {
+  repeated IdentifierIntervalMsg lid = 1;
+  int32 author = 2;
+}

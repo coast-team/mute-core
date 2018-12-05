@@ -2,27 +2,31 @@ syntax = "proto3";
 
 package sync;
 
+// Operations implementation
+import "richlogootsoperations.proto";
+
+// RichOperation
+message RichOperationMsg {
+  oneof type {
+    RichLogootSOperationMsg richLogootSOpsMsg = 1;
+  }
+}
+
 message SyncMsg {
   oneof type {
-    RichLogootSOperationMsg richLogootSOpMsg = 1;
+    RichOperationMsg richOpMsg = 1;
     QuerySyncMsg querySync = 2;
     ReplySyncMsg replySync = 3;
   }
 }
 
-message RichLogootSOperationMsg {
-  int32 id = 1;
-  int32 clock = 2;
-  oneof type {
-    LogootSAddMsg logootSAddMsg = 3;
-    LogootSDelMsg logootSDelMsg = 4;
-  }
-  repeated DotMsg dependencies = 5;
+message QuerySyncMsg {
+  map<int32, int32> vector = 1;
 }
 
-message LogootSAddMsg {
-  IdentifierMsg id = 1;
-  string content = 2;
+message ReplySyncMsg {
+  repeated RichOperationMsg richOpsMsg = 1;
+  repeated IntervalMsg intervals = 2;
 }
 
 message IdentifierMsg {
@@ -36,23 +40,9 @@ message IdentifierTupleMsg {
   int32 offset = 4;
 }
 
-message LogootSDelMsg {
-  repeated IdentifierIntervalMsg lid = 1;
-  int32 author = 2;
-}
-
 message IdentifierIntervalMsg {
   IdentifierMsg idBegin = 1;
   int32 end = 2;
-}
-
-message QuerySyncMsg {
-  map<int32, int32> vector = 1;
-}
-
-message ReplySyncMsg {
-  repeated RichLogootSOperationMsg richLogootSOpsMsg = 1;
-  repeated IntervalMsg intervals = 2;
 }
 
 message IntervalMsg {
@@ -61,7 +51,8 @@ message IntervalMsg {
   int32 end = 3;
 }
 
-message DotMsg {
+/*message DotMsg {
   int32 replicaNumber = 1;
   int32 clock = 2;
-}
+}*/
+

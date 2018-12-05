@@ -2,12 +2,12 @@ import test from 'ava'
 
 import { LogootSRopes, TextInsert } from 'mute-structs'
 import { isUndefined } from 'util'
-import { Document } from '../src/doc'
+import { LSDocument } from '../src/crdtImpl/LogootSplit'
 
 test('toto', (t) => {
-  const a: Document = new Document(new LogootSRopes(1))
-  const b: Document = new Document(new LogootSRopes(2))
-  const c: Document = new Document(new LogootSRopes(3))
+  const a: LSDocument = new LSDocument(new LogootSRopes(1))
+  const b: LSDocument = new LSDocument(new LogootSRopes(2))
+  const c: LSDocument = new LSDocument(new LogootSRopes(3))
 
   let remoteA
   let remoteB
@@ -18,22 +18,22 @@ test('toto', (t) => {
     [new TextInsert(0, 'He', 1), new TextInsert(3, 'lo', 1)],
   ]
 
-  a.localLogootSOperations$.subscribe((v) => {
+  a.localOperations$.subscribe((v) => {
     remoteA = v
   })
-  b.localLogootSOperations$.subscribe((v) => {
+  b.localOperations$.subscribe((v) => {
     remoteB = v
   })
   c.remoteOperationLog$.subscribe((v) => {
     t.deepEqual(v.textop, result[cpt])
     cpt++
   })
-  a.handleTextOperations([new TextInsert(0, 'Helo', 0)])
+  a.handleLocalOperation([new TextInsert(0, 'Helo', 0)])
   if (isUndefined(remoteA)) {
     return
   }
   b.handleRemoteOperation(remoteA)
-  b.handleTextOperations([new TextInsert(2, 'l', 0)])
+  b.handleLocalOperation([new TextInsert(2, 'l', 0)])
   if (isUndefined(remoteB)) {
     return
   }

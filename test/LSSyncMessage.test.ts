@@ -2,12 +2,14 @@ import test from 'ava'
 import { from, Subject } from 'rxjs'
 import { map } from 'rxjs/operators'
 
+import { LogootSOperation } from 'mute-structs'
+import { Interval, ReplySyncEvent, StateVector } from '../src/core'
+import { LSSyncMessage } from '../src/crdtImpl/LogootSplit'
 import { IMessageIn, IMessageOut } from '../src/misc'
 import { Streams } from '../src/Streams'
-import { Interval, ReplySyncEvent, SyncMessageService } from '../src/sync'
-import { generateQuerySyncMsg, generateSequentialRichLogootSOps, generateVector } from './Helpers'
+import { generateQuerySyncMsg, generateSequentialRichLogootSOps, generateVector } from './LSHelpers'
 
-function generateReplySync(): ReplySyncEvent {
+function generateReplySync(): ReplySyncEvent<LogootSOperation> {
   const richLogootSOps = generateSequentialRichLogootSOps()
   const intervals = [new Interval(0, 0, 5), new Interval(1, 10, 30), new Interval(42, 3, 3)]
 
@@ -16,8 +18,8 @@ function generateReplySync(): ReplySyncEvent {
 
 test('richLogootSOperations-correct-send-and-delivery', (context) => {
   const msgOut1 = new Subject<IMessageOut>()
-  const syncMsgIn = new SyncMessageService(new Subject<IMessageIn>(), msgOut1)
-  const syncMsgOut = new SyncMessageService(
+  const syncMsgIn = new LSSyncMessage(new Subject<IMessageIn>(), msgOut1)
+  const syncMsgOut = new LSSyncMessage(
     msgOut1.pipe(
       map((msg) => {
         const { recipientId, ...rest } = msg
@@ -29,17 +31,17 @@ test('richLogootSOperations-correct-send-and-delivery', (context) => {
 
   const richLogootSOps = generateSequentialRichLogootSOps()
   setTimeout(() => {
-    syncMsgIn.localRichLogootSOperations$ = from(richLogootSOps)
+    syncMsgIn.localRichOperations$ = from(richLogootSOps)
     syncMsgIn.dispose()
     syncMsgOut.dispose()
   })
-
   let counter = 0
   context.plan(richLogootSOps.length)
-  return syncMsgOut.remoteRichLogootSOperations$.pipe(
+  return syncMsgOut.remoteRichOperations$.pipe(
     map(
       (actual): void => {
-        context.true(actual.equals(richLogootSOps[counter++]))
+        const aOther = richLogootSOps[counter++]
+        context.true(actual.equals(aOther))
       }
     )
   )
@@ -47,8 +49,8 @@ test('richLogootSOperations-correct-send-and-delivery', (context) => {
 
 test('querySync-correct-send-and-delivery', (context) => {
   const msgOut1 = new Subject<IMessageOut>()
-  const syncMsgIn = new SyncMessageService(new Subject<IMessageIn>(), msgOut1)
-  const syncMsgOut = new SyncMessageService(
+  const syncMsgIn = new LSSyncMessage(new Subject<IMessageIn>(), msgOut1)
+  const syncMsgOut = new LSSyncMessage(
     msgOut1.pipe(
       map((msg) => {
         const { recipientId, ...rest } = msg
@@ -67,7 +69,7 @@ test('querySync-correct-send-and-delivery', (context) => {
 
   context.plan(expectedVector.size)
   return syncMsgOut.remoteQuerySync$.pipe(
-    map((actualVector) => {
+    map((actualVector: StateVector) => {
       actualVector.forEach((actual, key) => {
         context.is(actual, expectedVector.get(key as number))
       })
@@ -78,11 +80,11 @@ test('querySync-correct-send-and-delivery', (context) => {
 test('replySync-correct-recipient', (context) => {
   const msgIn = new Subject<IMessageIn>()
   const msgOut = new Subject<IMessageOut>()
-  const syncMsg = new SyncMessageService(msgIn, msgOut)
+  const syncMsg = new LSSyncMessage(msgIn, msgOut)
 
   // Simulate the generation of a ReplySyncEvent
   // when delivering a remote QuerySync
-  const replySyncSubject = new Subject<ReplySyncEvent>()
+  const replySyncSubject = new Subject<ReplySyncEvent<LogootSOperation>>()
   syncMsg.replySync$ = replySyncSubject
   syncMsg.remoteQuerySync$.subscribe(() => replySyncSubject.next(generateReplySync()))
 
@@ -106,8 +108,8 @@ test('replySync-correct-recipient', (context) => {
 test('replySync-correct-send-and-delivery', (context) => {
   const msgOut = new Subject<IMessageOut>()
   const msgIn = new Subject<IMessageIn>()
-  const syncMsgIn = new SyncMessageService(msgIn, msgOut)
-  const syncMsgOut = new SyncMessageService(
+  const syncMsgIn = new LSSyncMessage(msgIn, msgOut)
+  const syncMsgOut = new LSSyncMessage(
     msgOut.pipe(
       map((msg) => {
         const { recipientId, ...rest } = msg
@@ -119,7 +121,7 @@ test('replySync-correct-send-and-delivery', (context) => {
 
   // Simulate the generation of a ReplySyncEvent
   // when delivering a remote QuerySync
-  const replySyncSubject = new Subject<ReplySyncEvent>()
+  const replySyncSubject = new Subject<ReplySyncEvent<LogootSOperation>>()
   syncMsgIn.replySync$ = replySyncSubject
   const expected = generateReplySync()
   syncMsgIn.remoteQuerySync$.subscribe(() => replySyncSubject.next(expected))
