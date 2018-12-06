@@ -5,4 +5,5 @@ export interface ICollaborator {
   login?: string
   email?: string
   avatar?: string
+  deviceID?: string
 }

@@ -1852,6 +1852,7 @@ var collaborator = $root.collaborator = (function () {
         Collaborator.prototype.login = "";
         Collaborator.prototype.email = "";
         Collaborator.prototype.avatar = "";
+        Collaborator.prototype.deviceID = "";
         Collaborator.create = function create(properties) {
             return new Collaborator(properties);
         };
@@ -1868,6 +1869,8 @@ var collaborator = $root.collaborator = (function () {
                 writer.uint32(34).string(message.email);
             if (message.avatar != null && message.hasOwnProperty("avatar"))
                 writer.uint32(42).string(message.avatar);
+            if (message.deviceID != null && message.hasOwnProperty("deviceID"))
+                writer.uint32(50).string(message.deviceID);
             return writer;
         };
         Collaborator.decode = function decode(reader, length) {
@@ -1891,6 +1894,9 @@ var collaborator = $root.collaborator = (function () {
                         break;
                     case 5:
                         message.avatar = reader.string();
+                        break;
+                    case 6:
+                        message.deviceID = reader.string();
                         break;
                     default:
                         reader.skipType(tag & 7);

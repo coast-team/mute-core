@@ -34,6 +34,7 @@ export class CollaboratorsService extends Service<proto.ICollaborator, proto.Col
         collab.login = updated.login || collab.login
         collab.email = updated.email || collab.email
         collab.avatar = updated.avatar || collab.avatar
+        collab.deviceID = updated.deviceID || collab.deviceID
         this.updateSubject.next(collab)
       } else {
         this.collaborators.set(updated.id, updated)

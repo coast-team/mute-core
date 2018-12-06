@@ -617,6 +617,9 @@ export namespace collaborator {
 
         /** Collaborator avatar */
         avatar?: (string|null);
+
+        /** Collaborator deviceID */
+        deviceID?: (string|null);
     }
 
     /** Represents a Collaborator. */
@@ -642,6 +645,9 @@ export namespace collaborator {
 
         /** Collaborator avatar. */
         public avatar: string;
+
+        /** Collaborator deviceID. */
+        public deviceID: string;
 
         /**
          * Creates a new Collaborator instance using the specified properties.
