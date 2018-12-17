@@ -23,6 +23,8 @@ export class LSRichOperation extends RichOperation<LogootSOperation> {
           return new LSRichOperation(o.id, o.clock, logootSDel, new Map(o.dependencies))
         } else if (o.dependencies instanceof Map && o.dependencies.size > 0) {
           return new LSRichOperation(o.id, o.clock, logootSDel, o.dependencies)
+        } else {
+          return new LSRichOperation(o.id, o.clock, logootSDel, new Map())
         }
       }
     }
