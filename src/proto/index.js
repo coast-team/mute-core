@@ -5,7 +5,7 @@ function createCommonjsModule(fn, module) {
 }
 
 var aspromise = asPromise;
-function asPromise(fn, ctx              ) {
+function asPromise(fn, ctx) {
     var params  = new Array(arguments.length - 1),
         offset  = 0,
         index   = 2,
@@ -13,7 +13,7 @@ function asPromise(fn, ctx              ) {
     while (index < arguments.length)
         params[offset++] = arguments[index++];
     return new Promise(function executor(resolve, reject) {
-        params[offset] = function callback(err              ) {
+        params[offset] = function callback(err) {
             if (pending) {
                 pending = false;
                 if (err)
@@ -222,7 +222,7 @@ function factory(exports) {
             if (sign)
                 val = -val;
             if (val === 0)
-                writeUint(1 / val > 0 ?                0 :                  2147483648, buf, pos);
+                writeUint(1 / val > 0 ?  0 :  2147483648, buf, pos);
             else if (isNaN(val))
                 writeUint(2143289344, buf, pos);
             else if (val > 3.4028234663852886e+38)
@@ -312,7 +312,7 @@ function factory(exports) {
                 val = -val;
             if (val === 0) {
                 writeUint(0, buf, pos + off0);
-                writeUint(1 / val > 0 ?                0 :                  2147483648, buf, pos + off1);
+                writeUint(1 / val > 0 ?  0 :  2147483648, buf, pos + off1);
             } else if (isNaN(val)) {
                 writeUint(0, buf, pos + off0);
                 writeUint(2146959360, buf, pos + off1);
@@ -609,10 +609,10 @@ util.global = typeof window !== "undefined" && window
            || typeof commonjsGlobal !== "undefined" && commonjsGlobal
            || typeof self   !== "undefined" && self
            || commonjsGlobal;
-util.emptyArray = Object.freeze ? Object.freeze([]) :                            [];
-util.emptyObject = Object.freeze ? Object.freeze({}) :                            {};
+util.emptyArray = Object.freeze ? Object.freeze([]) :  [];
+util.emptyObject = Object.freeze ? Object.freeze({}) :  {};
 util.isNode = Boolean(util.global.process && util.global.process.versions && util.global.process.versions.node);
-util.isInteger = Number.isInteger ||                            function isInteger(value) {
+util.isInteger = Number.isInteger ||  function isInteger(value) {
     return typeof value === "number" && isFinite(value) && Math.floor(value) === value;
 };
 util.isString = function isString(value) {
@@ -631,7 +631,7 @@ util.isSet = function isSet(obj, prop) {
 util.Buffer = (function() {
     try {
         var Buffer = util.inquire("buffer").Buffer;
-        return Buffer.prototype.utf8Write ? Buffer :                            null;
+        return Buffer.prototype.utf8Write ? Buffer :  null;
     } catch (e) {
         return null;
     }
@@ -649,9 +649,9 @@ util.newBuffer = function newBuffer(sizeOrArray) {
                 ? sizeOrArray
                 : new Uint8Array(sizeOrArray);
 };
-util.Array = typeof Uint8Array !== "undefined" ? Uint8Array                            : Array;
-util.Long =                            util.global.dcodeIO &&                            util.global.dcodeIO.Long
-         ||                            util.global.Long
+util.Array = typeof Uint8Array !== "undefined" ? Uint8Array  : Array;
+util.Long =  util.global.dcodeIO &&  util.global.dcodeIO.Long
+         ||  util.global.Long
          || util.inquire("long");
 util.key2Re = /^true|false|0|1$/;
 util.key32Re = /^-?(?:0|[1-9][0-9]*)$/;
@@ -1006,7 +1006,7 @@ Reader.create = minimal.Buffer
         })(buffer);
     }
     : create_array;
-Reader.prototype._slice = minimal.Array.prototype.subarray ||                            minimal.Array.prototype.slice;
+Reader.prototype._slice = minimal.Array.prototype.subarray ||  minimal.Array.prototype.slice;
 Reader.prototype.uint32 = (function read_uint32_setup() {
     var value = 4294967295;
     return function read_uint32() {
@@ -1090,7 +1090,7 @@ Reader.prototype.sfixed32 = function read_sfixed32() {
         throw indexOutOfRange(this, 4);
     return readFixed32_end(this.buf, this.pos += 4) | 0;
 };
-function readFixed64(                  ) {
+function readFixed64() {
     if (this.pos + 8 > this.len)
         throw indexOutOfRange(this, 8);
     return new LongBits$2(readFixed32_end(this.buf, this.pos += 4), readFixed32_end(this.buf, this.pos += 4));
@@ -1165,7 +1165,7 @@ Reader.prototype.skipType = function(wireType) {
 };
 Reader._configure = function(BufferReader_) {
     BufferReader = BufferReader_;
-    var fn = minimal.Long ? "toLong" :                            "toNumber";
+    var fn = minimal.Long ? "toLong" :  "toNumber";
     minimal.merge(Reader.prototype, {
         int64: function read_int64() {
             return readLongVarint.call(this)[fn](false);
@@ -1227,7 +1227,7 @@ Service.prototype.rpcCall = function rpcCall(method, requestCtor, responseCtor, 
                     return callback(err);
                 }
                 if (response === null) {
-                    self.end(                 true);
+                    self.end( true);
                     return undefined;
                 }
                 if (!(response instanceof responseCtor)) {
