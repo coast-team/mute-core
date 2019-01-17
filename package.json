@@ -52,34 +52,34 @@
     "semantic-release": "semantic-release"
   },
   "dependencies": {
-    "mute-structs": "^0.5.3",
+    "mute-structs": "^0.5.4",
     "rxjs": "^6.3.3",
     "safe-any": "^1.0.2"
   },
   "devDependencies": {
-    "@commitlint/cli": "^7.1.2",
-    "@commitlint/config-conventional": "^7.1.2",
-    "@types/node": "^8.10.29",
+    "@commitlint/cli": "^7.3.2",
+    "@commitlint/config-conventional": "^7.3.1",
+    "@types/node": "^8.10.39",
     "assert": "^1.4.1",
-    "ava": "^1.0.0-beta.8",
+    "ava": "^1.1.0",
     "commitizen": "^2.10.1",
     "cz-conventional-changelog": "^2.1.0",
     "husky": "^0.14.3",
     "lint-staged": "^7.2.2",
     "markdownlint-cli": "^0.13.0",
-    "prettier": "^1.14.2",
+    "prettier": "^1.15.3",
     "protobufjs": "^6.8.8",
     "rollup": "^0.65.2",
-    "rollup-plugin-cleanup": "^3.0.0",
+    "rollup-plugin-cleanup": "^3.1.0",
     "rollup-plugin-commonjs": "^9.1.6",
     "rollup-plugin-filesize": "^4.0.1",
     "rollup-plugin-node-resolve": "^3.4.0",
     "rollup-plugin-re": "^1.0.7",
     "rollup-plugin-typescript2": "^0.17.0",
     "semantic-release": "^15.12.3",
-    "tslint": "^5.11.0",
-    "tslint-config-prettier": "^1.15.0",
-    "typescript": "^3.0.3"
+    "tslint": "^5.12.1",
+    "tslint-config-prettier": "^1.17.0",
+    "typescript": "^3.2.2"
   },
   "ava": {
     "files": [
