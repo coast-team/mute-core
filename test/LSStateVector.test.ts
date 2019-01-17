@@ -1,4 +1,3 @@
-import { AssertionError } from 'assert'
 import test, { ExecutionContext } from 'ava'
 
 import { Interval, StateVector, StateVectorOrder } from '../src/core'
@@ -70,60 +69,6 @@ test('set-updating-entry', (context) => {
 
   context.is(vector.size, expectedSize)
   context.is(vector.get(key), expectedValue)
-})
-
-test('set-error-missing-values-of-new-entry', (context) => {
-  const vector = new StateVector()
-  const key = 42
-  const expectedSize = 0
-
-  context.throws(() => {
-    vector.set(key, 42)
-  }, AssertionError)
-
-  context.is(vector.size, expectedSize)
-})
-
-test('set-error-replaying-previous-entry', (context) => {
-  const vector = generateVector()
-  const key = 0
-  const currentValue = vector.get(key) as number
-  const expectedSize = vector.size
-
-  context.throws(() => {
-    vector.set(key, currentValue - 1)
-  }, AssertionError)
-
-  context.is(vector.size, expectedSize)
-  context.is(vector.get(key), currentValue)
-})
-
-test('set-error-replaying-last-entry', (context) => {
-  const vector = generateVector()
-  const key = 0
-  const currentValue = vector.get(key) as number
-  const expectedSize = vector.size
-
-  context.throws(() => {
-    vector.set(key, currentValue)
-  }, AssertionError)
-
-  context.is(vector.size, expectedSize)
-  context.is(vector.get(key), currentValue)
-})
-
-test('set-error-missing-values-of-known-entry', (context) => {
-  const vector = generateVector()
-  const key = 0
-  const currentValue = vector.get(key) as number
-  const expectedSize = vector.size
-
-  context.throws(() => {
-    vector.set(key, currentValue + 2)
-  }, AssertionError)
-
-  context.is(vector.size, expectedSize)
-  context.is(vector.get(key), currentValue)
 })
 
 // generateVector() === { 0 -> 42, 1 -> 10, 53 -> 1}
