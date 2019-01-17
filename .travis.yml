@@ -5,6 +5,7 @@ cache:
 notifications:
   email: false
 node_js:
+  - 'node'
   - '9'
   - '8'
 branches:
@@ -12,5 +13,9 @@ branches:
     - /^v\d+\.\d+\.\d+$/
 script:
   - npm run test
-after_success:
-  - npm run travis-deploy-once "npm run semantic-release"
+jobs:
+  include:
+    - stage: release
+      if: branch = master
+      node_js: 'node'
+      script: npm run semantic-release
