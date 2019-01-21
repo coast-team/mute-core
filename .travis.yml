@@ -8,14 +8,15 @@ node_js:
   - 'node'
   - '9'
   - '8'
-branches:
-  except:
-    - /^v\d+\.\d+\.\d+$/
 script:
-  - npm run test
+  - npm test
 jobs:
   include:
     - stage: release
-      if: branch = master
+      if: tag IS present
       node_js: 'node'
-      script: npm run semantic-release
+      script: "echo 'Preparing to release...'"
+      deploy:
+        provider: npm
+        on:
+          tags: true

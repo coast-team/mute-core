@@ -1,7 +1,7 @@
 {
   "name": "@coast-team/mute-core",
   "description": "Core component of MUTE collaborative editor",
-  "version": "0.0.0-development",
+  "version": "9.1.2",
   "main": "./dist/mute-core.node.es5.cjs.js",
   "module": "./dist/mutecore.node.es5.esm.js",
   "browser": "./dist/mute-core.browser.es5.esm.js",
@@ -9,7 +9,8 @@
   "esnext": "dist/mute-core.browser.esnext.esm.js",
   "types": "dist/types/src/index.node.d.ts",
   "files": [
-    "dist/"
+    "dist",
+    "src"
   ],
   "repository": {
     "type": "git",
@@ -48,8 +49,7 @@
     "precommit": "lint-staged && npm test",
     "commitmsg": "commitlint -e $GIT_PARAMS",
     "cz": "git-cz",
-    "presemantic-release": "npm run build",
-    "semantic-release": "semantic-release"
+    "release": "standard-version"
   },
   "dependencies": {
     "mute-structs": "^0.5.4",
@@ -76,7 +76,7 @@
     "rollup-plugin-node-resolve": "^3.4.0",
     "rollup-plugin-re": "^1.0.7",
     "rollup-plugin-typescript2": "^0.17.0",
-    "semantic-release": "^15.12.3",
+    "standard-version": "^4.4.0",
     "tslint": "^5.12.1",
     "tslint-config-prettier": "^1.17.0",
     "typescript": "^3.2.2"
