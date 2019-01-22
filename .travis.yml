@@ -21,6 +21,6 @@ jobs:
         email: nicolasmatthieu57@gmail.com
         api_key:
           secure: B1Nc+NTv3LvbHzIzXpaQHfS7lgmsM2ur1SK/h1DO1KFpf9yMX6P7l21ED5tCt4BP7QGi9b041MnrzCVASdx5akDasV3atm/43byUQgbfubxUDt4vvjr8kcrGgwf3d/YHA/PiJ50QHH/pflm4w8jp0+uPSJK+LPx1SPhAOx4YyQ4dmmzpuhTwmV4Vcm/W5n9ghvWkea1YVEctCey6v99wjYy/OV4lvSYW1pVxY4tK8gg09OGhQaw778iGBixV6dZ8uOusT+UpDmCAWe1ulYn59bilAr7/pe+9V68tK3Y9oP4SWvSAaoPynQzd+rey65kOmSwib2aN4gr3NL4/0IO6Pumh1jGKd+InP3xlGG/7Bx9zd3xluCHOQzyQelOIBPxgAwh+O7leJAGSZSafnpsvyQo38ZukRQ3Z3aI4wAAryV+RcyL8EYu7DyDwHfdV72FIC5+MEE671NCo1d8VVdReL+w6b0rt2VVSj0suJgB8UpUD8Olj3d93X99UXzw2IofVaU1k9o0FRw2PozjXN15QGS2pEVDOyVtYlLWUCpp1Wn1EC2ZRIsC+Dc2qhpu2OW+KCFl5KA1Oeuam364kQnyeOBzqLYOFTHJUSjywLViqdQthtBjVvL2PNp6AXaiFmwxhqUAUzVqyZUuddjQ6TPr6ES8SusUyCEqrVJlBdhNuy0k=
-          skip_cleanup: true
-          on:
-            tags: true
+        skip_cleanup: true
+        on:
+          tags: true
