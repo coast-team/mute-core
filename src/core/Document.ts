@@ -2,6 +2,7 @@ import { Identifier, TextOperation } from 'mute-structs'
 import { Observable, Subject } from 'rxjs'
 import { ICollaborator } from '../collaborators'
 import { Disposable } from '../misc'
+import { IExperimentLogs } from '../misc/IExperimentLogs'
 import { sync } from '../proto'
 
 export interface Position {
@@ -27,6 +28,8 @@ export abstract class Document<Seq, Op> extends Disposable {
   protected digestSubject: Subject<number>
   protected updateSubject: Subject<void>
 
+  protected experimentLogsSubject: Subject<IExperimentLogs>
+
   constructor(sequenceCRDT: Seq) {
     super()
     this._doc = sequenceCRDT
@@ -39,6 +42,8 @@ export abstract class Document<Seq, Op> extends Disposable {
 
     this.digestSubject = new Subject()
     this.updateSubject = new Subject()
+
+    this.experimentLogsSubject = new Subject()
   }
 
   dispose() {
@@ -46,6 +51,7 @@ export abstract class Document<Seq, Op> extends Disposable {
     this.remoteTextOperationSubject.complete()
     this.digestSubject.complete()
     this.updateSubject.complete()
+    this.experimentLogsSubject.complete()
     super.dispose()
   }
 
@@ -55,7 +61,25 @@ export abstract class Document<Seq, Op> extends Disposable {
 
   set localTextOperations$(source: Observable<TextOperation[]>) {
     this.newSub = source.subscribe((textOperations) => {
-      this.handleLocalOperation(textOperations)
+      textOperations.forEach((ope) => {
+        const te4 = process.hrtime()
+        const remoteOp = this.handleLocalOperation(ope)
+        const te3 = process.hrtime()
+        this.experimentLogsSubject.next({
+          site: 0,
+          name: 'Before handleLocalOperation',
+          time: te4,
+          operation: ope,
+        })
+        this.experimentLogsSubject.next({
+          site: 0,
+          name: 'After handleLocalOperation',
+          time: te3,
+          operation: remoteOp,
+        })
+        this.localOperationLogsSubject.next({ textop: ope, operation: remoteOp })
+        this.localOperationSubject.next(remoteOp)
+      })
       this.updateSubject.next()
     })
   }
@@ -75,7 +99,23 @@ export abstract class Document<Seq, Op> extends Disposable {
   ) {
     this.newSub = source.subscribe(({ collaborator, operations }) => {
       const remoteOpes = operations
-        .map((operation) => this.handleRemoteOperation(operation))
+        .map((operation) => {
+          this.experimentLogsSubject.next({
+            site: 0,
+            name: 'Before handleRemoteOperation',
+            time: process.hrtime(),
+            operation,
+          })
+          const res = this.handleRemoteOperation(operation)
+          this.experimentLogsSubject.next({
+            site: 0,
+            name: 'After handleRemoteOperation',
+            time: process.hrtime(),
+            operation,
+          })
+
+          return res
+        })
         .reduce((acc, textOps) => acc.concat(textOps), [])
       this.remoteTextOperationSubject.next({ collaborator, operations: remoteOpes })
       this.updateSubject.next()
@@ -101,7 +141,11 @@ export abstract class Document<Seq, Op> extends Disposable {
     return this.digestSubject.asObservable()
   }
 
-  public abstract handleLocalOperation(operation: TextOperation[]): void
+  get experimentLogs$(): Observable<IExperimentLogs> {
+    return this.experimentLogsSubject.asObservable()
+  }
+
+  public abstract handleLocalOperation(operation: TextOperation): Op
   public abstract handleRemoteOperation(operation: Op): TextOperation[]
 
   public abstract positionFromIndex(index: number): Position | undefined

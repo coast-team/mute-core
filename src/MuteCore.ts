@@ -7,6 +7,7 @@ import { LSState } from './crdtImpl/LogootSplit'
 import { FixDataState, LogState, MetaDataMessage, MetaDataService, TitleState } from './doc'
 import { LocalOperation, RemoteOperation } from './logs'
 import { Disposable, generateId, IMessageIn, IMessageOut } from './misc'
+import { IExperimentLogs } from './misc/IExperimentLogs'
 import { collaborator as proto } from './proto'
 
 export type MuteCoreTypes = MuteCore<LogootSRopes, LogootSOperation>
@@ -113,6 +114,9 @@ export class MuteCore<Seq, Op> extends Disposable {
     return this.docService.remoteOperationForLog$
   }
 
+  get experimentLogs$(): Observable<IExperimentLogs> {
+    return this.docService.experimentsLogs$
+  }
   /*
    * Doc observables
    */
