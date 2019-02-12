@@ -1,5 +1,6 @@
 import { TextOperation } from 'mute-structs'
-import { Observable, Subject, zip } from 'rxjs'
+import { merge, Observable, Subject, zip } from 'rxjs'
+import { map } from 'rxjs/operators'
 import { CollaboratorsService, ICollaborator } from '../collaborators'
 import { LocalOperation, RemoteOperation } from '../logs'
 import { Disposable } from '../misc'
@@ -97,6 +98,23 @@ export abstract class DocService<Seq, Op> extends Disposable {
 
   get remoteOperationForLog$(): Observable<RemoteOperation<Op>> {
     return this._remoteOperationForLog.asObservable()
+  }
+
+  get experimentsLogs$() {
+    return merge(
+      this.syncMsg.experimentLogs$.pipe(
+        map((value) => {
+          value.site = this.id
+          return value
+        })
+      ),
+      this.document.experimentLogs$.pipe(
+        map((value) => {
+          value.site = this.id
+          return value
+        })
+      )
+    )
   }
 
   get digestUpdate$(): Observable<number> {

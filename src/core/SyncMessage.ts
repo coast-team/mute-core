@@ -1,5 +1,6 @@
 import { Observable, Subject, zip } from 'rxjs'
 import { IMessageIn, IMessageOut, Service } from '../misc'
+import { IExperimentLogs } from '../misc/IExperimentLogs'
 import { sync as proto } from '../proto'
 import { Streams, StreamsSubtype } from '../Streams'
 import { Interval } from './Interval'
@@ -13,6 +14,8 @@ export abstract class SyncMessage<Op> extends Service<proto.ISyncMsg, proto.Sync
   protected remoteRichOperationSubject: Subject<RichOperation<Op>>
   protected remoteReplySyncSubject: Subject<ReplySyncEvent<Op>>
 
+  protected experimentLogsSubject: Subject<IExperimentLogs>
+
   constructor(messageIn$: Observable<IMessageIn>, messageOut$: Subject<IMessageOut>) {
     super(messageIn$, messageOut$, Streams.DOCUMENT_CONTENT, proto.SyncMsg)
 
@@ -21,11 +24,25 @@ export abstract class SyncMessage<Op> extends Service<proto.ISyncMsg, proto.Sync
     this.remoteRichOperationSubject = new Subject()
     this.remoteReplySyncSubject = new Subject()
 
+    this.experimentLogsSubject = new Subject()
+
     // FIXME: should I save the subscription for later unsubscribe/subscribe?
     this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
       switch (msg.type) {
         case 'richOpMsg':
+          this.experimentLogsSubject.next({
+            site: 0,
+            name: 'Receive Message',
+            time: process.hrtime(),
+            operation: msg.richOpMsg,
+          })
           this.handleRichOpMsg(msg.richOpMsg as proto.RichOperationMsg)
+          this.experimentLogsSubject.next({
+            site: 0,
+            name: 'After deserialisation',
+            time: process.hrtime(),
+            operation: msg.richOpMsg,
+          })
           break
         case 'querySync':
           this.remoteQuerySyncIdSubject.next(senderId) // Register the id of the peer
@@ -50,12 +67,28 @@ export abstract class SyncMessage<Op> extends Service<proto.ISyncMsg, proto.Sync
     return this.remoteReplySyncSubject.asObservable()
   }
 
+  get experimentLogs$(): Observable<IExperimentLogs> {
+    return this.experimentLogsSubject.asObservable()
+  }
+
   set localRichOperations$(source: Observable<RichOperation<Op>>) {
     this.newSub = source.subscribe((richOp) => {
-      super.send(
-        { richOpMsg: this.serializeRichOperation(richOp) },
-        StreamsSubtype.DOCUMENT_OPERATION
-      )
+      const te2 = process.hrtime()
+      const richOpMsg = this.serializeRichOperation(richOp)
+      super.send({ richOpMsg }, StreamsSubtype.DOCUMENT_OPERATION)
+      const te1 = process.hrtime()
+      this.experimentLogsSubject.next({
+        site: 0,
+        name: 'Before serialisation',
+        time: te2,
+        operation: richOpMsg,
+      })
+      this.experimentLogsSubject.next({
+        site: 0,
+        name: 'Sending message',
+        time: te1,
+        operation: richOpMsg,
+      })
     })
   }
 
@@ -92,6 +125,7 @@ export abstract class SyncMessage<Op> extends Service<proto.ISyncMsg, proto.Sync
     this.remoteQuerySyncIdSubject.complete()
     this.remoteRichOperationSubject.complete()
     this.remoteReplySyncSubject.complete()
+    this.experimentLogsSubject.complete()
     super.dispose()
   }
 
