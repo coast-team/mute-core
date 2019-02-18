@@ -2,6 +2,7 @@ import { Observable, Subject } from 'rxjs'
 import { first } from 'rxjs/operators'
 import { CollaboratorsService, ICollaborator } from '../collaborators'
 import { Disposable } from '../misc'
+import { IExperimentLogsSync } from '../misc/IExperimentLogs'
 import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichOperation } from './RichOperation'
 import { StateVector } from './StateVector'
@@ -23,6 +24,7 @@ export abstract class Sync<Op> extends Disposable {
 
   protected appliedOperationsSubject: Subject<void>
   protected localRichOperationsSubject: Subject<RichOperation<Op>>
+  protected experimentLogsSubject: Subject<IExperimentLogsSync>
   protected remoteOperationsSubject: Subject<{
     collaborator: ICollaborator | undefined
     operations: Op[]
@@ -59,6 +61,8 @@ export abstract class Sync<Op> extends Disposable {
 
     this.logsRemoteRichOperationsSubject = new Subject()
 
+    this.experimentLogsSubject = new Subject()
+
     // Initialize local state
     this.richOperations = rOps
     this.vector = new StateVector(vector)
@@ -94,6 +98,10 @@ export abstract class Sync<Op> extends Disposable {
     operation: Op
   }> {
     return this.logsRemoteRichOperationsSubject.asObservable()
+  }
+
+  get experimentLogs$(): Observable<IExperimentLogsSync> {
+    return this.experimentLogsSubject.asObservable()
   }
 
   get stateElements(): SyncState<Op> {
@@ -133,6 +141,12 @@ export abstract class Sync<Op> extends Disposable {
       const dependencies = this.computeDependencies(operation)
       const richOp = new RichOperation<Op>(this.id, this.clock, operation, dependencies)
 
+      this.experimentLogsSubject.next({
+        type: 'local',
+        operation: richOp,
+        vector: Array.from(this.vector.asMap()),
+      })
+
       this.updateState(richOp)
       this.localRichOperationsSubject.next(richOp)
       this.clock++
@@ -157,6 +171,7 @@ export abstract class Sync<Op> extends Disposable {
     this.localRichOperationsSubject.complete()
     this.remoteOperationsSubject.complete()
     this.logsRemoteRichOperationsSubject.complete()
+    this.experimentLogsSubject.complete()
     super.dispose()
   }
 
@@ -174,6 +189,11 @@ export abstract class Sync<Op> extends Disposable {
         newRichOps.forEach((op) => {
           if (this.isDeliverable(op)) {
             const operation = op.operation
+            this.experimentLogsSubject.next({
+              type: 'remote',
+              operation: op,
+              vector: Array.from(this.vector.asMap()),
+            })
             this.updateState(op)
             operations.push(operation)
             this.logsRemoteRichOperationsSubject.next({

@@ -1,9 +1,10 @@
 import { TextOperation } from 'mute-structs'
-import { merge, Observable, Subject, zip } from 'rxjs'
-import { map } from 'rxjs/operators'
+import { Observable, Subject, zip } from 'rxjs'
+import { filter, first } from 'rxjs/operators'
 import { CollaboratorsService, ICollaborator } from '../collaborators'
 import { LocalOperation, RemoteOperation } from '../logs'
 import { Disposable } from '../misc'
+import { IExperimentLogs } from '../misc/IExperimentLogs'
 import { Document, Position } from './Document'
 import { State } from './State'
 import { Sync } from './Sync'
@@ -19,6 +20,8 @@ export abstract class DocService<Seq, Op> extends Disposable {
 
   protected _localOperationForLog$: Subject<LocalOperation<Op>>
   protected _remoteOperationForLog: Subject<RemoteOperation<Op>>
+
+  protected experimentalLogsSubject: Subject<IExperimentLogs>
 
   constructor(
     id: number,
@@ -36,6 +39,7 @@ export abstract class DocService<Seq, Op> extends Disposable {
 
     this._localOperationForLog$ = new Subject()
     this._remoteOperationForLog = new Subject()
+    this.experimentalLogsSubject = new Subject()
 
     this.document.remoteOperations$ = this.sync.remoteOperations$
     this.sync.localOperations$ = this.document.localOperations$
@@ -57,6 +61,56 @@ export abstract class DocService<Seq, Op> extends Disposable {
     this.newSub = e.subscribe(({ v1, v2 }) => {
       this.logRemoteOperation(this.id, v1.textop, v1.operation, v2.clock, v2.author)
     })
+
+    const experimentalLogZip = zip(this.sync.experimentLogs$, this.document.experimentLogs$)
+
+    this.newSub = this.syncMsg.experimentLogs$
+      .pipe(filter((sml) => sml.type === 'remote'))
+      .subscribe((syncMsgLog) => {
+        experimentalLogZip
+          .pipe(
+            filter(
+              ([_sl, dl]) => dl.type === 'remote' && syncMsgLog.operation.operation === dl.operation
+            ),
+            first()
+          )
+          .subscribe(([syncLog, docLog]) => {
+            this.experimentalLogsSubject.next({
+              type: 'remote',
+              site: this.id,
+              operation: syncMsgLog.operation,
+              vector: syncLog.vector,
+              time1: syncMsgLog.time1,
+              time2: syncMsgLog.time2,
+              time3: docLog.time3,
+              time4: docLog.time4,
+              stats: docLog.stats,
+            })
+          })
+      })
+
+    this.newSub = experimentalLogZip
+      .pipe(filter(([_sl, dl]) => dl.type === 'local'))
+      .subscribe(([syncLog, docLog]) => {
+        this.syncMsg.experimentLogs$
+          .pipe(
+            filter((sml) => sml.type === 'local' && docLog.operation === sml.operation.operation),
+            first()
+          )
+          .subscribe((syncMsgLog) => {
+            this.experimentalLogsSubject.next({
+              type: 'local',
+              site: this.id,
+              operation: syncMsgLog.operation,
+              vector: syncLog.vector,
+              time1: syncMsgLog.time1,
+              time2: syncMsgLog.time2,
+              time3: docLog.time3,
+              time4: docLog.time4,
+              stats: docLog.stats,
+            })
+          })
+      })
   }
 
   synchronize() {
@@ -101,20 +155,7 @@ export abstract class DocService<Seq, Op> extends Disposable {
   }
 
   get experimentsLogs$() {
-    return merge(
-      this.syncMsg.experimentLogs$.pipe(
-        map((value) => {
-          value.site = this.id
-          return value
-        })
-      ),
-      this.document.experimentLogs$.pipe(
-        map((value) => {
-          value.site = this.id
-          return value
-        })
-      )
-    )
+    return this.experimentalLogsSubject.asObservable()
   }
 
   get digestUpdate$(): Observable<number> {
@@ -124,6 +165,7 @@ export abstract class DocService<Seq, Op> extends Disposable {
   dispose() {
     this._localOperationForLog$.complete()
     this._remoteOperationForLog.complete()
+    this.experimentalLogsSubject.complete()
     super.dispose()
   }
 }

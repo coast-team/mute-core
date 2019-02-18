@@ -1,4 +1,4 @@
-import { Identifier, LogootSOperation, LogootSRopes, TextOperation } from 'mute-structs'
+import { Identifier, LogootSOperation, LogootSRopes, Stats, TextOperation } from 'mute-structs'
 import { Document, Position } from '../../core'
 import { sync } from '../../proto'
 
@@ -32,5 +32,24 @@ export class LSDocument extends Document<LogootSRopes, LogootSOperation> {
   indexFromId(id: sync.IdentifierMsg): number {
     // FIXME: should not use 'as Identifier'
     return this.doc.searchPos(Identifier.fromPlain(id) as Identifier, new Array())
+  }
+
+  getStats() {
+    const stat = new Stats(this._doc)
+    return {
+      documentLength: stat.documentLength,
+      numberOfNodes: stat.numberOfNodes,
+      treeHeight: stat.treeHeight,
+      minIdentifierLength: stat.minIdentifierLength,
+      maxIdentifierLength: stat.maxIdentifierLength,
+      meanIdentifierLength: stat.meanIdentifierLength,
+      medianIdentifierLength: stat.medianIdentifierLength,
+      repartitionIdentifierLength: Array.from(stat.repartitionIdentifierLength),
+      minNodeLength: stat.minNodeLength,
+      maxNodeLength: stat.maxNodeLength,
+      meanNodeLength: stat.meanNodeLength,
+      medianNodeLength: stat.medianNodeLength,
+      repartitionNodeLength: Array.from(stat.repartitionNodeLength),
+    }
   }
 }

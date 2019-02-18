@@ -2,7 +2,7 @@ import { Identifier, TextOperation } from 'mute-structs'
 import { Observable, Subject } from 'rxjs'
 import { ICollaborator } from '../collaborators'
 import { Disposable } from '../misc'
-import { IExperimentLogs } from '../misc/IExperimentLogs'
+import { IExperimentLogsDocument } from '../misc/IExperimentLogs'
 import { sync } from '../proto'
 
 export interface Position {
@@ -28,7 +28,7 @@ export abstract class Document<Seq, Op> extends Disposable {
   protected digestSubject: Subject<number>
   protected updateSubject: Subject<void>
 
-  protected experimentLogsSubject: Subject<IExperimentLogs>
+  protected experimentLogsSubject: Subject<IExperimentLogsDocument>
 
   constructor(sequenceCRDT: Seq) {
     super()
@@ -62,20 +62,15 @@ export abstract class Document<Seq, Op> extends Disposable {
   set localTextOperations$(source: Observable<TextOperation[]>) {
     this.newSub = source.subscribe((textOperations) => {
       textOperations.forEach((ope) => {
-        const te4 = process.hrtime()
+        const t4 = process.hrtime()
         const remoteOp = this.handleLocalOperation(ope)
-        const te3 = process.hrtime()
+        const t3 = process.hrtime()
         this.experimentLogsSubject.next({
-          site: 0,
-          name: 'Before handleLocalOperation',
-          time: te4,
-          operation: ope,
-        })
-        this.experimentLogsSubject.next({
-          site: 0,
-          name: 'After handleLocalOperation',
-          time: te3,
+          type: 'local',
           operation: remoteOp,
+          time3: t3,
+          time4: t4,
+          stats: this.getStats(),
         })
         this.localOperationLogsSubject.next({ textop: ope, operation: remoteOp })
         this.localOperationSubject.next(remoteOp)
@@ -100,18 +95,15 @@ export abstract class Document<Seq, Op> extends Disposable {
     this.newSub = source.subscribe(({ collaborator, operations }) => {
       const remoteOpes = operations
         .map((operation) => {
-          this.experimentLogsSubject.next({
-            site: 0,
-            name: 'Before handleRemoteOperation',
-            time: process.hrtime(),
-            operation,
-          })
+          const t3 = process.hrtime()
           const res = this.handleRemoteOperation(operation)
+          const t4 = process.hrtime()
           this.experimentLogsSubject.next({
-            site: 0,
-            name: 'After handleRemoteOperation',
-            time: process.hrtime(),
+            type: 'remote',
             operation,
+            time3: t3,
+            time4: t4,
+            stats: this.getStats(),
           })
 
           return res
@@ -141,7 +133,7 @@ export abstract class Document<Seq, Op> extends Disposable {
     return this.digestSubject.asObservable()
   }
 
-  get experimentLogs$(): Observable<IExperimentLogs> {
+  get experimentLogs$(): Observable<IExperimentLogsDocument> {
     return this.experimentLogsSubject.asObservable()
   }
 
@@ -150,4 +142,6 @@ export abstract class Document<Seq, Op> extends Disposable {
 
   public abstract positionFromIndex(index: number): Position | undefined
   public abstract indexFromId(id: sync.IdentifierMsg): number
+
+  protected abstract getStats(): any
 }
