@@ -1,5 +1,3 @@
-import { StateVector } from '../core'
-
 export interface IExperimentLogs {
   type: string
   site: number
