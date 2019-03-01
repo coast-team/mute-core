@@ -1,6 +1,6 @@
 # MUTE-core
 
-[![Build Status](https://travis-ci.org/coast-team/mute-core.svg?branch=master)](https://travis-ci.org/coast-team/mute-core)
+[![Build Status](https://travis-ci.org/coast-team/mute-core.svg?branch=master)](https://travis-ci.org/coast-team/mute-core) [![Greenkeeper badge](https://badges.greenkeeper.io/coast-team/mute-core.svg)](https://greenkeeper.io/)
 
 ## License
 
