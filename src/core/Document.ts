@@ -71,6 +71,7 @@ export abstract class Document<Seq, Op> extends Disposable {
           time3: t3,
           time4: t4,
           stats: this.getStats(),
+          struct: this._doc,
         })
         this.localOperationLogsSubject.next({ textop: ope, operation: remoteOp })
         this.localOperationSubject.next(remoteOp)
@@ -104,6 +105,7 @@ export abstract class Document<Seq, Op> extends Disposable {
             time3: t3,
             time4: t4,
             stats: this.getStats(),
+            struct: this._doc,
           })
 
           return res
