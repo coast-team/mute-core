@@ -8,6 +8,7 @@ export interface IExperimentLogs {
   time3: [number, number]
   time4: [number, number]
   stats: any
+  struct: any
 }
 
 export interface IExperimentLogsSyncMessage {
@@ -23,6 +24,7 @@ export interface IExperimentLogsDocument {
   time3: [number, number]
   time4: [number, number]
   stats: any
+  struct: any
 }
 
 export interface IExperimentLogsSync {

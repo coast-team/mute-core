@@ -85,6 +85,7 @@ export abstract class DocService<Seq, Op> extends Disposable {
               time3: docLog.time3,
               time4: docLog.time4,
               stats: docLog.stats,
+              struct: docLog.struct,
             })
           })
       })
@@ -108,6 +109,7 @@ export abstract class DocService<Seq, Op> extends Disposable {
               time3: docLog.time3,
               time4: docLog.time4,
               stats: docLog.stats,
+              struct: docLog.struct,
             })
           })
       })
