@@ -1,7 +1,7 @@
 {
   "name": "@coast-team/mute-core",
   "description": "Core component of MUTE collaborative editor",
-  "version": "9.1.6",
+  "version": "9.1.6-experiment",
   "main": "./dist/mute-core.node.es5.cjs.js",
   "module": "./dist/mutecore.node.es5.esm.js",
   "browser": "./dist/mute-core.browser.es5.esm.js",
@@ -41,7 +41,7 @@
     "build-test": "tsc -p tsconfig.json --outDir .ava --module commonjs --allowJs",
     "postbuild-test": "mkdir -p .ava/src/proto && pbjs -t static-module -w commonjs --no-verify --no-delimited --no-convert -o .ava/src/proto/index.js src/proto/index.proto",
     "check": "tsc --noEmit",
-    "lint": "tslint --fix -p tsconfig.json && prettier --write --list-different 'src/**/*.ts test/**/*.{ts}' './*.{ts,js,json,md}' './*.md' && markdownlint ./*.md",
+    "lint": "tslint --fix -p tsconfig.json && prettier --write --list-different 'src/**/*.ts test/**/*.{ts}' './*.{ts,js,json,md}'",
     "pretest": "npm run build-test",
     "test": "ava",
     "proto": "pbjs -t static-module -w es6 --no-verify --no-delimited --no-convert -o src/proto/index.js src/proto/index.proto && pbts -o src/proto/index.d.ts src/proto/index.js",
@@ -104,8 +104,7 @@
     "linters": {
       "*.md": [
         "prettier --write --list-different",
-        "git add",
-        "markdownlint"
+        "git add"
       ],
       "*.ts": [
         "tslint --fix -p tsconfig.json -e src/proto/*",
