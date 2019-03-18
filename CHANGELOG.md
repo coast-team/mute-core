@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.1.6-experiment-1"></a>
+## [9.1.6-experiment-1](https://github.com/coast-team/mute-core/compare/v9.1.6-experiment...v9.1.6-experiment-1) (2019-03-18)
+
+
+### Bug Fixes
+
+* **test:** fix test for release ([4c30589](https://github.com/coast-team/mute-core/commit/4c30589))
+
+
+
 <a name="9.1.6-experiment"></a>
 ## [9.1.6-experiment](https://github.com/coast-team/mute-core/compare/v9.1.6...v9.1.6-experiment) (2019-03-18)
 
