@@ -52,7 +52,7 @@
     "release": "standard-version"
   },
   "dependencies": {
-    "mute-structs": "^1.0.0",
+    "mute-structs": "^1.1.0",
     "rxjs": "^6.3.3",
     "safe-any": "^1.0.2"
   },
