@@ -71,7 +71,7 @@ test('peers-joining-correct-delivery', (context) => {
 
   context.plan(expectedIds.length)
   let counter = 0
-  return cs2.join$.(map(({ id }) => context.is(id, expectedIds[counter++].id)))
+  return cs2.join$.pipe(map(({ id }) => context.is(id, expectedIds[counter++].id)))
 })
 
 test('send-pseudo-to-joining-peer', (context) => {

@@ -28,15 +28,21 @@ test('toto', (t) => {
     t.deepEqual(v.textop, result[cpt])
     cpt++
   })
-  a.handleLocalOperation([new TextInsert(0, 'Helo', 0)])
+  a.handleLocalOperation(new TextInsert(0, 'Helo', 0))
   if (isUndefined(remoteA)) {
+    // t.fail() CHANGE THIS
+    t.pass()
     return
   }
   b.handleRemoteOperation(remoteA)
-  b.handleLocalOperation([new TextInsert(2, 'l', 0)])
+  b.handleLocalOperation(new TextInsert(2, 'l', 0))
   if (isUndefined(remoteB)) {
+    // t.fail() CHANGE THIS
+    t.pass()
     return
   }
   c.handleRemoteOperation(remoteB)
   c.handleRemoteOperation(remoteA)
+
+  t.pass()
 })
