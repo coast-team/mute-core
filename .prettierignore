@@ -3,3 +3,4 @@ package-lock.json
 docs/*
 src/proto/*
 dist/**/*
+*.md
