@@ -1,9 +1,10 @@
 import { SafeAny } from 'safe-any'
 import { StateJSON } from '../core'
+import { DLSState } from './DottedLogootSplit'
 import { LSState } from './LogootSplit/LSState'
 import { Strategy } from './Strategy'
 
-export type StateTypes = LSState
+export type StateTypes = LSState | DLSState
 
 interface IStateFactory<T> {
   fromPlain(o: any): T
@@ -25,6 +26,9 @@ export class StateStrategy {
       case Strategy.LOGOOTSPLIT:
         state = createState(LSState, o)
         break
+      case Strategy.DOTTEDLOGOOTSPLIT:
+        state = createState(DLSState, o)
+        break
       default:
         state = null
         break
@@ -37,6 +41,9 @@ export class StateStrategy {
     switch (strat) {
       case Strategy.LOGOOTSPLIT:
         state = createEmptyState(LSState)
+        break
+      case Strategy.DOTTEDLOGOOTSPLIT:
+        state = createEmptyState(DLSState)
         break
       default:
         state = null

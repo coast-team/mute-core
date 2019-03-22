@@ -1,0 +1,5 @@
+export { DLSDocService } from './DLSDocService'
+export { DLSRichOperation } from './DLSRichOperation'
+export { DLSState } from './DLSState'
+export { DLSSyncMessage } from './DLSSyncMessage'
+export { DLSDocument } from './DLSDocument'
