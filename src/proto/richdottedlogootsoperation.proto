@@ -13,8 +13,12 @@ message DottedLogootSBlockMsg {
   SimpleDotPos lowerPos = 1;
   oneof type {
     string content = 2;
-    uint32 concatLength = 3;
+    ConcatLength concatLength = 3;
   }
+}
+
+message ConcatLength{
+  uint32 length = 1;
 }
 
 message SimpleDotPosPart {

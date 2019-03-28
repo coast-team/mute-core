@@ -41,7 +41,7 @@ export class DLSSyncMessage extends SyncMessage<BlockOperation> {
       if (blockOperation.isLengthBlock()) {
         const dottedMsg = proto.DottedLogootSBlockMsg.create({
           lowerPos: simplePosMsg,
-          concatLength: blockOperation.content.length,
+          concatLength: blockOperation.content,
         })
         res.richDottedLogootsOpsMsg.blockOperationMsg = dottedMsg
       } else {
@@ -67,14 +67,26 @@ export class DLSSyncMessage extends SyncMessage<BlockOperation> {
           dependencies.set(parseInt(v[0], 10), v[1])
         })
       }
-      const op = DLSRichOperation.fromPlain({
-        id: richOperationMsg.richDottedLogootsOpsMsg.id,
-        clock: richOperationMsg.richDottedLogootsOpsMsg.clock,
-        operation: richOperationMsg.richDottedLogootsOpsMsg.blockOperationMsg,
-        dependencies,
-      })
-      if (op) {
-        return op
+
+      if (richOperationMsg.richDottedLogootsOpsMsg.blockOperationMsg) {
+        const operation = {
+          lowerPos: richOperationMsg.richDottedLogootsOpsMsg.blockOperationMsg.lowerPos,
+          content:
+            richOperationMsg.richDottedLogootsOpsMsg.blockOperationMsg.content ||
+            richOperationMsg.richDottedLogootsOpsMsg.blockOperationMsg.concatLength,
+        }
+        const op = DLSRichOperation.fromPlain({
+          id: richOperationMsg.richDottedLogootsOpsMsg.id,
+          clock: richOperationMsg.richDottedLogootsOpsMsg.clock,
+          operation,
+          dependencies,
+        })
+
+        if (op) {
+          return op
+        } else {
+          throw new Error('Error in fromPlain operation')
+        }
       } else {
         throw new Error('Error in fromPlain')
       }

@@ -14,7 +14,8 @@ export class DLSState extends State<
     const seed = 'mute-core' + id
     return new DLSState(
       id,
-      avl.opEditableList(SimpleDotBlockFactory.from(id, seed), ''),
+      // tslint:disable-next-line:no-bitwise
+      avl.opEditableList(SimpleDotBlockFactory.from(id >>> 0, seed), ''),
       [],
       new Map(),
       0
@@ -66,7 +67,8 @@ export class DLSState extends State<
         const seed = 'mute-core' + id
         const state = new DLSState(
           id,
-          avl.opEditableList(SimpleDotBlockFactory.from(id, seed), ''),
+          // tslint:disable-next-line:no-bitwise
+          avl.opEditableList(SimpleDotBlockFactory.from(id >>> 0, seed), ''),
           [],
           new Map(),
           0

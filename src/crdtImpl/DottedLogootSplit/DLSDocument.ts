@@ -26,23 +26,32 @@ export class DLSDocument extends Document<
   }
 
   public handleRemoteOperation(operation: BlockOperation): TextOperation[] {
+    if (!operation.isLengthBlock()) {
+      console.log('Cmoparison block', operation, this._doc.insertable(operation))
+    }
     const res = this._doc.applyOp(operation)
     const tab: TextOperation[] = []
     res.forEach((ope) => {
       if (ope instanceof Ins) {
-        tab.push(new TextInsert(ope.index, ope.content, operation.replica()))
+        // tslint:disable-next-line:no-bitwise
+        tab.push(new TextInsert(ope.index, ope.content, operation.replica() | 0))
       } else if (ope instanceof Del) {
-        tab.push(new TextDelete(ope.index, ope.length, operation.replica()))
+        // tslint:disable-next-line:no-bitwise
+        tab.push(new TextDelete(ope.index, ope.length, operation.replica() | 0))
       }
     })
     return tab
   }
 
   public positionFromIndex(_index: number): Position | undefined {
-    throw new Error('Method not implemented.')
+    return undefined
   }
 
   public indexFromId(_id: sync.IdentifierMsg): number {
-    throw new Error('Method not implemented.')
+    return 0
+  }
+
+  public getDigest(): number {
+    return this.doc.structuralHashCode()
   }
 }

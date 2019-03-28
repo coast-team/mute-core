@@ -1913,7 +1913,7 @@ var sync = $root.sync = (function () {
         }
         DottedLogootSBlockMsg.prototype.lowerPos = null;
         DottedLogootSBlockMsg.prototype.content = "";
-        DottedLogootSBlockMsg.prototype.concatLength = 0;
+        DottedLogootSBlockMsg.prototype.concatLength = null;
         var $oneOfFields;
         Object.defineProperty(DottedLogootSBlockMsg.prototype, "type", {
             get: $util.oneOfGetter($oneOfFields = ["content", "concatLength"]),
@@ -1930,7 +1930,7 @@ var sync = $root.sync = (function () {
             if (message.content != null && message.hasOwnProperty("content"))
                 writer.uint32(18).string(message.content);
             if (message.concatLength != null && message.hasOwnProperty("concatLength"))
-                writer.uint32(24).uint32(message.concatLength);
+                $root.sync.ConcatLength.encode(message.concatLength, writer.uint32(26).fork()).ldelim();
             return writer;
         };
         DottedLogootSBlockMsg.decode = function decode(reader, length) {
@@ -1947,7 +1947,7 @@ var sync = $root.sync = (function () {
                         message.content = reader.string();
                         break;
                     case 3:
-                        message.concatLength = reader.uint32();
+                        message.concatLength = $root.sync.ConcatLength.decode(reader, reader.uint32());
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -1957,6 +1957,43 @@ var sync = $root.sync = (function () {
             return message;
         };
         return DottedLogootSBlockMsg;
+    })();
+    sync.ConcatLength = (function () {
+        function ConcatLength(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        ConcatLength.prototype.length = 0;
+        ConcatLength.create = function create(properties) {
+            return new ConcatLength(properties);
+        };
+        ConcatLength.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.length != null && message.hasOwnProperty("length"))
+                writer.uint32(8).uint32(message.length);
+            return writer;
+        };
+        ConcatLength.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.ConcatLength();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.length = reader.uint32();
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return ConcatLength;
     })();
     sync.SimpleDotPosPart = (function () {
         function SimpleDotPosPart(properties) {

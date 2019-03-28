@@ -55,6 +55,8 @@ export class StateStrategy {
   static getStr(state: StateTypes): string | undefined {
     if (state instanceof LSState) {
       return state.sequenceCRDT.str
+    } else if (state instanceof DLSState) {
+      return state.sequenceCRDT.concatenated('')
     } else {
       return undefined
     }

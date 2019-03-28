@@ -675,7 +675,7 @@ export namespace sync {
         content?: (string|null);
 
         /** DottedLogootSBlockMsg concatLength */
-        concatLength?: (number|null);
+        concatLength?: (sync.IConcatLength|null);
     }
 
     /** Represents a DottedLogootSBlockMsg. */
@@ -694,7 +694,7 @@ export namespace sync {
         public content: string;
 
         /** DottedLogootSBlockMsg concatLength. */
-        public concatLength: number;
+        public concatLength?: (sync.IConcatLength|null);
 
         /** DottedLogootSBlockMsg type. */
         public type?: ("content"|"concatLength");
@@ -723,6 +723,51 @@ export namespace sync {
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): sync.DottedLogootSBlockMsg;
+    }
+
+    /** Properties of a ConcatLength. */
+    interface IConcatLength {
+
+        /** ConcatLength length */
+        length?: (number|null);
+    }
+
+    /** Represents a ConcatLength. */
+    class ConcatLength implements IConcatLength {
+
+        /**
+         * Constructs a new ConcatLength.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: sync.IConcatLength);
+
+        /** ConcatLength length. */
+        public length: number;
+
+        /**
+         * Creates a new ConcatLength instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns ConcatLength instance
+         */
+        public static create(properties?: sync.IConcatLength): sync.ConcatLength;
+
+        /**
+         * Encodes the specified ConcatLength message. Does not implicitly {@link sync.ConcatLength.verify|verify} messages.
+         * @param message ConcatLength message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: sync.IConcatLength, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a ConcatLength message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns ConcatLength
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): sync.ConcatLength;
     }
 
     /** Properties of a SimpleDotPosPart. */

@@ -27,7 +27,9 @@ export class DLSRichOperation extends RichOperation<BlockOperation> {
       typeof o.id === 'number' &&
       Number.isInteger(o.id) &&
       typeof o.clock === 'number' &&
-      Number.isInteger(o.clock)
+      Number.isInteger(o.clock) &&
+      o.operation &&
+      typeof o.operation === 'object'
     ) {
       const blockOperation = SimpleDotBlockFactory.blockFromPlain(StringFromPlain.fromPlain)(
         o.operation
@@ -39,6 +41,7 @@ export class DLSRichOperation extends RichOperation<BlockOperation> {
       const lengthBlocBlockOperation = SimpleDotBlockFactory.blockFromPlain(ConcatLength.fromPlain)(
         o.operation
       )
+
       if (lengthBlocBlockOperation) {
         if (o.dependencies instanceof Array && o.dependencies.length > 0) {
           return new DLSRichOperation(

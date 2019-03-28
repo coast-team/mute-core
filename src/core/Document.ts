@@ -1,5 +1,6 @@
 import { Identifier, TextOperation } from 'mute-structs'
 import { Observable, Subject } from 'rxjs'
+import { debounceTime } from 'rxjs/operators'
 import { ICollaborator } from '../collaborators'
 import { Disposable } from '../misc'
 import { sync } from '../proto'
@@ -39,6 +40,10 @@ export abstract class Document<Seq, Op> extends Disposable {
 
     this.digestSubject = new Subject()
     this.updateSubject = new Subject()
+
+    this.newSub = this.updateSubject.pipe(debounceTime(1000)).subscribe(() => {
+      this.digestSubject.next(this.getDigest())
+    })
   }
 
   dispose() {
@@ -106,4 +111,6 @@ export abstract class Document<Seq, Op> extends Disposable {
 
   public abstract positionFromIndex(index: number): Position | undefined
   public abstract indexFromId(id: sync.IdentifierMsg): number
+
+  public abstract getDigest(): number
 }

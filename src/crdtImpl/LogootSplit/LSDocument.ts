@@ -37,4 +37,8 @@ export class LSDocument extends Document<LogootSRopes, LogootSOperation> {
     // FIXME: should not use 'as Identifier'
     return this.doc.searchPos(Identifier.fromPlain(id) as Identifier, new Array())
   }
+
+  public getDigest(): number {
+    return this.doc.digest()
+  }
 }
