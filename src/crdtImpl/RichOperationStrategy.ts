@@ -1,5 +1,6 @@
 import { SafeAny } from 'safe-any'
 import { RichOperation } from '../core'
+import { DLSRichOperation } from './DottedLogootSplit'
 import { LSRichOperation } from './LogootSplit'
 import { Strategy } from './Strategy'
 
@@ -19,6 +20,9 @@ export class RichOperationStrategy {
     switch (strat) {
       case Strategy.LOGOOTSPLIT:
         rop = createRichOperation(LSRichOperation, o)
+        break
+      case Strategy.DOTTEDLOGOOTSPLIT:
+        rop = createRichOperation(DLSRichOperation, o)
         break
       default:
         rop = null

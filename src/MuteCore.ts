@@ -1,16 +1,22 @@
+import { SimpleDotPos } from 'dotted-logootsplit'
+import { OpEditableReplicatedList } from 'dotted-logootsplit/dist/types/core/op-replicated-list'
 import { LogootSOperation, LogootSRopes, TextOperation } from 'mute-structs'
 import { Observable, Subject } from 'rxjs'
 import { CollaboratorsService, ICollaborator } from './collaborators'
 import { DocService, Position, State } from './core'
 import { DocServiceStrategy, DocServiceStrategyMethod, StateTypes, Strategy } from './crdtImpl'
-import { LSState } from './crdtImpl/LogootSplit'
+import { DLSDocService, DLSState } from './crdtImpl/DottedLogootSplit'
+import { BlockOperation } from './crdtImpl/DottedLogootSplit/DLSRichOperation'
+import { LSDocService, LSState } from './crdtImpl/LogootSplit'
 import { FixDataState, LogState, MetaDataMessage, MetaDataService, TitleState } from './doc'
 import { LocalOperation, RemoteOperation } from './logs'
 import { Disposable, generateId, IMessageIn, IMessageOut } from './misc'
 import { IExperimentLogs } from './misc/IExperimentLogs'
 import { collaborator as proto } from './proto'
 
-export type MuteCoreTypes = MuteCore<LogootSRopes, LogootSOperation>
+export type MuteCoreTypes =
+  | MuteCore<LogootSRopes, LogootSOperation>
+  | MuteCore<OpEditableReplicatedList<SimpleDotPos, string>, BlockOperation>
 
 export interface SessionParameters {
   strategy: Strategy
@@ -189,17 +195,44 @@ export class MuteCore<Seq, Op> extends Disposable {
 }
 
 export class MuteCoreFactory {
-  static createMuteCore(constructorParam: SessionParameters) {
+  static createMuteCore(constructorParam: SessionParameters): MuteCoreTypes {
     switch (constructorParam.strategy) {
       case Strategy.LOGOOTSPLIT:
-        if (constructorParam.docContent instanceof LSState) {
-          return new MuteCore<LogootSRopes, LogootSOperation>(
-            constructorParam,
-            DocServiceStrategy.createDocService
-          )
-        } else {
-          throw new Error('')
-        }
+        return new MuteCore<LogootSRopes, LogootSOperation>(
+          constructorParam,
+          (strat, messageIn$, messageOut$, id, state, collaboratorService): LSDocService => {
+            if (state instanceof LSState) {
+              return DocServiceStrategy.createDocService(
+                strat,
+                messageIn$,
+                messageOut$,
+                id,
+                state,
+                collaboratorService
+              )
+            } else {
+              throw new Error('')
+            }
+          }
+        )
+      case Strategy.DOTTEDLOGOOTSPLIT:
+        return new MuteCore<OpEditableReplicatedList<SimpleDotPos, string>, BlockOperation>(
+          constructorParam,
+          (strat, messageIn$, messageOut$, id, state, collaboratorService): DLSDocService => {
+            if (state instanceof DLSState) {
+              return DocServiceStrategy.createDocService(
+                strat,
+                messageIn$,
+                messageOut$,
+                id,
+                state,
+                collaboratorService
+              )
+            } else {
+              throw new Error('')
+            }
+          }
+        )
     }
   }
 }

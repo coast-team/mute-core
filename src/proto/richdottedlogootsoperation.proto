@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package sync;
+
+message RichDottedLogootSOperationMsg {
+  int32 id = 1;
+  int32 clock = 2;
+  DottedLogootSBlockMsg blockOperationMsg = 3;
+  map<int32, int32> dependencies = 4;
+}
+
+message DottedLogootSBlockMsg {
+  SimpleDotPos lowerPos = 1;
+  oneof type {
+    string content = 2;
+    ConcatLength concatLength = 3;
+  }
+}
+
+message ConcatLength{
+  uint32 length = 1;
+}
+
+message SimpleDotPosPart {
+  uint32 priority = 1;
+  uint32 replica = 2;
+  uint32 seq = 3;
+}
+
+message SimpleDotPos {
+  repeated SimpleDotPosPart parts = 1;
+}

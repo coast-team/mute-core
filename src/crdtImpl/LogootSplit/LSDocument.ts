@@ -52,4 +52,8 @@ export class LSDocument extends Document<LogootSRopes, LogootSOperation> {
       repartitionNodeLength: Array.from(stat.repartitionNodeLength),
     }
   }
+
+  public getDigest(): number {
+    return this.doc.digest()
+  }
 }

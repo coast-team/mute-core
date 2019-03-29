@@ -1,7 +1,7 @@
 {
   "name": "@coast-team/mute-core",
   "description": "Core component of MUTE collaborative editor",
-  "version": "9.1.6-experiment-1",
+  "version": "10.0.0-1",
   "main": "./dist/mute-core.node.es5.cjs.js",
   "module": "./dist/mutecore.node.es5.esm.js",
   "browser": "./dist/mute-core.browser.es5.esm.js",
@@ -52,6 +52,7 @@
     "release": "standard-version"
   },
   "dependencies": {
+    "dotted-logootsplit": "^0.1.0",
     "mute-structs": "^1.1.0",
     "rxjs": "^6.3.3",
     "safe-any": "^1.0.2"

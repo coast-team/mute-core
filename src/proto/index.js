@@ -1302,9 +1302,10 @@ var sync = $root.sync = (function () {
                         this[keys[i]] = properties[keys[i]];
         }
         RichOperationMsg.prototype.richLogootSOpsMsg = null;
+        RichOperationMsg.prototype.richDottedLogootsOpsMsg = null;
         var $oneOfFields;
         Object.defineProperty(RichOperationMsg.prototype, "type", {
-            get: $util.oneOfGetter($oneOfFields = ["richLogootSOpsMsg"]),
+            get: $util.oneOfGetter($oneOfFields = ["richLogootSOpsMsg", "richDottedLogootsOpsMsg"]),
             set: $util.oneOfSetter($oneOfFields)
         });
         RichOperationMsg.create = function create(properties) {
@@ -1315,6 +1316,8 @@ var sync = $root.sync = (function () {
                 writer = $Writer.create();
             if (message.richLogootSOpsMsg != null && message.hasOwnProperty("richLogootSOpsMsg"))
                 $root.sync.RichLogootSOperationMsg.encode(message.richLogootSOpsMsg, writer.uint32(10).fork()).ldelim();
+            if (message.richDottedLogootsOpsMsg != null && message.hasOwnProperty("richDottedLogootsOpsMsg"))
+                $root.sync.RichDottedLogootSOperationMsg.encode(message.richDottedLogootsOpsMsg, writer.uint32(18).fork()).ldelim();
             return writer;
         };
         RichOperationMsg.decode = function decode(reader, length) {
@@ -1326,6 +1329,9 @@ var sync = $root.sync = (function () {
                 switch (tag >>> 3) {
                     case 1:
                         message.richLogootSOpsMsg = $root.sync.RichLogootSOperationMsg.decode(reader, reader.uint32());
+                        break;
+                    case 2:
+                        message.richDottedLogootsOpsMsg = $root.sync.RichDottedLogootSOperationMsg.decode(reader, reader.uint32());
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -1835,6 +1841,249 @@ var sync = $root.sync = (function () {
             return message;
         };
         return LogootSDelMsg;
+    })();
+    sync.RichDottedLogootSOperationMsg = (function () {
+        function RichDottedLogootSOperationMsg(properties) {
+            this.dependencies = {};
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        RichDottedLogootSOperationMsg.prototype.id = 0;
+        RichDottedLogootSOperationMsg.prototype.clock = 0;
+        RichDottedLogootSOperationMsg.prototype.blockOperationMsg = null;
+        RichDottedLogootSOperationMsg.prototype.dependencies = $util.emptyObject;
+        RichDottedLogootSOperationMsg.create = function create(properties) {
+            return new RichDottedLogootSOperationMsg(properties);
+        };
+        RichDottedLogootSOperationMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.id != null && message.hasOwnProperty("id"))
+                writer.uint32(8).int32(message.id);
+            if (message.clock != null && message.hasOwnProperty("clock"))
+                writer.uint32(16).int32(message.clock);
+            if (message.blockOperationMsg != null && message.hasOwnProperty("blockOperationMsg"))
+                $root.sync.DottedLogootSBlockMsg.encode(message.blockOperationMsg, writer.uint32(26).fork()).ldelim();
+            if (message.dependencies != null && message.hasOwnProperty("dependencies"))
+                for (var keys = Object.keys(message.dependencies), i = 0; i < keys.length; ++i)
+                    writer.uint32(34).fork().uint32(8).int32(keys[i]).uint32(16).int32(message.dependencies[keys[i]]).ldelim();
+            return writer;
+        };
+        RichDottedLogootSOperationMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.RichDottedLogootSOperationMsg(), key;
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.id = reader.int32();
+                        break;
+                    case 2:
+                        message.clock = reader.int32();
+                        break;
+                    case 3:
+                        message.blockOperationMsg = $root.sync.DottedLogootSBlockMsg.decode(reader, reader.uint32());
+                        break;
+                    case 4:
+                        reader.skip().pos++;
+                        if (message.dependencies === $util.emptyObject)
+                            message.dependencies = {};
+                        key = reader.int32();
+                        reader.pos++;
+                        message.dependencies[key] = reader.int32();
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return RichDottedLogootSOperationMsg;
+    })();
+    sync.DottedLogootSBlockMsg = (function () {
+        function DottedLogootSBlockMsg(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        DottedLogootSBlockMsg.prototype.lowerPos = null;
+        DottedLogootSBlockMsg.prototype.content = "";
+        DottedLogootSBlockMsg.prototype.concatLength = null;
+        var $oneOfFields;
+        Object.defineProperty(DottedLogootSBlockMsg.prototype, "type", {
+            get: $util.oneOfGetter($oneOfFields = ["content", "concatLength"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+        DottedLogootSBlockMsg.create = function create(properties) {
+            return new DottedLogootSBlockMsg(properties);
+        };
+        DottedLogootSBlockMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.lowerPos != null && message.hasOwnProperty("lowerPos"))
+                $root.sync.SimpleDotPos.encode(message.lowerPos, writer.uint32(10).fork()).ldelim();
+            if (message.content != null && message.hasOwnProperty("content"))
+                writer.uint32(18).string(message.content);
+            if (message.concatLength != null && message.hasOwnProperty("concatLength"))
+                $root.sync.ConcatLength.encode(message.concatLength, writer.uint32(26).fork()).ldelim();
+            return writer;
+        };
+        DottedLogootSBlockMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.DottedLogootSBlockMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.lowerPos = $root.sync.SimpleDotPos.decode(reader, reader.uint32());
+                        break;
+                    case 2:
+                        message.content = reader.string();
+                        break;
+                    case 3:
+                        message.concatLength = $root.sync.ConcatLength.decode(reader, reader.uint32());
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return DottedLogootSBlockMsg;
+    })();
+    sync.ConcatLength = (function () {
+        function ConcatLength(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        ConcatLength.prototype.length = 0;
+        ConcatLength.create = function create(properties) {
+            return new ConcatLength(properties);
+        };
+        ConcatLength.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.length != null && message.hasOwnProperty("length"))
+                writer.uint32(8).uint32(message.length);
+            return writer;
+        };
+        ConcatLength.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.ConcatLength();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.length = reader.uint32();
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return ConcatLength;
+    })();
+    sync.SimpleDotPosPart = (function () {
+        function SimpleDotPosPart(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        SimpleDotPosPart.prototype.priority = 0;
+        SimpleDotPosPart.prototype.replica = 0;
+        SimpleDotPosPart.prototype.seq = 0;
+        SimpleDotPosPart.create = function create(properties) {
+            return new SimpleDotPosPart(properties);
+        };
+        SimpleDotPosPart.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.priority != null && message.hasOwnProperty("priority"))
+                writer.uint32(8).uint32(message.priority);
+            if (message.replica != null && message.hasOwnProperty("replica"))
+                writer.uint32(16).uint32(message.replica);
+            if (message.seq != null && message.hasOwnProperty("seq"))
+                writer.uint32(24).uint32(message.seq);
+            return writer;
+        };
+        SimpleDotPosPart.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.SimpleDotPosPart();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.priority = reader.uint32();
+                        break;
+                    case 2:
+                        message.replica = reader.uint32();
+                        break;
+                    case 3:
+                        message.seq = reader.uint32();
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return SimpleDotPosPart;
+    })();
+    sync.SimpleDotPos = (function () {
+        function SimpleDotPos(properties) {
+            this.parts = [];
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        SimpleDotPos.prototype.parts = $util.emptyArray;
+        SimpleDotPos.create = function create(properties) {
+            return new SimpleDotPos(properties);
+        };
+        SimpleDotPos.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.parts != null && message.parts.length)
+                for (var i = 0; i < message.parts.length; ++i)
+                    $root.sync.SimpleDotPosPart.encode(message.parts[i], writer.uint32(10).fork()).ldelim();
+            return writer;
+        };
+        SimpleDotPos.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.SimpleDotPos();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        if (!(message.parts && message.parts.length))
+                            message.parts = [];
+                        message.parts.push($root.sync.SimpleDotPosPart.decode(reader, reader.uint32()));
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return SimpleDotPos;
     })();
     return sync;
 })();

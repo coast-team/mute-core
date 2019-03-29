@@ -4,11 +4,13 @@ package sync;
 
 // Operations implementation
 import "richlogootsoperations.proto";
+import "richdottedlogootsoperation.proto";
 
 // RichOperation
 message RichOperationMsg {
   oneof type {
     RichLogootSOperationMsg richLogootSOpsMsg = 1;
+    RichDottedLogootSOperationMsg richDottedLogootsOpsMsg = 2;
   }
 }
 
