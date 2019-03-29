@@ -26,9 +26,6 @@ export class DLSDocument extends Document<
   }
 
   public handleRemoteOperation(operation: BlockOperation): TextOperation[] {
-    if (!operation.isLengthBlock()) {
-      console.log('Cmoparison block', operation, this._doc.insertable(operation))
-    }
     const res = this._doc.applyOp(operation)
     const tab: TextOperation[] = []
     res.forEach((ope) => {

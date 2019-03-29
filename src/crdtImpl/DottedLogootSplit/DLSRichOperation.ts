@@ -43,7 +43,7 @@ export class DLSRichOperation extends RichOperation<BlockOperation> {
       )
 
       if (lengthBlocBlockOperation) {
-        if (o.dependencies instanceof Array && o.dependencies.length > 0) {
+        if (o.dependencies instanceof Map && o.dependencies.size > 0) {
           return new DLSRichOperation(
             o.id,
             o.clock,
