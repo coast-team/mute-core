@@ -95,7 +95,9 @@ export abstract class DocService<Seq, Op> extends Disposable {
       .subscribe(([syncLog, docLog]) => {
         this.syncMsg.experimentLogs$
           .pipe(
-            filter((sml) => sml.type === 'local' && docLog.operation === sml.operation.operation),
+            filter(
+              (sml) => sml.type === 'local' && docLog.operation[0] === sml.operation.operation
+            ),
             first()
           )
           .subscribe((syncMsgLog) => {

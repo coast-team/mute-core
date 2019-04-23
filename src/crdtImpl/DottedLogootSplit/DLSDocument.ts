@@ -9,19 +9,17 @@ export class DLSDocument extends Document<
   OpEditableReplicatedList<SimpleDotPos, string>,
   BlockOperation
 > {
-  public handleLocalOperation(operation: TextOperation): BlockOperation {
+  public handleLocalOperation(operation: TextOperation): BlockOperation[] {
     if (operation instanceof TextInsert) {
       const blockOperation = this._doc.insertAt(operation.index, operation.content)
       this.localOperationLogsSubject.next({ textop: operation, operation: blockOperation })
-      this.localOperationSubject.next(blockOperation)
-      return blockOperation
+      return [blockOperation]
     } else if (operation instanceof TextDelete) {
       const blockOperationList = this._doc.removeAt(operation.index, operation.length)
       blockOperationList.forEach((blockOperation) => {
         this.localOperationLogsSubject.next({ textop: operation, operation: blockOperation })
-        this.localOperationSubject.next(blockOperation)
       })
-      return blockOperationList[0] // DOESNT SEEMS TO WORK !
+      return blockOperationList
     } else {
       throw new Error('operation is unknown')
     }

@@ -30,8 +30,10 @@ export abstract class Document<Seq, Op> extends Disposable {
           stats: this.getStats(),
           struct: this._doc,
         })
-        this.localOperationLogsSubject.next({ textop: ope, operation: remoteOp })
-        this.localOperationSubject.next(remoteOp)
+        remoteOp.forEach((remote) => {
+          this.localOperationLogsSubject.next({ textop: ope, operation: remote })
+          this.localOperationSubject.next(remote)
+        })
       })
       this.updateSubject.next()
     })
@@ -142,7 +144,7 @@ export abstract class Document<Seq, Op> extends Disposable {
     super.dispose()
   }
 
-  public abstract handleLocalOperation(operation: TextOperation): Op
+  public abstract handleLocalOperation(operation: TextOperation): Op[]
   public abstract handleRemoteOperation(operation: Op): TextOperation[]
 
   public abstract positionFromIndex(index: number): Position | undefined

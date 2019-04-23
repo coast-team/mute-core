@@ -8,8 +8,8 @@ export class LSDocument extends Document<LogootSRopes, LogootSOperation> {
     this._doc = rope
   }
 
-  public handleLocalOperation(operation: TextOperation): LogootSOperation {
-    return operation.applyTo(this.doc)
+  public handleLocalOperation(operation: TextOperation): LogootSOperation[] {
+    return [operation.applyTo(this.doc)]
   }
   public handleRemoteOperation(operation: LogootSOperation): TextOperation[] {
     const result = operation.execute(this.doc)
