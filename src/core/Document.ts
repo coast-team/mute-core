@@ -27,7 +27,6 @@ export abstract class Document<Seq, Op> extends Disposable {
           operation: remoteOp,
           time3: t3,
           time4: t4,
-          stats: this.getStats(),
           struct: this._doc,
         })
         remoteOp.forEach((remote) => {
@@ -63,7 +62,6 @@ export abstract class Document<Seq, Op> extends Disposable {
             operation,
             time3: t3,
             time4: t4,
-            stats: this.getStats(),
             struct: this._doc,
           })
 
