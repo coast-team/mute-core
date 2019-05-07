@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.0.0-experiment-1.0"></a>
+# [10.0.0-experiment-1.0](https://github.com/coast-team/mute-core/compare/v10.0.0-experiment...v10.0.0-experiment-1.0) (2019-05-07)
+
+
+### Bug Fixes
+
+* **experimentlogs:** remove stats in logs ([164a6d8](https://github.com/coast-team/mute-core/commit/164a6d8))
+* **handlelocaloperation:** change result type to Op[] ([e79c1d5](https://github.com/coast-team/mute-core/commit/e79c1d5))
+
+
+
 <a name="10.0.0-experiment"></a>
 # [10.0.0-experiment](https://github.com/coast-team/mute-core/compare/v10.0.0-1...v10.0.0-experiment) (2019-04-01)
 
