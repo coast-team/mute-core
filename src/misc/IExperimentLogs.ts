@@ -7,7 +7,6 @@ export interface IExperimentLogs {
   time2: [number, number]
   time3: [number, number]
   time4: [number, number]
-  stats: any
   struct: any
 }
 
@@ -23,7 +22,6 @@ export interface IExperimentLogsDocument {
   operation: any
   time3: [number, number]
   time4: [number, number]
-  stats: any
   struct: any
 }
 
