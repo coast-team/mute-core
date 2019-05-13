@@ -78,6 +78,7 @@ export abstract class DocService<Seq, Op> extends Disposable {
             this.experimentalLogsSubject.next({
               type: 'remote',
               site: this.id,
+              localOperation: docLog.localOperation,
               operation: syncMsgLog.operation,
               vector: syncLog.vector,
               time1: syncMsgLog.time1,
@@ -103,6 +104,7 @@ export abstract class DocService<Seq, Op> extends Disposable {
             this.experimentalLogsSubject.next({
               type: 'local',
               site: this.id,
+              localOperation: docLog.localOperation,
               operation: syncMsgLog.operation,
               vector: syncLog.vector,
               time1: syncMsgLog.time1,
