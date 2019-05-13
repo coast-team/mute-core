@@ -24,6 +24,7 @@ export abstract class Document<Seq, Op> extends Disposable {
         const t3 = process.hrtime()
         this.experimentLogsSubject.next({
           type: 'local',
+          localOperation: ope,
           operation: remoteOp,
           time3: t3,
           time4: t4,
@@ -59,6 +60,7 @@ export abstract class Document<Seq, Op> extends Disposable {
           const t4 = process.hrtime()
           this.experimentLogsSubject.next({
             type: 'remote',
+            localOperation: res,
             operation,
             time3: t3,
             time4: t4,
