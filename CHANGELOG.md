@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.0.0-experiment-2.0"></a>
+# [10.0.0-experiment-2.0](https://github.com/coast-team/mute-core/compare/v10.0.0-experiment-1.0...v10.0.0-experiment-2.0) (2019-05-13)
+
+
+### Features
+
+* **logs:** add loclaOperation in the experiment logs ([d2943e4](https://github.com/coast-team/mute-core/commit/d2943e4))
+
+
+
 <a name="10.0.0-experiment-1.0"></a>
 # [10.0.0-experiment-1.0](https://github.com/coast-team/mute-core/compare/v10.0.0-experiment...v10.0.0-experiment-1.0) (2019-05-07)
 
