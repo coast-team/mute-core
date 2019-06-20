@@ -8,7 +8,14 @@ import { SafeAny } from 'safe-any'
 import { RichOperation } from '../../core'
 
 function isDependencyAsArray(o: unknown): o is [number, number] {
-  return Array.isArray(o) && o.length === 2 && typeof o[0] === 'number' && typeof o[1] === 'number'
+  return (
+    Array.isArray(o) &&
+    o.length === 2 &&
+    typeof o[0] === 'number' &&
+    Number.isSafeInteger(o[0]) &&
+    typeof o[1] === 'number' &&
+    Number.isSafeInteger(o[1])
+  )
 }
 
 function isDependenciesAsArray(o: unknown): o is Array<[number, number]> {
