@@ -53,8 +53,8 @@
   },
   "dependencies": {
     "dotted-logootsplit": "^0.1.0",
-    "mute-structs": "^1.0.0",
-    "rxjs": "^6.3.3",
+    "mute-structs": "^1.1.0",
+    "rxjs": "^6.5.2",
     "safe-any": "^1.0.2"
   },
   "devDependencies": {
@@ -80,7 +80,7 @@
     "standard-version": "^4.4.0",
     "tslint": "^5.12.1",
     "tslint-config-prettier": "^1.17.0",
-    "typescript": "^3.2.4"
+    "typescript": "^3.4.5"
   },
   "ava": {
     "files": [
