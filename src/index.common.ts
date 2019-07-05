@@ -3,7 +3,7 @@ export { MetaDataMessage, MetaDataType, TitleState, FixDataState, LogState } fro
 export { MuteCore, MuteCoreTypes, MuteCoreFactory } from './MuteCore'
 export { LocalOperation, RemoteOperation } from './logs'
 export { TextInsert, TextDelete } from 'mute-structs'
-export { Streams } from './Streams'
+export { Streams, StreamId, StreamsSubtype } from './Streams'
 export { Position, RichOperation, State } from './core'
 export {
   StateTypes,
