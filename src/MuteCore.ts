@@ -8,7 +8,14 @@ import { DocServiceStrategy, DocServiceStrategyMethod, StateTypes, Strategy } fr
 import { DLSDocService, DLSState } from './crdtImpl/DottedLogootSplit'
 import { BlockOperation } from './crdtImpl/DottedLogootSplit/DLSRichOperation'
 import { LSDocService, LSState } from './crdtImpl/LogootSplit'
-import { FixDataState, LogState, MetaDataMessage, MetaDataService, TitleState } from './doc'
+import {
+  FixDataState,
+  LogState,
+  MetaDataMessage,
+  MetaDataService,
+  PulsarState,
+  TitleState,
+} from './doc'
 import { LocalOperation, RemoteOperation } from './logs'
 import { Disposable, generateId, IMessageIn, IMessageOut } from './misc'
 import { collaborator as proto } from './proto'
@@ -24,6 +31,7 @@ export interface SessionParameters {
   metaTitle: TitleState
   metaFixData: FixDataState
   metaLogs: LogState
+  metaPulsar: PulsarState
 }
 
 export class MuteCore<Seq, Op> extends Disposable {
@@ -43,7 +51,15 @@ export class MuteCore<Seq, Op> extends Disposable {
   private _messageIn$: Subject<IMessageIn>
 
   constructor(
-    { profile, strategy, docContent, metaTitle, metaFixData, metaLogs }: SessionParameters,
+    {
+      profile,
+      strategy,
+      docContent,
+      metaTitle,
+      metaFixData,
+      metaLogs,
+      metaPulsar,
+    }: SessionParameters,
     docServiceMethod: DocServiceStrategyMethod<Seq, Op>
   ) {
     super()
@@ -76,6 +92,7 @@ export class MuteCore<Seq, Op> extends Disposable {
       metaTitle,
       metaFixData,
       metaLogs,
+      metaPulsar,
       muteCoreId
     )
 

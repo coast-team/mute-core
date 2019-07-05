@@ -1,5 +1,12 @@
 export { ICollaborator } from './collaborators'
-export { MetaDataMessage, MetaDataType, TitleState, FixDataState, LogState } from './doc'
+export {
+  MetaDataMessage,
+  MetaDataType,
+  TitleState,
+  FixDataState,
+  LogState,
+  PulsarState,
+} from './doc'
 export { MuteCore, MuteCoreTypes, MuteCoreFactory } from './MuteCore'
 export { LocalOperation, RemoteOperation } from './logs'
 export { TextInsert, TextDelete } from 'mute-structs'

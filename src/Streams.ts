@@ -14,6 +14,7 @@ export enum StreamsSubtype {
   METADATA_TITLE,
   METADATA_FIXDATA,
   METADATA_LOGS,
+  METADATA_PULSAR,
   CRYPTO,
   CURSOR,
 }
