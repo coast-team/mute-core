@@ -6,7 +6,7 @@ import { LogootSOperation } from 'mute-structs'
 import { Interval, ReplySyncEvent, StateVector } from '../src/core'
 import { LSSyncMessage } from '../src/crdtImpl/LogootSplit'
 import { IMessageIn, IMessageOut } from '../src/misc'
-import { Streams } from '../src/Streams'
+import { Streams, StreamsSubtype } from '../src/Streams'
 import { generateQuerySyncMsg, generateSequentialRichLogootSOps, generateVector } from './LSHelpers'
 
 function generateReplySync(): ReplySyncEvent<LogootSOperation> {
@@ -92,7 +92,7 @@ test('replySync-correct-recipient', (context) => {
 
   setTimeout(() => {
     msgIn.next({
-      streamId: Streams.DOCUMENT_CONTENT,
+      streamId: { type: Streams.DOCUMENT_CONTENT, subtype: StreamsSubtype.DOCUMENT_QUERY },
       senderId: expected,
       content: generateQuerySyncMsg(generateVector()),
     })
@@ -128,7 +128,7 @@ test('replySync-correct-send-and-delivery', (context) => {
 
   setTimeout(() => {
     msgIn.next({
-      streamId: Streams.DOCUMENT_CONTENT,
+      streamId: { type: Streams.DOCUMENT_CONTENT, subtype: StreamsSubtype.DOCUMENT_QUERY },
       senderId: 0,
       content: generateQuerySyncMsg(generateVector()),
     })
