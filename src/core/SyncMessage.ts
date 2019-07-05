@@ -1,7 +1,7 @@
 import { Observable, Subject, zip } from 'rxjs'
 import { IMessageIn, IMessageOut, Service } from '../misc'
 import { sync as proto } from '../proto'
-import { Streams } from '../Streams'
+import { Streams, StreamsSubtype } from '../Streams'
 import { Interval } from './Interval'
 import { ReplySyncEvent } from './ReplySyncEvent'
 import { RichOperation } from './RichOperation'
@@ -52,7 +52,10 @@ export abstract class SyncMessage<Op> extends Service<proto.ISyncMsg, proto.Sync
 
   set localRichOperations$(source: Observable<RichOperation<Op>>) {
     this.newSub = source.subscribe((richOp) => {
-      super.send({ richOpMsg: this.serializeRichOperation(richOp) })
+      super.send(
+        { richOpMsg: this.serializeRichOperation(richOp) },
+        StreamsSubtype.DOCUMENT_OPERATION
+      )
     })
   }
 
@@ -64,7 +67,7 @@ export abstract class SyncMessage<Op> extends Service<proto.ISyncMsg, proto.Sync
           querySync.vector[id] = clock
         }
       })
-      super.send({ querySync })
+      super.send({ querySync }, StreamsSubtype.DOCUMENT_QUERY)
     })
   }
 
@@ -80,7 +83,7 @@ export abstract class SyncMessage<Op> extends Service<proto.ISyncMsg, proto.Sync
       replySync.intervals = intervals.map(({ id, begin, end }) =>
         proto.IntervalMsg.create({ id, begin, end })
       )
-      super.send({ replySync }, id)
+      super.send({ replySync }, StreamsSubtype.DOCUMENT_REPLY, id)
     })
   }
 

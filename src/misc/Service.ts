@@ -1,7 +1,7 @@
 import { Observable, Subject } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
 
-import { Streams } from '../Streams'
+import { Streams, StreamsSubtype } from '../Streams'
 import { Disposable } from './Disposable'
 import { IMessageIn, IMessageOut } from './IMessage'
 
@@ -30,16 +30,16 @@ export abstract class Service<OutMsg, InMsg extends OutMsg> extends Disposable {
     super()
     this.proto = proto
     this.messageIn$ = messageIn.pipe(
-      filter(({ streamId }) => streamId === myStreamId),
+      filter(({ streamId }) => streamId.type === myStreamId),
       map(({ senderId, content }) => ({ senderId, msg: proto.decode(content) }))
     )
     this.messageOut$ = messageOut
     this.streamId = myStreamId
   }
 
-  protected send(msg: OutMsg, recipientId?: number) {
+  protected send(msg: OutMsg, subtype: StreamsSubtype, recipientId?: number) {
     this.messageOut$.next({
-      streamId: this.streamId,
+      streamId: { type: this.streamId, subtype },
       recipientId,
       content: this.proto.encode(this.proto.create(msg)).finish(),
     })

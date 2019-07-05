@@ -2,7 +2,7 @@ import { Observable, Subject } from 'rxjs'
 
 import { IMessageIn, IMessageOut, Service } from '../misc'
 import { collaborator as proto } from '../proto'
-import { Streams } from '../Streams'
+import { Streams, StreamsSubtype } from '../Streams'
 import { ICollaborator } from './ICollaborator'
 
 export class CollaboratorsService extends Service<proto.ICollaborator, proto.Collaborator> {
@@ -65,7 +65,9 @@ export class CollaboratorsService extends Service<proto.ICollaborator, proto.Col
   }
 
   set memberJoin$(source: Observable<number>) {
-    this.newSub = source.subscribe((id: number) => this.emitUpdate(id))
+    this.newSub = source.subscribe((id: number) =>
+      this.emitUpdate(StreamsSubtype.COLLABORATORS_JOIN, id)
+    )
   }
 
   set memberLeave$(source: Observable<number>) {
@@ -81,7 +83,7 @@ export class CollaboratorsService extends Service<proto.ICollaborator, proto.Col
   set localUpdate(source: Observable<ICollaborator>) {
     this.newSub = source.subscribe((data: ICollaborator) => {
       Object.assign(this.me, data)
-      this.emitUpdate()
+      this.emitUpdate(StreamsSubtype.COLLABORATORS_LOCAL_UPDATE)
     })
   }
 
@@ -92,8 +94,8 @@ export class CollaboratorsService extends Service<proto.ICollaborator, proto.Col
     super.dispose()
   }
 
-  private emitUpdate(recipientId?: number) {
+  private emitUpdate(subtype: StreamsSubtype, recipientId?: number) {
     const { id, ...rest } = this.me
-    super.send(rest, recipientId)
+    super.send(rest, subtype, recipientId)
   }
 }

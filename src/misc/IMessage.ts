@@ -1,5 +1,7 @@
+import { StreamId } from '../Streams'
+
 interface IMessage {
-  streamId: number
+  streamId: StreamId
   content: Uint8Array
 }
 

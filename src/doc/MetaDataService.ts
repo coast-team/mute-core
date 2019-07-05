@@ -2,7 +2,7 @@ import { Observable, Subject } from 'rxjs'
 
 import { IMessageIn, IMessageOut, Service } from '../misc'
 import { metadata as proto } from '../proto'
-import { Streams } from '../Streams'
+import { Streams, StreamsSubtype } from '../Streams'
 import { FixData, FixDataState } from './FixData'
 import { Logs, LogState } from './Logs'
 import { Title, TitleState } from './Title'
@@ -90,7 +90,10 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
         case MetaDataType.Title:
           const { title, titleModified } = data as TitleState
           this.title.handleLocalState({ title, titleModified })
-          super.send({ type: MetaDataType.Title, data: JSON.stringify(this.title.state) })
+          super.send(
+            { type: MetaDataType.Title, data: JSON.stringify(this.title.state) },
+            StreamsSubtype.METADATA_TITLE
+          )
           break
         case MetaDataType.FixData:
           break
@@ -102,14 +105,17 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
             data: this.logs.state,
           })
           const state = this.logs.state
-          super.send({
-            type: MetaDataType.Logs,
-            data: JSON.stringify({
-              id: this.logs.id,
-              share: state.share,
-              vector: Array.from(state.vector || new Map<number, number>()),
-            }),
-          })
+          super.send(
+            {
+              type: MetaDataType.Logs,
+              data: JSON.stringify({
+                id: this.logs.id,
+                share: state.share,
+                vector: Array.from(state.vector || new Map<number, number>()),
+              }),
+            },
+            StreamsSubtype.METADATA_LOGS
+          )
           break
         default:
           console.error('No MetaDataType for type ' + type)
@@ -119,14 +125,23 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
 
   set memberJoin$(source: Observable<number>) {
     this.newSub = source.subscribe((id) => {
-      super.send({ type: MetaDataType.FixData, data: JSON.stringify(this.fixData.state) }, id)
-      super.send({ type: MetaDataType.Title, data: JSON.stringify(this.title.state) }, id)
+      super.send(
+        { type: MetaDataType.FixData, data: JSON.stringify(this.fixData.state) },
+        StreamsSubtype.METADATA_FIXDATA,
+        id
+      )
+      super.send(
+        { type: MetaDataType.Title, data: JSON.stringify(this.title.state) },
+        StreamsSubtype.METADATA_TITLE,
+        id
+      )
       const state = this.logs.stateWithVectorAsArray
       super.send(
         {
           type: MetaDataType.Logs,
           data: JSON.stringify({ share: state.share, vector: state.vector }),
         },
+        StreamsSubtype.METADATA_LOGS,
         id
       )
     })
