@@ -2,6 +2,7 @@ export enum Streams {
   COLLABORATORS = 400,
   METADATA,
   DOCUMENT_CONTENT,
+  CURSOR,
 }
 
 export enum StreamsSubtype {
@@ -13,6 +14,8 @@ export enum StreamsSubtype {
   METADATA_TITLE,
   METADATA_FIXDATA,
   METADATA_LOGS,
+  CRYPTO,
+  CURSOR,
 }
 
 export interface StreamId {
