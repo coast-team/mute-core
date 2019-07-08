@@ -2,7 +2,6 @@ import { PulsarCrdt } from './PulsarCrdt'
 
 export interface PulsarState {
   activatePulsar: boolean
-  vector?: Map<number, number>
 }
 
 export class Pulsar {
@@ -11,7 +10,7 @@ export class Pulsar {
 
   constructor(id: number, state: PulsarState) {
     this._id = id
-    this.crdt = new PulsarCrdt(id, state.activatePulsar, state.vector)
+    this.crdt = new PulsarCrdt(id, state.activatePulsar)
   }
 
   public handleLocalPulsar(activatePulsar: boolean): void {
@@ -19,7 +18,7 @@ export class Pulsar {
   }
 
   public handleRemotePulsar(id: number, other: PulsarState): PulsarState {
-    const otherCrdt = new PulsarCrdt(id, other.activatePulsar, other.vector)
+    const otherCrdt = new PulsarCrdt(id, other.activatePulsar)
     this.crdt.merge(otherCrdt)
     return this.state
   }
@@ -28,12 +27,5 @@ export class Pulsar {
   }
   get state(): PulsarState {
     return this.crdt.getState() as PulsarState
-  }
-
-  get stateWithVectorsAsArray() {
-    const state = this.state
-    const vectorAsMap = state.vector || new Map<number, number>()
-    const vectorAsArray = Array.from(vectorAsMap)
-    return { activatePulsar: state.activatePulsar, vector: vectorAsArray }
   }
 }

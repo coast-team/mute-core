@@ -84,12 +84,10 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
           })
           break
         case MetaDataType.Pulsar:
-          dataObj.vector = new Map<number, number>(dataObj.vector)
           this.remoteUpdateSubject.next({
             type: MetaDataType.Pulsar,
             data: this.pulsar.handleRemotePulsar(dataObj.id, {
               activatePulsar: dataObj.activatePulsar,
-              vector: dataObj.vector,
             }),
           })
           break
@@ -146,7 +144,6 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
               data: JSON.stringify({
                 id: this.logs.id,
                 activatePulsar: statePulsar.activatePulsar,
-                vector: Array.from(statePulsar.vector || new Map<number, number>()),
               }),
             },
             StreamsSubtype.METADATA_PULSAR
@@ -179,13 +176,12 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
         StreamsSubtype.METADATA_LOGS,
         id
       )
-      const statePulsar = this.pulsar.stateWithVectorsAsArray
+      const statePulsar = this.pulsar.state
       super.send(
         {
           type: MetaDataType.Pulsar,
           data: JSON.stringify({
             activatePulsar: statePulsar.activatePulsar,
-            vector: statePulsar.vector,
           }),
         },
         StreamsSubtype.METADATA_PULSAR,
