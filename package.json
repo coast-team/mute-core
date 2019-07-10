@@ -52,7 +52,7 @@
     "release": "standard-version"
   },
   "dependencies": {
-    "dotted-logootsplit": "^0.1.0",
+    "dotted-logootsplit": "^0.3.0",
     "mute-structs": "^1.1.0",
     "rxjs": "^6.5.2",
     "safe-any": "^1.0.2"
