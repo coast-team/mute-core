@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.0.0-experiment-3.0"></a>
+# [10.0.0-experiment-3.0](https://github.com/coast-team/mute-core/compare/v10.0.0-2.0...v10.0.0-experiment-3.0) (2019-07-10)
+
+
+### Bug Fixes
+
+* **dlsdocument:** change getStats in order to return an object ([037e0ce](https://github.com/coast-team/mute-core/commit/037e0ce))
+* **dlsdocument:** implement abstract inherited method getStats ([23e2db5](https://github.com/coast-team/mute-core/commit/23e2db5))
+* **experimentlogs:** remove stats in logs ([78d32a3](https://github.com/coast-team/mute-core/commit/78d32a3))
+* **handlelocaloperation:** change result type to Op[] ([035399a](https://github.com/coast-team/mute-core/commit/035399a))
+* **iexperimentallogs:** remove unused import ([db7d3a0](https://github.com/coast-team/mute-core/commit/db7d3a0))
+* **test:** fix test for release ([55d19b8](https://github.com/coast-team/mute-core/commit/55d19b8))
+
+
+### Features
+
+* **logs:** add loclaOperation in the experiment logs ([01a7b12](https://github.com/coast-team/mute-core/commit/01a7b12))
+* **logs:** add stream to get exepriment logs ([a9c680c](https://github.com/coast-team/mute-core/commit/a9c680c))
+* **logs:** finalize stream in order to collect all information ([2c42eca](https://github.com/coast-team/mute-core/commit/2c42eca))
+* **struct:** add struct field in logs ([f4bfd7d](https://github.com/coast-team/mute-core/commit/f4bfd7d))
+
+
+
 <a name="10.0.0-experiment-2.0"></a>
 # [10.0.0-experiment-2.0](https://github.com/coast-team/mute-core/compare/v10.0.0-experiment-1.0...v10.0.0-experiment-2.0) (2019-05-13)
 
