@@ -51,4 +51,7 @@ export class DLSDocument extends Document<
   public getDigest(): number {
     return this.doc.structuralHashCode()
   }
+  protected getStats() {
+    throw new Error('Method not implemented.')
+  }
 }
