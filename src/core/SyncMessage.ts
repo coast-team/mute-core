@@ -30,15 +30,7 @@ export abstract class SyncMessage<Op> extends Service<proto.ISyncMsg, proto.Sync
     this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
       switch (msg.type) {
         case 'richOpMsg':
-          const t1 = process.hrtime()
-          const richOpe = this.handleRichOpMsg(msg.richOpMsg as proto.RichOperationMsg)
-          const t2 = process.hrtime()
-          this.experimentLogsSubject.next({
-            type: 'remote',
-            operation: richOpe,
-            time1: t1,
-            time2: t2,
-          })
+          this.handleRichOpMsg(msg.richOpMsg as proto.RichOperationMsg)
           break
         case 'querySync':
           this.remoteQuerySyncIdSubject.next(senderId) // Register the id of the peer
@@ -126,8 +118,23 @@ export abstract class SyncMessage<Op> extends Service<proto.ISyncMsg, proto.Sync
     richOperationMsg: proto.RichOperationMsg
   ): RichOperation<Op>
 
+  private wrapperDeserializeRichOperation(
+    richOperationMsg: proto.RichOperationMsg
+  ): RichOperation<Op> {
+    const t1 = process.hrtime()
+    const richOpe = this.deserializeRichOperation(richOperationMsg)
+    const t2 = process.hrtime()
+    this.experimentLogsSubject.next({
+      type: 'remote',
+      operation: richOpe,
+      time1: t1,
+      time2: t2,
+    })
+    return richOpe
+  }
+
   private handleRichOpMsg(content: proto.RichOperationMsg): RichOperation<Op> {
-    const richOp = this.deserializeRichOperation(content)
+    const richOp = this.wrapperDeserializeRichOperation(content)
     this.remoteRichOperationSubject.next(richOp)
     return richOp
   }
@@ -142,7 +149,7 @@ export abstract class SyncMessage<Op> extends Service<proto.ISyncMsg, proto.Sync
 
   private handleReplySyncMsg({ richOpsMsg, intervals }: proto.ReplySyncMsg): void {
     const richOps = richOpsMsg.map((o) =>
-      this.deserializeRichOperation(o as proto.RichOperationMsg)
+      this.wrapperDeserializeRichOperation(o as proto.RichOperationMsg)
     )
 
     this.remoteReplySyncSubject.next(
