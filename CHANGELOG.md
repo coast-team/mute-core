@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.0.0-experiment-3.1"></a>
+# [10.0.0-experiment-3.1](https://github.com/coast-team/mute-core/compare/v10.0.0-experiment-3.0...v10.0.0-experiment-3.1) (2019-07-12)
+
+
+### Bug Fixes
+
+* **syncmessage:** emit deserialization times of all ops ([00f5dd8](https://github.com/coast-team/mute-core/commit/00f5dd8))
+
+
+
 <a name="10.0.0-experiment-3.0"></a>
 # [10.0.0-experiment-3.0](https://github.com/coast-team/mute-core/compare/v10.0.0-2.0...v10.0.0-experiment-3.0) (2019-07-10)
 
