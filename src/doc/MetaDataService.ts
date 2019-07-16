@@ -140,7 +140,7 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
           const statePulsar = this.pulsar.state
           super.send(
             {
-              type: MetaDataType.Logs,
+              type: MetaDataType.Pulsar,
               data: JSON.stringify({
                 id: this.logs.id,
                 activatePulsar: statePulsar.activatePulsar,
