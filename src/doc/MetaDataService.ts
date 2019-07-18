@@ -142,7 +142,7 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
             {
               type: MetaDataType.Pulsar,
               data: JSON.stringify({
-                id: this.logs.id,
+                id: this.pulsar.id,
                 activatePulsar: statePulsar.activatePulsar,
               }),
             },
