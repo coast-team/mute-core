@@ -5,15 +5,17 @@ import { metadata as proto } from '../proto'
 import { Streams, StreamsSubtype } from '../Streams'
 import { FixData, FixDataState } from './FixData'
 import { Logs, LogState } from './Logs'
+import { Pulsar, PulsarState } from './Pulsar'
 import { Title, TitleState } from './Title'
 
 export enum MetaDataType {
   Title,
   FixData,
   Logs,
+  Pulsar,
 }
 
-export type MetaDataState = TitleState | FixDataState | LogState
+export type MetaDataState = TitleState | FixDataState | LogState | PulsarState
 
 export interface MetaDataMessage {
   type: MetaDataType
@@ -32,6 +34,7 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
   private title: Title
   private fixData: FixData
   private logs: Logs
+  private pulsar: Pulsar
 
   private localUpdateSubject: Subject<MetaDataMessage>
   private remoteUpdateSubject: Subject<MetaDataMessage>
@@ -42,6 +45,7 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
     titleState: TitleState,
     fixDataState: FixDataState,
     logState: LogState,
+    pulsarState: PulsarState,
     id: number
   ) {
     super(messageIn$, messageOut$, Streams.METADATA, proto.MetaData)
@@ -49,6 +53,7 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
     this.title = new Title(titleState)
     this.fixData = new FixData(fixDataState)
     this.logs = new Logs(id, logState)
+    this.pulsar = new Pulsar(id, pulsarState)
 
     this.localUpdateSubject = new Subject()
     this.remoteUpdateSubject = new Subject()
@@ -75,6 +80,14 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
             data: this.logs.handleRemoteLogState(dataObj.id, {
               share: dataObj.share,
               vector: dataObj.vector,
+            }),
+          })
+          break
+        case MetaDataType.Pulsar:
+          this.remoteUpdateSubject.next({
+            type: MetaDataType.Pulsar,
+            data: this.pulsar.handleRemotePulsar(dataObj.id, {
+              activatePulsar: dataObj.activatePulsar,
             }),
           })
           break
@@ -117,6 +130,25 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
             StreamsSubtype.METADATA_LOGS
           )
           break
+        case MetaDataType.Pulsar:
+          const { activatePulsar } = data as PulsarState
+          this.pulsar.handleLocalPulsar(activatePulsar)
+          this.remoteUpdateSubject.next({
+            type: MetaDataType.Pulsar,
+            data: this.pulsar.state,
+          })
+          const statePulsar = this.pulsar.state
+          super.send(
+            {
+              type: MetaDataType.Pulsar,
+              data: JSON.stringify({
+                id: this.pulsar.id,
+                activatePulsar: statePulsar.activatePulsar,
+              }),
+            },
+            StreamsSubtype.METADATA_PULSAR
+          )
+          break
         default:
           console.error('No MetaDataType for type ' + type)
       }
@@ -142,6 +174,17 @@ export class MetaDataService extends Service<proto.IMetaData, proto.MetaData> {
           data: JSON.stringify({ share: state.share, vector: state.vector }),
         },
         StreamsSubtype.METADATA_LOGS,
+        id
+      )
+      const statePulsar = this.pulsar.state
+      super.send(
+        {
+          type: MetaDataType.Pulsar,
+          data: JSON.stringify({
+            activatePulsar: statePulsar.activatePulsar,
+          }),
+        },
+        StreamsSubtype.METADATA_PULSAR,
         id
       )
     })
