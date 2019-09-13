@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.0.0-2.1"></a>
+
+# [10.0.0-2.1](https://github.com/coast-team/mute-core/compare/v10.0.0-2.0...v10.0.0-2.1) (2019-09-13)
+
+### Bug Fixes
+
+- **pulsar:** fixed an error ([c0f07d5](https://github.com/coast-team/mute-core/commit/c0f07d5))
+- **pulsar:** removed vector from pulsar crdt ([338dd2a](https://github.com/coast-team/mute-core/commit/338dd2a))
+- **pulsar:** wrong data sent ([effd460](https://github.com/coast-team/mute-core/commit/effd460))
+
+### Features
+
+- **pulsar:** adding Metadata type for pulsar ([4534e46](https://github.com/coast-team/mute-core/commit/4534e46))
+
 <a name="10.0.0-2.0"></a>
 
 # [10.0.0-2.0](https://github.com/coast-team/mute-core/compare/v10.0.0-1...v10.0.0-2.0) (2019-07-05)
