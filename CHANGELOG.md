@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.0.0-2.2"></a>
+
+# [10.0.0-2.2](https://github.com/coast-team/mute-core/compare/v10.0.0-2.1...v10.0.0-2.2) (2019-09-16)
+
 <a name="10.0.0-2.1"></a>
 
 # [10.0.0-2.1](https://github.com/coast-team/mute-core/compare/v10.0.0-2.0...v10.0.0-2.1) (2019-09-13)
