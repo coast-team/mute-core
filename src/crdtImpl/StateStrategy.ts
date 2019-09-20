@@ -1,10 +1,11 @@
 import { SafeAny } from 'safe-any'
 import { StateJSON } from '../core'
 import { DLSState } from './DottedLogootSplit'
+import { FIFODLSState } from './FIFODottedLogootSplit'
 import { LSState } from './LogootSplit/LSState'
 import { Strategy } from './Strategy'
 
-export type StateTypes = LSState | DLSState
+export type StateTypes = LSState | DLSState | FIFODLSState
 
 interface IStateFactory<T> {
   fromPlain(o: any): T
@@ -29,6 +30,9 @@ export class StateStrategy {
       case Strategy.DOTTEDLOGOOTSPLIT:
         state = createState(DLSState, o)
         break
+      case Strategy.FIFODOTTEDLOGOOTSPLIT:
+        state = createState(FIFODLSState, o)
+        break
       default:
         state = null
         break
@@ -45,6 +49,9 @@ export class StateStrategy {
       case Strategy.DOTTEDLOGOOTSPLIT:
         state = createEmptyState(DLSState)
         break
+      case Strategy.FIFODOTTEDLOGOOTSPLIT:
+        state = createEmptyState(FIFODLSState)
+        break
       default:
         state = null
         break
@@ -56,6 +63,8 @@ export class StateStrategy {
     if (state instanceof LSState) {
       return state.sequenceCRDT.str
     } else if (state instanceof DLSState) {
+      return state.sequenceCRDT.concatenated('')
+    } else if (state instanceof FIFODLSState) {
       return state.sequenceCRDT.concatenated('')
     } else {
       return undefined

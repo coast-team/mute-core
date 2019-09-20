@@ -1,4 +1,4 @@
-import { SimpleDotPos } from 'dotted-logootsplit'
+import { DeltaEditableReplicatedList, SimpleDotPos } from 'dotted-logootsplit'
 import { OpEditableReplicatedList } from 'dotted-logootsplit/dist/types/core/op-replicated-list'
 import { LogootSOperation, LogootSRopes, TextOperation } from 'mute-structs'
 import { Observable, Subject } from 'rxjs'
@@ -7,6 +7,7 @@ import { DocService, Position, State } from './core'
 import { DocServiceStrategy, DocServiceStrategyMethod, StateTypes, Strategy } from './crdtImpl'
 import { DLSDocService, DLSState } from './crdtImpl/DottedLogootSplit'
 import { BlockOperation } from './crdtImpl/DottedLogootSplit/DLSRichOperation'
+import { FIFODLSDocService, FIFODLSState } from './crdtImpl/FIFODottedLogootSplit'
 import { LSDocService, LSState } from './crdtImpl/LogootSplit'
 import {
   FixDataState,
@@ -23,6 +24,7 @@ import { collaborator as proto } from './proto'
 export type MuteCoreTypes =
   | MuteCore<LogootSRopes, LogootSOperation>
   | MuteCore<OpEditableReplicatedList<SimpleDotPos, string>, BlockOperation>
+  | MuteCore<DeltaEditableReplicatedList<SimpleDotPos, string>, BlockOperation>
 
 export interface SessionParameters {
   strategy: Strategy
@@ -233,6 +235,24 @@ export class MuteCoreFactory {
           constructorParam,
           (strat, messageIn$, messageOut$, id, state, collaboratorService): DLSDocService => {
             if (state instanceof DLSState) {
+              return DocServiceStrategy.createDocService(
+                strat,
+                messageIn$,
+                messageOut$,
+                id,
+                state,
+                collaboratorService
+              )
+            } else {
+              throw new Error('')
+            }
+          }
+        )
+      case Strategy.FIFODOTTEDLOGOOTSPLIT:
+        return new MuteCore<DeltaEditableReplicatedList<SimpleDotPos, string>, BlockOperation>(
+          constructorParam,
+          (strat, messageIn$, messageOut$, id, state, collaboratorService): FIFODLSDocService => {
+            if (state instanceof FIFODLSState) {
               return DocServiceStrategy.createDocService(
                 strat,
                 messageIn$,
