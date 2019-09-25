@@ -1,7 +1,7 @@
 {
   "name": "@coast-team/mute-core",
   "description": "Core component of MUTE collaborative editor",
-  "version": "10.0.0-experiment-3.1",
+  "version": "10.0.0-experiment-3.2",
   "main": "./dist/mute-core.node.es5.cjs.js",
   "module": "./dist/mutecore.node.es5.esm.js",
   "browser": "./dist/mute-core.browser.es5.esm.js",

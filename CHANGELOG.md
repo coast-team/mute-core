@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.0.0-experiment-3.2"></a>
+# [10.0.0-experiment-3.2](https://github.com/coast-team/mute-core/compare/v10.0.0-2.2...v10.0.0-experiment-3.2) (2019-09-25)
+
+
+### Bug Fixes
+
+* **dlsdocument:** change getStats in order to return an object ([f94ec9e](https://github.com/coast-team/mute-core/commit/f94ec9e))
+* **dlsdocument:** implement abstract inherited method getStats ([0448d79](https://github.com/coast-team/mute-core/commit/0448d79))
+* **experimentlogs:** remove stats in logs ([2c20d47](https://github.com/coast-team/mute-core/commit/2c20d47))
+* **handlelocaloperation:** change result type to Op[] ([76452ae](https://github.com/coast-team/mute-core/commit/76452ae))
+* **iexperimentallogs:** remove unused import ([8b47f46](https://github.com/coast-team/mute-core/commit/8b47f46))
+* **syncmessage:** emit deserialization times of all ops ([b0a0bea](https://github.com/coast-team/mute-core/commit/b0a0bea))
+* **test:** fix test for release ([fdb1f76](https://github.com/coast-team/mute-core/commit/fdb1f76))
+
+
+### Features
+
+* **fifodlsdocument:** adapt handleLocalOperation for experiment ([771d385](https://github.com/coast-team/mute-core/commit/771d385))
+* **fifodottedlogootsplit:** add a new crdt fifo dotted logootsplit ([e965cb3](https://github.com/coast-team/mute-core/commit/e965cb3))
+* **logs:** add loclaOperation in the experiment logs ([4cbb750](https://github.com/coast-team/mute-core/commit/4cbb750))
+* **logs:** add stream to get exepriment logs ([8157951](https://github.com/coast-team/mute-core/commit/8157951))
+* **logs:** finalize stream in order to collect all information ([9c46bc3](https://github.com/coast-team/mute-core/commit/9c46bc3))
+* **struct:** add struct field in logs ([3657aaa](https://github.com/coast-team/mute-core/commit/3657aaa))
+
+
+
 <a name="10.0.0-2.2"></a>
 
 # [10.0.0-2.2](https://github.com/coast-team/mute-core/compare/v10.0.0-2.1...v10.0.0-2.2) (2019-09-16)
