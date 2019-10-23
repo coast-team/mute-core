@@ -1,6 +1,12 @@
 import { DeltaEditableReplicatedList, SimpleDotPos } from 'dotted-logootsplit'
 import { OpEditableReplicatedList } from 'dotted-logootsplit/dist/types/core/op-replicated-list'
-import { LogootSOperation, LogootSRopes, TextOperation } from 'mute-structs'
+import {
+  LogootSOperation,
+  LogootSRopes,
+  RenamableListOperation,
+  RenamableReplicableList,
+  TextOperation,
+} from 'mute-structs'
 import { Observable, Subject } from 'rxjs'
 import { CollaboratorsService, ICollaborator } from './collaborators'
 import { DocService, Position, State } from './core'
@@ -9,6 +15,7 @@ import { DLSDocService, DLSState } from './crdtImpl/DottedLogootSplit'
 import { BlockOperation } from './crdtImpl/DottedLogootSplit/DLSRichOperation'
 import { FIFODLSDocService, FIFODLSState } from './crdtImpl/FIFODottedLogootSplit'
 import { LSDocService, LSState } from './crdtImpl/LogootSplit'
+import { RLSDocService, RLSState } from './crdtImpl/RenamableLogootSplit'
 import {
   FixDataState,
   LogState,
@@ -26,6 +33,7 @@ export type MuteCoreTypes =
   | MuteCore<LogootSRopes, LogootSOperation>
   | MuteCore<OpEditableReplicatedList<SimpleDotPos, string>, BlockOperation>
   | MuteCore<DeltaEditableReplicatedList<SimpleDotPos, string>, BlockOperation>
+  | MuteCore<RenamableReplicableList, RenamableListOperation>
 
 export interface SessionParameters {
   strategy: Strategy
@@ -257,6 +265,24 @@ export class MuteCoreFactory {
           constructorParam,
           (strat, messageIn$, messageOut$, id, state, collaboratorService): FIFODLSDocService => {
             if (state instanceof FIFODLSState) {
+              return DocServiceStrategy.createDocService(
+                strat,
+                messageIn$,
+                messageOut$,
+                id,
+                state,
+                collaboratorService
+              )
+            } else {
+              throw new Error('')
+            }
+          }
+        )
+      case Strategy.RENAMABLELOGOOTSPLIT:
+        return new MuteCore<RenamableReplicableList, RenamableListOperation>(
+          constructorParam,
+          (strat, messageIn$, messageOut$, id, state, collaboratorService): RLSDocService => {
+            if (state instanceof RLSState) {
               return DocServiceStrategy.createDocService(
                 strat,
                 messageIn$,

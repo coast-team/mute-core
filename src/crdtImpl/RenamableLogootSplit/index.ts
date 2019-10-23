@@ -1,0 +1,5 @@
+export { RLSDocService } from './RLSDocService'
+export { RLSDocument } from './RLSDocument'
+export { RLSSyncMessage } from './RLSSyncMessage'
+export { RLSState } from './RLSState'
+export { RLSRichOperation } from './RLSRichOperation'

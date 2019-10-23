@@ -3,9 +3,10 @@ import { StateJSON } from '../core'
 import { DLSState } from './DottedLogootSplit'
 import { FIFODLSState } from './FIFODottedLogootSplit'
 import { LSState } from './LogootSplit/LSState'
+import { RLSState } from './RenamableLogootSplit'
 import { Strategy } from './Strategy'
 
-export type StateTypes = LSState | DLSState | FIFODLSState
+export type StateTypes = LSState | DLSState | FIFODLSState | RLSState
 
 interface IStateFactory<T> {
   fromPlain(o: any): T
@@ -33,6 +34,9 @@ export class StateStrategy {
       case Strategy.FIFODOTTEDLOGOOTSPLIT:
         state = createState(FIFODLSState, o)
         break
+      case Strategy.RENAMABLELOGOOTSPLIT:
+        state = createState(RLSState, o)
+        break
       default:
         state = null
         break
@@ -52,6 +56,9 @@ export class StateStrategy {
       case Strategy.FIFODOTTEDLOGOOTSPLIT:
         state = createEmptyState(FIFODLSState)
         break
+      case Strategy.RENAMABLELOGOOTSPLIT:
+        state = createEmptyState(RLSState)
+        break
       default:
         state = null
         break
@@ -60,7 +67,7 @@ export class StateStrategy {
   }
 
   static getStr(state: StateTypes): string | undefined {
-    if (state instanceof LSState) {
+    if (state instanceof LSState || state instanceof RLSState) {
       return state.sequenceCRDT.str
     } else if (state instanceof DLSState) {
       return state.sequenceCRDT.concatenated('')

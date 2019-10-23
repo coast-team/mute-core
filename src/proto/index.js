@@ -1303,9 +1303,10 @@ var sync = $root.sync = (function () {
         }
         RichOperationMsg.prototype.richLogootSOpsMsg = null;
         RichOperationMsg.prototype.richDottedLogootsOpsMsg = null;
+        RichOperationMsg.prototype.richRenamableLogootSOpMsg = null;
         var $oneOfFields;
         Object.defineProperty(RichOperationMsg.prototype, "type", {
-            get: $util.oneOfGetter($oneOfFields = ["richLogootSOpsMsg", "richDottedLogootsOpsMsg"]),
+            get: $util.oneOfGetter($oneOfFields = ["richLogootSOpsMsg", "richDottedLogootsOpsMsg", "richRenamableLogootSOpMsg"]),
             set: $util.oneOfSetter($oneOfFields)
         });
         RichOperationMsg.create = function create(properties) {
@@ -1318,6 +1319,8 @@ var sync = $root.sync = (function () {
                 $root.sync.RichLogootSOperationMsg.encode(message.richLogootSOpsMsg, writer.uint32(10).fork()).ldelim();
             if (message.richDottedLogootsOpsMsg != null && message.hasOwnProperty("richDottedLogootsOpsMsg"))
                 $root.sync.RichDottedLogootSOperationMsg.encode(message.richDottedLogootsOpsMsg, writer.uint32(18).fork()).ldelim();
+            if (message.richRenamableLogootSOpMsg != null && message.hasOwnProperty("richRenamableLogootSOpMsg"))
+                $root.sync.RichRenamableLogootSOperationMsg.encode(message.richRenamableLogootSOpMsg, writer.uint32(26).fork()).ldelim();
             return writer;
         };
         RichOperationMsg.decode = function decode(reader, length) {
@@ -1332,6 +1335,9 @@ var sync = $root.sync = (function () {
                         break;
                     case 2:
                         message.richDottedLogootsOpsMsg = $root.sync.RichDottedLogootSOperationMsg.decode(reader, reader.uint32());
+                        break;
+                    case 3:
+                        message.richRenamableLogootSOpMsg = $root.sync.RichRenamableLogootSOperationMsg.decode(reader, reader.uint32());
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -2084,6 +2090,316 @@ var sync = $root.sync = (function () {
             return message;
         };
         return SimpleDotPos;
+    })();
+    sync.RichRenamableLogootSOperationMsg = (function () {
+        function RichRenamableLogootSOperationMsg(properties) {
+            this.dependencies = {};
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        RichRenamableLogootSOperationMsg.prototype.id = 0;
+        RichRenamableLogootSOperationMsg.prototype.clock = 0;
+        RichRenamableLogootSOperationMsg.prototype.dependencies = $util.emptyObject;
+        RichRenamableLogootSOperationMsg.prototype.renamableLogootSAdd = null;
+        RichRenamableLogootSOperationMsg.prototype.renamableLogootSDel = null;
+        RichRenamableLogootSOperationMsg.prototype.logootSRename = null;
+        var $oneOfFields;
+        Object.defineProperty(RichRenamableLogootSOperationMsg.prototype, "type", {
+            get: $util.oneOfGetter($oneOfFields = ["renamableLogootSAdd", "renamableLogootSDel", "logootSRename"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+        RichRenamableLogootSOperationMsg.create = function create(properties) {
+            return new RichRenamableLogootSOperationMsg(properties);
+        };
+        RichRenamableLogootSOperationMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.id != null && message.hasOwnProperty("id"))
+                writer.uint32(8).int32(message.id);
+            if (message.clock != null && message.hasOwnProperty("clock"))
+                writer.uint32(16).int32(message.clock);
+            if (message.dependencies != null && message.hasOwnProperty("dependencies"))
+                for (var keys = Object.keys(message.dependencies), i = 0; i < keys.length; ++i)
+                    writer.uint32(26).fork().uint32(8).int32(keys[i]).uint32(16).int32(message.dependencies[keys[i]]).ldelim();
+            if (message.renamableLogootSAdd != null && message.hasOwnProperty("renamableLogootSAdd"))
+                $root.sync.RenamableLogootSAddMsg.encode(message.renamableLogootSAdd, writer.uint32(34).fork()).ldelim();
+            if (message.renamableLogootSDel != null && message.hasOwnProperty("renamableLogootSDel"))
+                $root.sync.RenamableLogootSDelMsg.encode(message.renamableLogootSDel, writer.uint32(42).fork()).ldelim();
+            if (message.logootSRename != null && message.hasOwnProperty("logootSRename"))
+                $root.sync.LogootSRenameMsg.encode(message.logootSRename, writer.uint32(50).fork()).ldelim();
+            return writer;
+        };
+        RichRenamableLogootSOperationMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.RichRenamableLogootSOperationMsg(), key;
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.id = reader.int32();
+                        break;
+                    case 2:
+                        message.clock = reader.int32();
+                        break;
+                    case 3:
+                        reader.skip().pos++;
+                        if (message.dependencies === $util.emptyObject)
+                            message.dependencies = {};
+                        key = reader.int32();
+                        reader.pos++;
+                        message.dependencies[key] = reader.int32();
+                        break;
+                    case 4:
+                        message.renamableLogootSAdd = $root.sync.RenamableLogootSAddMsg.decode(reader, reader.uint32());
+                        break;
+                    case 5:
+                        message.renamableLogootSDel = $root.sync.RenamableLogootSDelMsg.decode(reader, reader.uint32());
+                        break;
+                    case 6:
+                        message.logootSRename = $root.sync.LogootSRenameMsg.decode(reader, reader.uint32());
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return RichRenamableLogootSOperationMsg;
+    })();
+    sync.EpochMsg = (function () {
+        function EpochMsg(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        EpochMsg.prototype.id = null;
+        EpochMsg.prototype.parentId = null;
+        EpochMsg.create = function create(properties) {
+            return new EpochMsg(properties);
+        };
+        EpochMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.id != null && message.hasOwnProperty("id"))
+                $root.sync.EpochIdMsg.encode(message.id, writer.uint32(10).fork()).ldelim();
+            if (message.parentId != null && message.hasOwnProperty("parentId"))
+                $root.sync.EpochIdMsg.encode(message.parentId, writer.uint32(18).fork()).ldelim();
+            return writer;
+        };
+        EpochMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.EpochMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.id = $root.sync.EpochIdMsg.decode(reader, reader.uint32());
+                        break;
+                    case 2:
+                        message.parentId = $root.sync.EpochIdMsg.decode(reader, reader.uint32());
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return EpochMsg;
+    })();
+    sync.EpochIdMsg = (function () {
+        function EpochIdMsg(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        EpochIdMsg.prototype.replicaNumber = 0;
+        EpochIdMsg.prototype.epochNumber = 0;
+        EpochIdMsg.create = function create(properties) {
+            return new EpochIdMsg(properties);
+        };
+        EpochIdMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.replicaNumber != null && message.hasOwnProperty("replicaNumber"))
+                writer.uint32(8).int32(message.replicaNumber);
+            if (message.epochNumber != null && message.hasOwnProperty("epochNumber"))
+                writer.uint32(16).int32(message.epochNumber);
+            return writer;
+        };
+        EpochIdMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.EpochIdMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.replicaNumber = reader.int32();
+                        break;
+                    case 2:
+                        message.epochNumber = reader.int32();
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return EpochIdMsg;
+    })();
+    sync.RenamableLogootSAddMsg = (function () {
+        function RenamableLogootSAddMsg(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        RenamableLogootSAddMsg.prototype.op = null;
+        RenamableLogootSAddMsg.prototype.epoch = null;
+        RenamableLogootSAddMsg.create = function create(properties) {
+            return new RenamableLogootSAddMsg(properties);
+        };
+        RenamableLogootSAddMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.op != null && message.hasOwnProperty("op"))
+                $root.sync.LogootSAddMsg.encode(message.op, writer.uint32(10).fork()).ldelim();
+            if (message.epoch != null && message.hasOwnProperty("epoch"))
+                $root.sync.EpochMsg.encode(message.epoch, writer.uint32(18).fork()).ldelim();
+            return writer;
+        };
+        RenamableLogootSAddMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.RenamableLogootSAddMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.op = $root.sync.LogootSAddMsg.decode(reader, reader.uint32());
+                        break;
+                    case 2:
+                        message.epoch = $root.sync.EpochMsg.decode(reader, reader.uint32());
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return RenamableLogootSAddMsg;
+    })();
+    sync.RenamableLogootSDelMsg = (function () {
+        function RenamableLogootSDelMsg(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        RenamableLogootSDelMsg.prototype.op = null;
+        RenamableLogootSDelMsg.prototype.epoch = null;
+        RenamableLogootSDelMsg.create = function create(properties) {
+            return new RenamableLogootSDelMsg(properties);
+        };
+        RenamableLogootSDelMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.op != null && message.hasOwnProperty("op"))
+                $root.sync.LogootSDelMsg.encode(message.op, writer.uint32(10).fork()).ldelim();
+            if (message.epoch != null && message.hasOwnProperty("epoch"))
+                $root.sync.EpochMsg.encode(message.epoch, writer.uint32(18).fork()).ldelim();
+            return writer;
+        };
+        RenamableLogootSDelMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.RenamableLogootSDelMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.op = $root.sync.LogootSDelMsg.decode(reader, reader.uint32());
+                        break;
+                    case 2:
+                        message.epoch = $root.sync.EpochMsg.decode(reader, reader.uint32());
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return RenamableLogootSDelMsg;
+    })();
+    sync.LogootSRenameMsg = (function () {
+        function LogootSRenameMsg(properties) {
+            this.renamedIdIntervals = [];
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        LogootSRenameMsg.prototype.replicaNumber = 0;
+        LogootSRenameMsg.prototype.clock = 0;
+        LogootSRenameMsg.prototype.renamedIdIntervals = $util.emptyArray;
+        LogootSRenameMsg.prototype.epoch = null;
+        LogootSRenameMsg.create = function create(properties) {
+            return new LogootSRenameMsg(properties);
+        };
+        LogootSRenameMsg.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.replicaNumber != null && message.hasOwnProperty("replicaNumber"))
+                writer.uint32(8).int32(message.replicaNumber);
+            if (message.clock != null && message.hasOwnProperty("clock"))
+                writer.uint32(16).int32(message.clock);
+            if (message.renamedIdIntervals != null && message.renamedIdIntervals.length)
+                for (var i = 0; i < message.renamedIdIntervals.length; ++i)
+                    $root.sync.IdentifierIntervalMsg.encode(message.renamedIdIntervals[i], writer.uint32(26).fork()).ldelim();
+            if (message.epoch != null && message.hasOwnProperty("epoch"))
+                $root.sync.EpochMsg.encode(message.epoch, writer.uint32(34).fork()).ldelim();
+            return writer;
+        };
+        LogootSRenameMsg.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.LogootSRenameMsg();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 1:
+                        message.replicaNumber = reader.int32();
+                        break;
+                    case 2:
+                        message.clock = reader.int32();
+                        break;
+                    case 3:
+                        if (!(message.renamedIdIntervals && message.renamedIdIntervals.length))
+                            message.renamedIdIntervals = [];
+                        message.renamedIdIntervals.push($root.sync.IdentifierIntervalMsg.decode(reader, reader.uint32()));
+                        break;
+                    case 4:
+                        message.epoch = $root.sync.EpochMsg.decode(reader, reader.uint32());
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            return message;
+        };
+        return LogootSRenameMsg;
     })();
     return sync;
 })();

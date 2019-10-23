@@ -1,23 +1,53 @@
 import {
   LogootSOperation,
+  RenamableListOperation,
   RenamableLogootSOperation,
   RenamableReplicableList,
   TextDelete,
   TextInsert,
   TextOperation,
 } from 'mute-structs'
+import { Observable } from 'rxjs'
+
 import { Document, Position } from '../../core'
 import { sync } from '../../proto'
 
-export class RLSDocument extends Document<
-  RenamableReplicableList,
-  RenamableLogootSOperation<LogootSOperation>
-> {
-  public handleLocalOperation(textOps: TextOperation[]): void {
-    textOps.forEach((textOp) => {
-      const remoteOp = this.applyTextOp(textOp)
-      this.localOperationLogsSubject.next({ textop: textOp, operation: remoteOp })
-      this.localOperationSubject.next(remoteOp)
+export class RLSDocument extends Document<RenamableReplicableList, RenamableListOperation> {
+
+  set localTextOperations$(source: Observable<TextOperation[]>) {
+    this.newSub = source.subscribe((textOperations) => {
+      if (textOperations.length > 0) {
+        textOperations.forEach((ope) => {
+          const t4 = process.hrtime()
+          const remoteOp = this.handleLocalOperation(ope)
+          const t3 = process.hrtime()
+          this.experimentLogsSubject.next({
+            type: 'local',
+            localOperation: ope,
+            operation: remoteOp,
+            time3: t3,
+            time4: t4,
+            struct: this._doc,
+          })
+          remoteOp.forEach((remote) => {
+            this.localOperationLogsSubject.next({ textop: ope, operation: remote })
+            this.localOperationSubject.next(remote)
+          })
+        })
+        this.updateSubject.next()
+      } else {
+        const time4 = process.hrtime()
+        const remoteOp = this.doc.renameLocal()
+        const time3 = process.hrtime()
+        this.experimentLogsSubject.next({
+          type: 'local',
+          localOperation: {},
+          operation: remoteOp,
+          time3,
+          time4,
+          struct: this._doc
+        })
+      }
     })
   }
 
@@ -45,11 +75,15 @@ export class RLSDocument extends Document<
     return this.doc.digest()
   }
 
-  private applyTextOp(textOp: TextOperation): RenamableLogootSOperation<LogootSOperation> {
+  getStats() {
+    return {}
+  }
+
+  handleLocalOperation(textOp: TextOperation): RenamableListOperation[] {
     if (textOp instanceof TextInsert) {
-      return this.doc.insertLocal(textOp.index, textOp.content)
+      return [this.doc.insertLocal(textOp.index, textOp.content)]
     } else if (textOp instanceof TextDelete) {
-      return this.doc.delLocal(textOp.index, textOp.index + textOp.length - 1)
+      return [this.doc.delLocal(textOp.index, textOp.index + textOp.length - 1)]
     } else {
       throw new Error(
         `RLSDocument.applyTextOp: tried to handle an operation which is neither a TextInsert nor a TextDelete: ${textOp}`

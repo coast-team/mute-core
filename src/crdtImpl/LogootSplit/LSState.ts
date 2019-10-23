@@ -31,11 +31,7 @@ export class LSState extends State<LogootSRopes, LogootSOperation> {
         typeof o.sequenceCRDT.clock === 'number'
       ) {
         const vector = new Map(o.vector)
-        const logootsRopes = LogootSRopes.fromPlain(
-          o.sequenceCRDT.replicaNumber,
-          o.sequenceCRDT.clock,
-          o.sequenceCRDT
-        )
+        const logootsRopes = LogootSRopes.fromPlain(o.sequenceCRDT)
         if (!logootsRopes) {
           return null
         }

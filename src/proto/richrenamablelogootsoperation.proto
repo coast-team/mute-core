@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package sync;
+
+message RichRenamableLogootSOperationMsg {
+  int32 id = 1;
+  int32 clock = 2;
+  map<int32, int32> dependencies = 3;
+  oneof type {
+    RenamableLogootSAddMsg renamableLogootSAdd = 4;
+    RenamableLogootSDelMsg renamableLogootSDel = 5;
+    LogootSRenameMsg logootSRename = 6;
+  }
+}
+
+message EpochMsg {
+  EpochIdMsg id = 1;
+  EpochIdMsg parentId = 2;
+}
+
+message EpochIdMsg {
+  int32 replicaNumber = 1;
+  int32 epochNumber = 2;
+}
+
+message RenamableLogootSAddMsg {
+  LogootSAddMsg op = 1;
+  EpochMsg epoch = 2;
+}
+
+message RenamableLogootSDelMsg {
+  LogootSDelMsg op = 1;
+  EpochMsg epoch = 2;
+}
+
+message LogootSRenameMsg {
+  int32 replicaNumber = 1;
+  int32 clock = 2;
+  repeated IdentifierIntervalMsg renamedIdIntervals = 3;
+  EpochMsg epoch = 4;
+}

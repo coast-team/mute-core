@@ -177,6 +177,13 @@ export abstract class Sync<Op> extends Disposable {
 
   abstract computeDependencies(operation: Op): Map<number, number>
 
+  protected updateState(richOp: RichOperation<Op>) {
+    console.assert(this.isDeliverable(richOp))
+    const { id, clock } = richOp
+    this.vector.set(id, clock)
+    this.richOperations.push(richOp)
+  }
+
   private applyRichOperations(richOps: Array<RichOperation<Op>>) {
     setTimeout(() => {
       // Keep only new operations
@@ -223,13 +230,6 @@ export abstract class Sync<Op> extends Disposable {
         this.applyRichOperations([richOp])
       }
     })
-  }
-
-  private updateState(richOp: RichOperation<Op>) {
-    console.assert(this.isDeliverable(richOp))
-    const { id, clock } = richOp
-    this.vector.set(id, clock)
-    this.richOperations.push(richOp)
   }
 
   private isDeliverable({ id, clock, dependencies }: RichOperation<Op>) {
