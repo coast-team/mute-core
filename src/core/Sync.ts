@@ -140,6 +140,7 @@ export abstract class Sync<Op> extends Disposable {
     this.newSub = source.subscribe((operation) => {
       const dependencies = this.computeDependencies(operation)
       const richOp = new RichOperation<Op>(this.id, this.clock, operation, dependencies)
+      this.clock++
 
       this.experimentLogsSubject.next({
         type: 'local',
@@ -149,7 +150,6 @@ export abstract class Sync<Op> extends Disposable {
 
       this.updateState(richOp)
       this.localRichOperationsSubject.next(richOp)
-      this.clock++
     })
   }
 
