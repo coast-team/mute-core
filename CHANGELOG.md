@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.0.0-experiment-3.4"></a>
+# [10.0.0-experiment-3.4](https://github.com/coast-team/mute-core/compare/v10.0.0-experiment-3.3...v10.0.0-experiment-3.4) (2019-12-19)
+
+
+### Bug Fixes
+
+* **sync:** prevent generation of multiple operations with same clock ([70aa697](https://github.com/coast-team/mute-core/commit/70aa697))
+
+
+
 <a name="10.0.0-experiment-3.3"></a>
 # [10.0.0-experiment-3.3](https://github.com/coast-team/mute-core/compare/v10.0.0-experiment-3.2...v10.0.0-experiment-3.3) (2019-12-19)
 
