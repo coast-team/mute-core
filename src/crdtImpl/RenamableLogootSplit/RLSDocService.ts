@@ -1,4 +1,4 @@
-import { RenamableListOperation, RenamableReplicableList, TextOperation } from 'mute-structs'
+import { RenamableListOperation, RenamableReplicableList /* TextOperation */ } from 'mute-structs'
 import { CollaboratorsService } from '../../collaborators'
 import { DocService } from '../../core'
 import { RLSSync } from '../../syncImpl'
@@ -17,18 +17,17 @@ export class RLSDocService extends DocService<RenamableReplicableList, Renamable
     super(id, collaboratorService, document, sync, syncMessage)
   }
 
-  logLocalOperation(id: number, textope: TextOperation, ope: RenamableListOperation): void {
-    console.log('Implementation pending...', id, textope.author, ope.author)
+  logLocalOperation(/* id: number, textope: TextOperation, ope: RenamableListOperation */): void {
+    // TODO
   }
 
-  logRemoteOperation(
-    id: number,
+  logRemoteOperation(): /* id: number,
     texteope: TextOperation[],
     ope: RenamableListOperation,
     clock: number,
-    author: number
-  ): void {
-    console.log('Implementation pending...', id, texteope.length, ope.author, clock, author)
+    author: number */
+  void {
+    // TODO
   }
 
   get state(): RLSState {
