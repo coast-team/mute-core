@@ -13,7 +13,6 @@ import { Document, Position } from '../../core'
 import { sync } from '../../proto'
 
 export class RLSDocument extends Document<RenamableReplicableList, RenamableListOperation> {
-
   set localTextOperations$(source: Observable<TextOperation[]>) {
     this.newSub = source.subscribe((textOperations) => {
       if (textOperations.length > 0) {
@@ -45,8 +44,9 @@ export class RLSDocument extends Document<RenamableReplicableList, RenamableList
           operation: remoteOp,
           time3,
           time4,
-          struct: this._doc
+          struct: this._doc,
         })
+        this.localOperationSubject.next(remoteOp)
       }
     })
   }
