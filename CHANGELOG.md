@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.0.0-experiment-3.3"></a>
+# [10.0.0-experiment-3.3](https://github.com/coast-team/mute-core/compare/v10.0.0-experiment-3.2...v10.0.0-experiment-3.3) (2019-12-19)
+
+
+### Bug Fixes
+
+* **rename:** share rename operations to other nodes ([ac0d64f](https://github.com/coast-team/mute-core/commit/ac0d64f))
+* **rls-richoperation:** check that dependencies is a map int -> int ([cb436ef](https://github.com/coast-team/mute-core/commit/cb436ef))
+
+
+### Features
+
+* **crdt-impl:** add RLSDocument ([0c2510c](https://github.com/coast-team/mute-core/commit/0c2510c))
+* **renamablelogootsplit:** add RLSRichOperation ([92fcbe8](https://github.com/coast-team/mute-core/commit/92fcbe8))
+* **renamablelogootsplit:** add RLSState ([70a4a1e](https://github.com/coast-team/mute-core/commit/70a4a1e))
+* **renamablelogootsplit:** add support ([2e7abf4](https://github.com/coast-team/mute-core/commit/2e7abf4))
+
+
+
 <a name="10.0.0-experiment-3.2"></a>
 # [10.0.0-experiment-3.2](https://github.com/coast-team/mute-core/compare/v10.0.0-2.2...v10.0.0-experiment-3.2) (2019-09-25)
 
