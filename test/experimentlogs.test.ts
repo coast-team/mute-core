@@ -38,7 +38,7 @@ function generateMuteCore(strategy: Strategy, name: string): MuteCoreTypes {
   })
 }
 
-test.failing('experimentLogs-local-rename-op', (t) => {
+test('experimentLogs-local-rename-op', (t) => {
   const muteCore = generateMuteCore(Strategy.RENAMABLELOGOOTSPLIT, 'toto')
   const localOps$ = new Subject<TextOperation[]>()
 

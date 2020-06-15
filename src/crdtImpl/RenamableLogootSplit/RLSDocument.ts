@@ -41,7 +41,7 @@ export class RLSDocument extends Document<RenamableReplicableList, RenamableList
         this.experimentLogsSubject.next({
           type: 'local',
           localOperation: {},
-          operation: remoteOp,
+          operation: [remoteOp],
           time3,
           time4,
           struct: this._doc,
