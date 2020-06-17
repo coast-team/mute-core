@@ -1,5 +1,5 @@
 import test from 'ava'
-import { TextInsert, TextOperation } from 'mute-structs'
+import { LogootSRename, TextInsert, TextOperation } from 'mute-structs'
 import { Subject } from 'rxjs'
 
 import { MuteCoreFactory, MuteCoreTypes, StateStrategy, Strategy } from '../src/index.node'
@@ -49,8 +49,8 @@ test('experimentLogs-local-rename-op', (t) => {
     localOps$.next([insertOp])
   }
 
-  muteCore.experimentLogs$.subscribe(() => {
-    t.pass()
+  muteCore.experimentLogs$.subscribe((log) => {
+    t.true(log.operation.operation instanceof LogootSRename)
   })
 
   localOps$.next([]) // Trigger a rename operation
