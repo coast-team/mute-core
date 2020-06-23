@@ -957,8 +957,8 @@ export namespace collaborator {
         /** SwimPG message */
         message?: (number|null);
 
-        /** SwimPG collaborator */
-        collaborator?: (collaborator.ICollaborator|null);
+        /** SwimPG collab */
+        collab?: (collaborator.ICollaborator|null);
 
         /** SwimPG incarn */
         incarn?: (number|null);
@@ -976,8 +976,8 @@ export namespace collaborator {
         /** SwimPG message. */
         public message: number;
 
-        /** SwimPG collaborator. */
-        public collaborator?: (collaborator.ICollaborator|null);
+        /** SwimPG collab. */
+        public collab?: (collaborator.ICollaborator|null);
 
         /** SwimPG incarn. */
         public incarn: number;
@@ -1251,8 +1251,8 @@ export namespace collaborator {
         /** SwimDataRequest type */
         type?: (string|null);
 
-        /** SwimDataRequest collaborator */
-        collaborator?: (collaborator.ICollaborator|null);
+        /** SwimDataRequest collab */
+        collab?: (collaborator.ICollaborator|null);
     }
 
     /** Represents a SwimDataRequest. */
@@ -1267,8 +1267,8 @@ export namespace collaborator {
         /** SwimDataRequest type. */
         public type: string;
 
-        /** SwimDataRequest collaborator. */
-        public collaborator?: (collaborator.ICollaborator|null);
+        /** SwimDataRequest collab. */
+        public collab?: (collaborator.ICollaborator|null);
 
         /**
          * Creates a new SwimDataRequest instance using the specified properties.

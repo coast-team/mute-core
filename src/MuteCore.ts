@@ -174,12 +174,13 @@ export class MuteCore<Seq, Op> extends Disposable {
   }
 
   set memberJoin$(source: Observable<number>) {
-    this.collaboratorsService.memberJoin$ = source
+    // this.collaboratorsService.memberJoin$ = source
     this.metaDataService.memberJoin$ = source
   }
 
   set memberLeave$(source: Observable<number>) {
-    this.collaboratorsService.memberLeave$ = source
+    console.log('source: ', source)
+    // this.collaboratorsService.memberLeave$ = source
   }
 
   /*

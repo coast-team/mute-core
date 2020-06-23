@@ -13,7 +13,7 @@ message Collaborator {
 
 message SwimPG {
   sint32 message = 0;
-  Collaborator collaborator = 1;
+  Collaborator collab = 1;
   sint32 incarn = 2;
 }
 
@@ -46,7 +46,7 @@ message SwimAck {
 
 message SwimDataRequest {
   string type = 0;
-  Collaborator collaborator = 1;
+  Collaborator collab = 1;
 }
 message SwimDataUpdate {
   string type = 0;
