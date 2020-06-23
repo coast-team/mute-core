@@ -1,6 +1,7 @@
 import { Observable, Subject } from 'rxjs'
 
 import { IMessageIn, IMessageOut, Service } from '../misc'
+import { isObject } from '../misc/util'
 import { collaborator as proto } from '../proto'
 import { Streams, StreamsSubtype } from '../Streams'
 import { ICollaborator, ISwim, ISwimDataRequest, TYPE_DATAREQUEST_LABEL } from './ICollaborator'
@@ -9,6 +10,19 @@ function wrapToProto(msg: ISwim): proto.SwimMsg {
   return {
     [msg.type]: msg,
   }
+}
+
+function isICollaborator(o: unknown): o is ICollaborator {
+  return (
+    isObject<ICollaborator>(o) &&
+    typeof o.id === 'number' &&
+    (typeof o.muteCoreId === 'number' || o.muteCoreId === undefined) &&
+    (typeof o.displayName === 'string' || o.displayName === undefined) &&
+    (typeof o.login === 'string' || o.login === undefined) &&
+    (typeof o.email === 'string' || o.email === undefined) &&
+    (typeof o.avatar === 'string' || o.avatar === undefined) &&
+    (typeof o.deviceID === 'string' || o.deviceID === undefined)
+  )
 }
 
 export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg> {
@@ -51,6 +65,15 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
       console.log('CollaboratorService: received message from: ', senderId)
       console.log('CollaboratorService: msg: ', msg)
+      if (msg.swimDataRequest) {
+        const type = TYPE_DATAREQUEST_LABEL
+        const collab = { id: senderId, ...msg.swimDataRequest.collab }
+        if (isICollaborator(collab)) {
+          const dataRequest: ISwimDataRequest = { type, collab }
+          console.log('CollaboratorService: unwrapped msg: ', dataRequest)
+          this.joinSubject.next(collab)
+        }
+      }
     })
 
     setInterval(() => {

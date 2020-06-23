@@ -12,9 +12,9 @@ message Collaborator {
 }
 
 message SwimPG {
-  sint32 message = 0;
-  Collaborator collab = 1;
-  sint32 incarn = 2;
+  required sint32 message = 0;
+  required Collaborator collab = 1;
+  required sint32 incarn = 2;
 }
 
 message SwimMsg {

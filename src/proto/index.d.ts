@@ -955,13 +955,13 @@ export namespace collaborator {
     interface ISwimPG {
 
         /** SwimPG message */
-        message?: (number|null);
+        message: number;
 
         /** SwimPG collab */
-        collab?: (collaborator.ICollaborator|null);
+        collab: collaborator.ICollaborator;
 
         /** SwimPG incarn */
-        incarn?: (number|null);
+        incarn: number;
     }
 
     /** Represents a SwimPG. */
@@ -977,7 +977,7 @@ export namespace collaborator {
         public message: number;
 
         /** SwimPG collab. */
-        public collab?: (collaborator.ICollaborator|null);
+        public collab: collaborator.ICollaborator;
 
         /** SwimPG incarn. */
         public incarn: number;

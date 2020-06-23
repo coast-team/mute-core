@@ -2172,12 +2172,9 @@ var collaborator = $root.collaborator = (function () {
         SwimPG.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.message != null && message.hasOwnProperty("message"))
-                writer.uint32(0).sint32(message.message);
-            if (message.collab != null && message.hasOwnProperty("collab"))
-                $root.collaborator.Collaborator.encode(message.collab, writer.uint32(10).fork()).ldelim();
-            if (message.incarn != null && message.hasOwnProperty("incarn"))
-                writer.uint32(16).sint32(message.incarn);
+            writer.uint32(0).sint32(message.message);
+            $root.collaborator.Collaborator.encode(message.collab, writer.uint32(10).fork()).ldelim();
+            writer.uint32(16).sint32(message.incarn);
             return writer;
         };
         SwimPG.decode = function decode(reader, length) {
@@ -2201,6 +2198,12 @@ var collaborator = $root.collaborator = (function () {
                         break;
                 }
             }
+            if (!message.hasOwnProperty("message"))
+                throw $util.ProtocolError("missing required 'message'", { instance: message });
+            if (!message.hasOwnProperty("collab"))
+                throw $util.ProtocolError("missing required 'collab'", { instance: message });
+            if (!message.hasOwnProperty("incarn"))
+                throw $util.ProtocolError("missing required 'incarn'", { instance: message });
             return message;
         };
         return SwimPG;
