@@ -950,6 +950,465 @@ export namespace collaborator {
          */
         public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): collaborator.Collaborator;
     }
+
+    /** Properties of a SwimPG. */
+    interface ISwimPG {
+
+        /** SwimPG message */
+        message?: (number|null);
+
+        /** SwimPG collaborator */
+        collaborator?: (collaborator.ICollaborator|null);
+
+        /** SwimPG incarn */
+        incarn?: (number|null);
+    }
+
+    /** Represents a SwimPG. */
+    class SwimPG implements ISwimPG {
+
+        /**
+         * Constructs a new SwimPG.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: collaborator.ISwimPG);
+
+        /** SwimPG message. */
+        public message: number;
+
+        /** SwimPG collaborator. */
+        public collaborator?: (collaborator.ICollaborator|null);
+
+        /** SwimPG incarn. */
+        public incarn: number;
+
+        /**
+         * Creates a new SwimPG instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns SwimPG instance
+         */
+        public static create(properties?: collaborator.ISwimPG): collaborator.SwimPG;
+
+        /**
+         * Encodes the specified SwimPG message. Does not implicitly {@link collaborator.SwimPG.verify|verify} messages.
+         * @param message SwimPG message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: collaborator.ISwimPG, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a SwimPG message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns SwimPG
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): collaborator.SwimPG;
+    }
+
+    /** Properties of a SwimMsg. */
+    interface ISwimMsg {
+
+        /** SwimMsg swimPing */
+        swimPing?: (collaborator.ISwimPing|null);
+
+        /** SwimMsg swimPingReq */
+        swimPingReq?: (collaborator.ISwimPingReq|null);
+
+        /** SwimMsg swimAck */
+        swimAck?: (collaborator.ISwimAck|null);
+
+        /** SwimMsg swimDataRequest */
+        swimDataRequest?: (collaborator.ISwimDataRequest|null);
+
+        /** SwimMsg swimDataUpdate */
+        swimDataUpdate?: (collaborator.ISwimDataUpdate|null);
+
+        /** SwimMsg swimPingReqRep */
+        swimPingReqRep?: (collaborator.ISwimPingReqRep|null);
+    }
+
+    /** Represents a SwimMsg. */
+    class SwimMsg implements ISwimMsg {
+
+        /**
+         * Constructs a new SwimMsg.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: collaborator.ISwimMsg);
+
+        /** SwimMsg swimPing. */
+        public swimPing?: (collaborator.ISwimPing|null);
+
+        /** SwimMsg swimPingReq. */
+        public swimPingReq?: (collaborator.ISwimPingReq|null);
+
+        /** SwimMsg swimAck. */
+        public swimAck?: (collaborator.ISwimAck|null);
+
+        /** SwimMsg swimDataRequest. */
+        public swimDataRequest?: (collaborator.ISwimDataRequest|null);
+
+        /** SwimMsg swimDataUpdate. */
+        public swimDataUpdate?: (collaborator.ISwimDataUpdate|null);
+
+        /** SwimMsg swimPingReqRep. */
+        public swimPingReqRep?: (collaborator.ISwimPingReqRep|null);
+
+        /** SwimMsg type. */
+        public type?: ("swimPing"|"swimPingReq"|"swimAck"|"swimDataRequest"|"swimDataUpdate"|"swimPingReqRep");
+
+        /**
+         * Creates a new SwimMsg instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns SwimMsg instance
+         */
+        public static create(properties?: collaborator.ISwimMsg): collaborator.SwimMsg;
+
+        /**
+         * Encodes the specified SwimMsg message. Does not implicitly {@link collaborator.SwimMsg.verify|verify} messages.
+         * @param message SwimMsg message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: collaborator.ISwimMsg, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a SwimMsg message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns SwimMsg
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): collaborator.SwimMsg;
+    }
+
+    /** Properties of a SwimPing. */
+    interface ISwimPing {
+
+        /** SwimPing type */
+        type?: (string|null);
+
+        /** SwimPing piggyback */
+        piggyback?: ({ [k: string]: collaborator.ISwimPG }|null);
+    }
+
+    /** Represents a SwimPing. */
+    class SwimPing implements ISwimPing {
+
+        /**
+         * Constructs a new SwimPing.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: collaborator.ISwimPing);
+
+        /** SwimPing type. */
+        public type: string;
+
+        /** SwimPing piggyback. */
+        public piggyback: { [k: string]: collaborator.ISwimPG };
+
+        /**
+         * Creates a new SwimPing instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns SwimPing instance
+         */
+        public static create(properties?: collaborator.ISwimPing): collaborator.SwimPing;
+
+        /**
+         * Encodes the specified SwimPing message. Does not implicitly {@link collaborator.SwimPing.verify|verify} messages.
+         * @param message SwimPing message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: collaborator.ISwimPing, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a SwimPing message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns SwimPing
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): collaborator.SwimPing;
+    }
+
+    /** Properties of a SwimPingReq. */
+    interface ISwimPingReq {
+
+        /** SwimPingReq type */
+        type?: (string|null);
+
+        /** SwimPingReq numTarget */
+        numTarget?: (number|null);
+
+        /** SwimPingReq piggyback */
+        piggyback?: ({ [k: string]: collaborator.ISwimPG }|null);
+    }
+
+    /** Represents a SwimPingReq. */
+    class SwimPingReq implements ISwimPingReq {
+
+        /**
+         * Constructs a new SwimPingReq.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: collaborator.ISwimPingReq);
+
+        /** SwimPingReq type. */
+        public type: string;
+
+        /** SwimPingReq numTarget. */
+        public numTarget: number;
+
+        /** SwimPingReq piggyback. */
+        public piggyback: { [k: string]: collaborator.ISwimPG };
+
+        /**
+         * Creates a new SwimPingReq instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns SwimPingReq instance
+         */
+        public static create(properties?: collaborator.ISwimPingReq): collaborator.SwimPingReq;
+
+        /**
+         * Encodes the specified SwimPingReq message. Does not implicitly {@link collaborator.SwimPingReq.verify|verify} messages.
+         * @param message SwimPingReq message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: collaborator.ISwimPingReq, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a SwimPingReq message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns SwimPingReq
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): collaborator.SwimPingReq;
+    }
+
+    /** Properties of a SwimAck. */
+    interface ISwimAck {
+
+        /** SwimAck type */
+        type?: (string|null);
+
+        /** SwimAck piggyback */
+        piggyback?: ({ [k: string]: collaborator.ISwimPG }|null);
+    }
+
+    /** Represents a SwimAck. */
+    class SwimAck implements ISwimAck {
+
+        /**
+         * Constructs a new SwimAck.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: collaborator.ISwimAck);
+
+        /** SwimAck type. */
+        public type: string;
+
+        /** SwimAck piggyback. */
+        public piggyback: { [k: string]: collaborator.ISwimPG };
+
+        /**
+         * Creates a new SwimAck instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns SwimAck instance
+         */
+        public static create(properties?: collaborator.ISwimAck): collaborator.SwimAck;
+
+        /**
+         * Encodes the specified SwimAck message. Does not implicitly {@link collaborator.SwimAck.verify|verify} messages.
+         * @param message SwimAck message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: collaborator.ISwimAck, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a SwimAck message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns SwimAck
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): collaborator.SwimAck;
+    }
+
+    /** Properties of a SwimDataRequest. */
+    interface ISwimDataRequest {
+
+        /** SwimDataRequest type */
+        type?: (string|null);
+
+        /** SwimDataRequest collaborator */
+        collaborator?: (collaborator.ICollaborator|null);
+    }
+
+    /** Represents a SwimDataRequest. */
+    class SwimDataRequest implements ISwimDataRequest {
+
+        /**
+         * Constructs a new SwimDataRequest.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: collaborator.ISwimDataRequest);
+
+        /** SwimDataRequest type. */
+        public type: string;
+
+        /** SwimDataRequest collaborator. */
+        public collaborator?: (collaborator.ICollaborator|null);
+
+        /**
+         * Creates a new SwimDataRequest instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns SwimDataRequest instance
+         */
+        public static create(properties?: collaborator.ISwimDataRequest): collaborator.SwimDataRequest;
+
+        /**
+         * Encodes the specified SwimDataRequest message. Does not implicitly {@link collaborator.SwimDataRequest.verify|verify} messages.
+         * @param message SwimDataRequest message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: collaborator.ISwimDataRequest, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a SwimDataRequest message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns SwimDataRequest
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): collaborator.SwimDataRequest;
+    }
+
+    /** Properties of a SwimDataUpdate. */
+    interface ISwimDataUpdate {
+
+        /** SwimDataUpdate type */
+        type?: (string|null);
+
+        /** SwimDataUpdate PG */
+        PG?: ({ [k: string]: collaborator.ISwimPG }|null);
+
+        /** SwimDataUpdate compteurPG */
+        compteurPG?: ({ [k: string]: number }|null);
+    }
+
+    /** Represents a SwimDataUpdate. */
+    class SwimDataUpdate implements ISwimDataUpdate {
+
+        /**
+         * Constructs a new SwimDataUpdate.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: collaborator.ISwimDataUpdate);
+
+        /** SwimDataUpdate type. */
+        public type: string;
+
+        /** SwimDataUpdate PG. */
+        public PG: { [k: string]: collaborator.ISwimPG };
+
+        /** SwimDataUpdate compteurPG. */
+        public compteurPG: { [k: string]: number };
+
+        /**
+         * Creates a new SwimDataUpdate instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns SwimDataUpdate instance
+         */
+        public static create(properties?: collaborator.ISwimDataUpdate): collaborator.SwimDataUpdate;
+
+        /**
+         * Encodes the specified SwimDataUpdate message. Does not implicitly {@link collaborator.SwimDataUpdate.verify|verify} messages.
+         * @param message SwimDataUpdate message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: collaborator.ISwimDataUpdate, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a SwimDataUpdate message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns SwimDataUpdate
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): collaborator.SwimDataUpdate;
+    }
+
+    /** Properties of a SwimPingReqRep. */
+    interface ISwimPingReqRep {
+
+        /** SwimPingReqRep type */
+        type?: (string|null);
+
+        /** SwimPingReqRep answer */
+        answer?: (boolean|null);
+
+        /** SwimPingReqRep piggyback */
+        piggyback?: ({ [k: string]: collaborator.ISwimPG }|null);
+    }
+
+    /** Represents a SwimPingReqRep. */
+    class SwimPingReqRep implements ISwimPingReqRep {
+
+        /**
+         * Constructs a new SwimPingReqRep.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: collaborator.ISwimPingReqRep);
+
+        /** SwimPingReqRep type. */
+        public type: string;
+
+        /** SwimPingReqRep answer. */
+        public answer: boolean;
+
+        /** SwimPingReqRep piggyback. */
+        public piggyback: { [k: string]: collaborator.ISwimPG };
+
+        /**
+         * Creates a new SwimPingReqRep instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns SwimPingReqRep instance
+         */
+        public static create(properties?: collaborator.ISwimPingReqRep): collaborator.SwimPingReqRep;
+
+        /**
+         * Encodes the specified SwimPingReqRep message. Does not implicitly {@link collaborator.SwimPingReqRep.verify|verify} messages.
+         * @param message SwimPingReqRep message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: collaborator.ISwimPingReqRep, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a SwimPingReqRep message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns SwimPingReqRep
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): collaborator.SwimPingReqRep;
+    }
 }
 
 /** Namespace metadata. */

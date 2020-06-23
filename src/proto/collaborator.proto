@@ -10,3 +10,52 @@ message Collaborator {
   string avatar = 5;
   string deviceID = 6;
 }
+
+message SwimPG {
+  sint32 message = 0;
+  Collaborator collaborator = 1;
+  sint32 incarn = 2;
+}
+
+message SwimMsg {
+  oneof type {
+    SwimPing swimPing = 0;
+    SwimPingReq swimPingReq = 1;
+    SwimAck swimAck = 2;
+    SwimDataRequest swimDataRequest = 3;
+    SwimDataUpdate swimDataUpdate = 4;
+    SwimPingReqRep swimPingReqRep = 5;
+  }
+}
+
+message SwimPing {
+  string type = 0;
+  map<sint32, SwimPG> piggyback = 1;
+}
+
+message SwimPingReq {
+  string type = 0;
+  sint32 numTarget = 1;
+  map<sint32, SwimPG> piggyback = 2;
+}
+
+message SwimAck {
+  string type = 0;
+  map<sint32, SwimPG> piggyback = 1;
+}
+
+message SwimDataRequest {
+  string type = 0;
+  Collaborator collaborator = 1;
+}
+message SwimDataUpdate {
+  string type = 0;
+  map<sint32, SwimPG> PG = 1;
+  map<sint32, sint32> compteurPG = 2;
+}
+
+message SwimPingReqRep {
+  string type = 0;
+  bool answer = 1;
+  map<sint32, SwimPG> piggyback = 2;
+}
