@@ -2208,6 +2208,51 @@ var collaborator = $root.collaborator = (function () {
         };
         return SwimPG;
     })();
+    collaborator.SwimPGEntry = (function () {
+        function SwimPGEntry(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+        SwimPGEntry.prototype.id = 0;
+        SwimPGEntry.prototype.swimPG = null;
+        SwimPGEntry.create = function create(properties) {
+            return new SwimPGEntry(properties);
+        };
+        SwimPGEntry.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            writer.uint32(0).sint32(message.id);
+            $root.collaborator.SwimPG.encode(message.swimPG, writer.uint32(10).fork()).ldelim();
+            return writer;
+        };
+        SwimPGEntry.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.collaborator.SwimPGEntry();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                    case 0:
+                        message.id = reader.sint32();
+                        break;
+                    case 1:
+                        message.swimPG = $root.collaborator.SwimPG.decode(reader, reader.uint32());
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                }
+            }
+            if (!message.hasOwnProperty("id"))
+                throw $util.ProtocolError("missing required 'id'", { instance: message });
+            if (!message.hasOwnProperty("swimPG"))
+                throw $util.ProtocolError("missing required 'swimPG'", { instance: message });
+            return message;
+        };
+        return SwimPGEntry;
+    })();
     collaborator.SwimMsg = (function () {
         function SwimMsg(properties) {
             if (properties)
@@ -2282,14 +2327,14 @@ var collaborator = $root.collaborator = (function () {
     })();
     collaborator.SwimPing = (function () {
         function SwimPing(properties) {
-            this.piggyback = {};
+            this.piggyback = [];
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
         SwimPing.prototype.type = "";
-        SwimPing.prototype.piggyback = $util.emptyObject;
+        SwimPing.prototype.piggyback = $util.emptyArray;
         SwimPing.create = function create(properties) {
             return new SwimPing(properties);
         };
@@ -2298,17 +2343,15 @@ var collaborator = $root.collaborator = (function () {
                 writer = $Writer.create();
             if (message.type != null && message.hasOwnProperty("type"))
                 writer.uint32(2).string(message.type);
-            if (message.piggyback != null && message.hasOwnProperty("piggyback"))
-                for (var keys = Object.keys(message.piggyback), i = 0; i < keys.length; ++i) {
-                    writer.uint32(10).fork().uint32(8).sint32(keys[i]);
-                    $root.collaborator.SwimPG.encode(message.piggyback[keys[i]], writer.uint32(18).fork()).ldelim().ldelim();
-                }
+            if (message.piggyback != null && message.piggyback.length)
+                for (var i = 0; i < message.piggyback.length; ++i)
+                    $root.collaborator.SwimPGEntry.encode(message.piggyback[i], writer.uint32(10).fork()).ldelim();
             return writer;
         };
         SwimPing.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.collaborator.SwimPing(), key;
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.collaborator.SwimPing();
             while (reader.pos < end) {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
@@ -2316,12 +2359,9 @@ var collaborator = $root.collaborator = (function () {
                         message.type = reader.string();
                         break;
                     case 1:
-                        reader.skip().pos++;
-                        if (message.piggyback === $util.emptyObject)
-                            message.piggyback = {};
-                        key = reader.sint32();
-                        reader.pos++;
-                        message.piggyback[key] = $root.collaborator.SwimPG.decode(reader, reader.uint32());
+                        if (!(message.piggyback && message.piggyback.length))
+                            message.piggyback = [];
+                        message.piggyback.push($root.collaborator.SwimPGEntry.decode(reader, reader.uint32()));
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -2334,7 +2374,7 @@ var collaborator = $root.collaborator = (function () {
     })();
     collaborator.SwimPingReq = (function () {
         function SwimPingReq(properties) {
-            this.piggyback = {};
+            this.piggyback = [];
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -2342,7 +2382,7 @@ var collaborator = $root.collaborator = (function () {
         }
         SwimPingReq.prototype.type = "";
         SwimPingReq.prototype.numTarget = 0;
-        SwimPingReq.prototype.piggyback = $util.emptyObject;
+        SwimPingReq.prototype.piggyback = $util.emptyArray;
         SwimPingReq.create = function create(properties) {
             return new SwimPingReq(properties);
         };
@@ -2353,17 +2393,15 @@ var collaborator = $root.collaborator = (function () {
                 writer.uint32(2).string(message.type);
             if (message.numTarget != null && message.hasOwnProperty("numTarget"))
                 writer.uint32(8).sint32(message.numTarget);
-            if (message.piggyback != null && message.hasOwnProperty("piggyback"))
-                for (var keys = Object.keys(message.piggyback), i = 0; i < keys.length; ++i) {
-                    writer.uint32(18).fork().uint32(8).sint32(keys[i]);
-                    $root.collaborator.SwimPG.encode(message.piggyback[keys[i]], writer.uint32(18).fork()).ldelim().ldelim();
-                }
+            if (message.piggyback != null && message.piggyback.length)
+                for (var i = 0; i < message.piggyback.length; ++i)
+                    $root.collaborator.SwimPGEntry.encode(message.piggyback[i], writer.uint32(18).fork()).ldelim();
             return writer;
         };
         SwimPingReq.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.collaborator.SwimPingReq(), key;
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.collaborator.SwimPingReq();
             while (reader.pos < end) {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
@@ -2374,12 +2412,9 @@ var collaborator = $root.collaborator = (function () {
                         message.numTarget = reader.sint32();
                         break;
                     case 2:
-                        reader.skip().pos++;
-                        if (message.piggyback === $util.emptyObject)
-                            message.piggyback = {};
-                        key = reader.sint32();
-                        reader.pos++;
-                        message.piggyback[key] = $root.collaborator.SwimPG.decode(reader, reader.uint32());
+                        if (!(message.piggyback && message.piggyback.length))
+                            message.piggyback = [];
+                        message.piggyback.push($root.collaborator.SwimPGEntry.decode(reader, reader.uint32()));
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -2392,14 +2427,14 @@ var collaborator = $root.collaborator = (function () {
     })();
     collaborator.SwimAck = (function () {
         function SwimAck(properties) {
-            this.piggyback = {};
+            this.piggyback = [];
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
         SwimAck.prototype.type = "";
-        SwimAck.prototype.piggyback = $util.emptyObject;
+        SwimAck.prototype.piggyback = $util.emptyArray;
         SwimAck.create = function create(properties) {
             return new SwimAck(properties);
         };
@@ -2408,17 +2443,15 @@ var collaborator = $root.collaborator = (function () {
                 writer = $Writer.create();
             if (message.type != null && message.hasOwnProperty("type"))
                 writer.uint32(2).string(message.type);
-            if (message.piggyback != null && message.hasOwnProperty("piggyback"))
-                for (var keys = Object.keys(message.piggyback), i = 0; i < keys.length; ++i) {
-                    writer.uint32(10).fork().uint32(8).sint32(keys[i]);
-                    $root.collaborator.SwimPG.encode(message.piggyback[keys[i]], writer.uint32(18).fork()).ldelim().ldelim();
-                }
+            if (message.piggyback != null && message.piggyback.length)
+                for (var i = 0; i < message.piggyback.length; ++i)
+                    $root.collaborator.SwimPGEntry.encode(message.piggyback[i], writer.uint32(10).fork()).ldelim();
             return writer;
         };
         SwimAck.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.collaborator.SwimAck(), key;
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.collaborator.SwimAck();
             while (reader.pos < end) {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
@@ -2426,12 +2459,9 @@ var collaborator = $root.collaborator = (function () {
                         message.type = reader.string();
                         break;
                     case 1:
-                        reader.skip().pos++;
-                        if (message.piggyback === $util.emptyObject)
-                            message.piggyback = {};
-                        key = reader.sint32();
-                        reader.pos++;
-                        message.piggyback[key] = $root.collaborator.SwimPG.decode(reader, reader.uint32());
+                        if (!(message.piggyback && message.piggyback.length))
+                            message.piggyback = [];
+                        message.piggyback.push($root.collaborator.SwimPGEntry.decode(reader, reader.uint32()));
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -2487,7 +2517,7 @@ var collaborator = $root.collaborator = (function () {
     })();
     collaborator.SwimDataUpdate = (function () {
         function SwimDataUpdate(properties) {
-            this.PG = {};
+            this.PG = [];
             this.compteurPG = {};
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
@@ -2495,7 +2525,7 @@ var collaborator = $root.collaborator = (function () {
                         this[keys[i]] = properties[keys[i]];
         }
         SwimDataUpdate.prototype.type = "";
-        SwimDataUpdate.prototype.PG = $util.emptyObject;
+        SwimDataUpdate.prototype.PG = $util.emptyArray;
         SwimDataUpdate.prototype.compteurPG = $util.emptyObject;
         SwimDataUpdate.create = function create(properties) {
             return new SwimDataUpdate(properties);
@@ -2505,11 +2535,9 @@ var collaborator = $root.collaborator = (function () {
                 writer = $Writer.create();
             if (message.type != null && message.hasOwnProperty("type"))
                 writer.uint32(2).string(message.type);
-            if (message.PG != null && message.hasOwnProperty("PG"))
-                for (var keys = Object.keys(message.PG), i = 0; i < keys.length; ++i) {
-                    writer.uint32(10).fork().uint32(8).sint32(keys[i]);
-                    $root.collaborator.SwimPG.encode(message.PG[keys[i]], writer.uint32(18).fork()).ldelim().ldelim();
-                }
+            if (message.PG != null && message.PG.length)
+                for (var i = 0; i < message.PG.length; ++i)
+                    $root.collaborator.SwimPGEntry.encode(message.PG[i], writer.uint32(10).fork()).ldelim();
             if (message.compteurPG != null && message.hasOwnProperty("compteurPG"))
                 for (var keys = Object.keys(message.compteurPG), i = 0; i < keys.length; ++i)
                     writer.uint32(18).fork().uint32(8).sint32(keys[i]).uint32(16).sint32(message.compteurPG[keys[i]]).ldelim();
@@ -2526,12 +2554,9 @@ var collaborator = $root.collaborator = (function () {
                         message.type = reader.string();
                         break;
                     case 1:
-                        reader.skip().pos++;
-                        if (message.PG === $util.emptyObject)
-                            message.PG = {};
-                        key = reader.sint32();
-                        reader.pos++;
-                        message.PG[key] = $root.collaborator.SwimPG.decode(reader, reader.uint32());
+                        if (!(message.PG && message.PG.length))
+                            message.PG = [];
+                        message.PG.push($root.collaborator.SwimPGEntry.decode(reader, reader.uint32()));
                         break;
                     case 2:
                         reader.skip().pos++;
@@ -2552,7 +2577,7 @@ var collaborator = $root.collaborator = (function () {
     })();
     collaborator.SwimPingReqRep = (function () {
         function SwimPingReqRep(properties) {
-            this.piggyback = {};
+            this.piggyback = [];
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -2560,7 +2585,7 @@ var collaborator = $root.collaborator = (function () {
         }
         SwimPingReqRep.prototype.type = "";
         SwimPingReqRep.prototype.answer = false;
-        SwimPingReqRep.prototype.piggyback = $util.emptyObject;
+        SwimPingReqRep.prototype.piggyback = $util.emptyArray;
         SwimPingReqRep.create = function create(properties) {
             return new SwimPingReqRep(properties);
         };
@@ -2571,17 +2596,15 @@ var collaborator = $root.collaborator = (function () {
                 writer.uint32(2).string(message.type);
             if (message.answer != null && message.hasOwnProperty("answer"))
                 writer.uint32(8).bool(message.answer);
-            if (message.piggyback != null && message.hasOwnProperty("piggyback"))
-                for (var keys = Object.keys(message.piggyback), i = 0; i < keys.length; ++i) {
-                    writer.uint32(18).fork().uint32(8).sint32(keys[i]);
-                    $root.collaborator.SwimPG.encode(message.piggyback[keys[i]], writer.uint32(18).fork()).ldelim().ldelim();
-                }
+            if (message.piggyback != null && message.piggyback.length)
+                for (var i = 0; i < message.piggyback.length; ++i)
+                    $root.collaborator.SwimPGEntry.encode(message.piggyback[i], writer.uint32(18).fork()).ldelim();
             return writer;
         };
         SwimPingReqRep.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.collaborator.SwimPingReqRep(), key;
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.collaborator.SwimPingReqRep();
             while (reader.pos < end) {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
@@ -2592,12 +2615,9 @@ var collaborator = $root.collaborator = (function () {
                         message.answer = reader.bool();
                         break;
                     case 2:
-                        reader.skip().pos++;
-                        if (message.piggyback === $util.emptyObject)
-                            message.piggyback = {};
-                        key = reader.sint32();
-                        reader.pos++;
-                        message.piggyback[key] = $root.collaborator.SwimPG.decode(reader, reader.uint32());
+                        if (!(message.piggyback && message.piggyback.length))
+                            message.piggyback = [];
+                        message.piggyback.push($root.collaborator.SwimPGEntry.decode(reader, reader.uint32()));
                         break;
                     default:
                         reader.skipType(tag & 7);

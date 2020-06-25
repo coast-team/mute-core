@@ -17,6 +17,11 @@ message SwimPG {
   required sint32 incarn = 2;
 }
 
+message SwimPGEntry {
+  required sint32 id =0;
+  required SwimPG swimPG = 1;
+}
+
 message SwimMsg {
   oneof type {
     SwimPing swimPing = 0;
@@ -30,18 +35,18 @@ message SwimMsg {
 
 message SwimPing {
   string type = 0;
-  map<sint32, SwimPG> piggyback = 1;
+  repeated SwimPGEntry piggyback = 1;
 }
 
 message SwimPingReq {
   string type = 0;
   sint32 numTarget = 1;
-  map<sint32, SwimPG> piggyback = 2;
+  repeated SwimPGEntry piggyback = 2;
 }
 
 message SwimAck {
   string type = 0;
-  map<sint32, SwimPG> piggyback = 1;
+  repeated SwimPGEntry piggyback = 1;
 }
 
 message SwimDataRequest {
@@ -50,12 +55,12 @@ message SwimDataRequest {
 }
 message SwimDataUpdate {
   string type = 0;
-  map<sint32, SwimPG> PG = 1;
+  repeated SwimPGEntry PG = 1;
   map<sint32, sint32> compteurPG = 2;
 }
 
 message SwimPingReqRep {
   string type = 0;
   bool answer = 1;
-  map<sint32, SwimPG> piggyback = 2;
+  repeated SwimPGEntry piggyback = 2;
 }

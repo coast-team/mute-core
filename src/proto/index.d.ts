@@ -1008,6 +1008,57 @@ export namespace collaborator {
         public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): collaborator.SwimPG;
     }
 
+    /** Properties of a SwimPGEntry. */
+    interface ISwimPGEntry {
+
+        /** SwimPGEntry id */
+        id: number;
+
+        /** SwimPGEntry swimPG */
+        swimPG: collaborator.ISwimPG;
+    }
+
+    /** Represents a SwimPGEntry. */
+    class SwimPGEntry implements ISwimPGEntry {
+
+        /**
+         * Constructs a new SwimPGEntry.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: collaborator.ISwimPGEntry);
+
+        /** SwimPGEntry id. */
+        public id: number;
+
+        /** SwimPGEntry swimPG. */
+        public swimPG: collaborator.ISwimPG;
+
+        /**
+         * Creates a new SwimPGEntry instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns SwimPGEntry instance
+         */
+        public static create(properties?: collaborator.ISwimPGEntry): collaborator.SwimPGEntry;
+
+        /**
+         * Encodes the specified SwimPGEntry message. Does not implicitly {@link collaborator.SwimPGEntry.verify|verify} messages.
+         * @param message SwimPGEntry message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: collaborator.ISwimPGEntry, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a SwimPGEntry message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns SwimPGEntry
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): collaborator.SwimPGEntry;
+    }
+
     /** Properties of a SwimMsg. */
     interface ISwimMsg {
 
@@ -1093,7 +1144,7 @@ export namespace collaborator {
         type?: (string|null);
 
         /** SwimPing piggyback */
-        piggyback?: ({ [k: string]: collaborator.ISwimPG }|null);
+        piggyback?: (collaborator.ISwimPGEntry[]|null);
     }
 
     /** Represents a SwimPing. */
@@ -1109,7 +1160,7 @@ export namespace collaborator {
         public type: string;
 
         /** SwimPing piggyback. */
-        public piggyback: { [k: string]: collaborator.ISwimPG };
+        public piggyback: collaborator.ISwimPGEntry[];
 
         /**
          * Creates a new SwimPing instance using the specified properties.
@@ -1147,7 +1198,7 @@ export namespace collaborator {
         numTarget?: (number|null);
 
         /** SwimPingReq piggyback */
-        piggyback?: ({ [k: string]: collaborator.ISwimPG }|null);
+        piggyback?: (collaborator.ISwimPGEntry[]|null);
     }
 
     /** Represents a SwimPingReq. */
@@ -1166,7 +1217,7 @@ export namespace collaborator {
         public numTarget: number;
 
         /** SwimPingReq piggyback. */
-        public piggyback: { [k: string]: collaborator.ISwimPG };
+        public piggyback: collaborator.ISwimPGEntry[];
 
         /**
          * Creates a new SwimPingReq instance using the specified properties.
@@ -1201,7 +1252,7 @@ export namespace collaborator {
         type?: (string|null);
 
         /** SwimAck piggyback */
-        piggyback?: ({ [k: string]: collaborator.ISwimPG }|null);
+        piggyback?: (collaborator.ISwimPGEntry[]|null);
     }
 
     /** Represents a SwimAck. */
@@ -1217,7 +1268,7 @@ export namespace collaborator {
         public type: string;
 
         /** SwimAck piggyback. */
-        public piggyback: { [k: string]: collaborator.ISwimPG };
+        public piggyback: collaborator.ISwimPGEntry[];
 
         /**
          * Creates a new SwimAck instance using the specified properties.
@@ -1303,7 +1354,7 @@ export namespace collaborator {
         type?: (string|null);
 
         /** SwimDataUpdate PG */
-        PG?: ({ [k: string]: collaborator.ISwimPG }|null);
+        PG?: (collaborator.ISwimPGEntry[]|null);
 
         /** SwimDataUpdate compteurPG */
         compteurPG?: ({ [k: string]: number }|null);
@@ -1322,7 +1373,7 @@ export namespace collaborator {
         public type: string;
 
         /** SwimDataUpdate PG. */
-        public PG: { [k: string]: collaborator.ISwimPG };
+        public PG: collaborator.ISwimPGEntry[];
 
         /** SwimDataUpdate compteurPG. */
         public compteurPG: { [k: string]: number };
@@ -1363,7 +1414,7 @@ export namespace collaborator {
         answer?: (boolean|null);
 
         /** SwimPingReqRep piggyback */
-        piggyback?: ({ [k: string]: collaborator.ISwimPG }|null);
+        piggyback?: (collaborator.ISwimPGEntry[]|null);
     }
 
     /** Represents a SwimPingReqRep. */
@@ -1382,7 +1433,7 @@ export namespace collaborator {
         public answer: boolean;
 
         /** SwimPingReqRep piggyback. */
-        public piggyback: { [k: string]: collaborator.ISwimPG };
+        public piggyback: collaborator.ISwimPGEntry[];
 
         /**
          * Creates a new SwimPingReqRep instance using the specified properties.
