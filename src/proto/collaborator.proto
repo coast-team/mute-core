@@ -18,7 +18,7 @@ message SwimPG {
 }
 
 message SwimPGEntry {
-  required sint32 id =0;
+  required sint64 id =0;
   required SwimPG swimPG = 1;
 }
 
@@ -53,6 +53,7 @@ message SwimDataRequest {
   string type = 0;
   Collaborator collab = 1;
 }
+
 message SwimDataUpdate {
   string type = 0;
   repeated SwimPGEntry PG = 1;

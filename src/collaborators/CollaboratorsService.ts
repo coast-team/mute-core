@@ -12,15 +12,30 @@ import {
   ISwimPG,
   TYPE_DATAREQUEST_LABEL,
   TYPE_DATAUPDATE_LABEL,
+  ISwimPing,
+  TYPE_PING_LABEL,
+  ISwimAck,
+  TYPE_ACK_LABEL
 } from './ICollaborator'
 
 function wrapToProto(msg: ISwim): proto.SwimMsg {
-  return {
-    [msg.type]: msg,
+  console.log("appel wrapToProto:",msg)
+  const res : proto.SwimMsg = {[msg.type]: msg}
+  console.log(msg.type);
+  if(msg.type==="swimDataUpdate"&&msg.PG){ //DEBUG pourquoi pas TYPE_DATAUPDATE_LABEL plutôt?
+    const varPG = new Array<proto.ISwimPGEntry>();
+    for(let [key,elem] of msg.PG){
+      varPG.push({id:key,swimPG:elem});
+    }
+    if(varPG&&res.swimDataUpdate){
+      res.swimDataUpdate.PG=varPG;
+    }
   }
+  return res;
 }
 
 function unwrapFromProtoDataUpdate(swimDataUpdate: proto.ISwimDataUpdate): ISwimDataUpdate {
+  console.log("Appel unwrapFromProto dataupdate : ", swimDataUpdate)
   const type = TYPE_DATAUPDATE_LABEL
   const PG: Map<number, ISwimPG> = new Map()
   const compteurPG: Map<number, number> = new Map()
@@ -35,6 +50,8 @@ function unwrapFromProtoDataUpdate(swimDataUpdate: proto.ISwimDataUpdate): ISwim
         console.log('error : unwrapFromProtoDataUpdate')
       }
     })
+  }else{
+    console.log('error : unwrapFromProtoDataUpdate')
   }
   for (const key in swimDataUpdate.compteurPG) {
     if (swimDataUpdate.compteurPG.hasOwnProperty(key)) {
@@ -67,6 +84,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
   private PG: Map<number, ISwimPG>
   private compteurPG: Map<number, number>
   private incarnation: number
+  //private reponse : boolean
 
   constructor(
     messageIn$: Observable<IMessageIn>,
@@ -82,6 +100,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     this.PG = new Map<number, ISwimPG>()
     this.compteurPG = new Map<number, number>()
     this.incarnation = 0
+    //this.reponse = false
 
     // this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
     //   const updated = { id: senderId, ...msg }
@@ -102,38 +121,59 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
 
     this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
       const K: number = this.calculNbRebond()
-      // console.log('CollaboratorService: received message from: ', senderId)
-      // console.log('CollaboratorService: msg: ', msg)
+      console.log('CollaboratorService: received message from: ', senderId)
+      console.log('CollaboratorService: msg: ', msg)
       if (msg.swimDataRequest) {
-        const type = TYPE_DATAREQUEST_LABEL
+        //const type = TYPE_DATAREQUEST_LABEL
         const collab = { id: senderId, ...msg.swimDataRequest.collab }
         if (isICollaborator(collab)) {
-          const dataRequest: ISwimDataRequest = { type, collab }
-          console.log('CollaboratorService: unwrapped msg: ', dataRequest)
-          // console.log("senderId : ", senderId)
-          // console.log("this.PG : ", this.PG)
+          //const dataRequest: ISwimDataRequest = { type, collab }
           if (!this.PG.has(senderId)) {
             this.PG.set(senderId, { collab, message: 1, incarn: this.incarnation })
             this.compteurPG.set(senderId, K)
-            this.envoyerDataUpdate(senderId)
+            this.envoyerDataUpdate(senderId) //attendre avant d'envoyer? DEBUG
             this.joinSubject.next(collab)
           }
         }
       } else if (msg.swimDataUpdate) {
         const dataUpdate = unwrapFromProtoDataUpdate(msg.swimDataUpdate)
-        if (dataUpdate.PG.size > 0) {
+        if (dataUpdate.PG.size > 0) { //DEBUG pourquoi des réponses vides?!
+          //update ui
+          const collabConnus : Array<ICollaborator> = [];
+            this.PG.forEach((x)=>{
+              collabConnus.push(x.collab)
+            })
+          dataUpdate.PG.forEach((x)=>{
+            if(!collabConnus.includes(x.collab)&&x.collab.id!=this.me.id){
+              this.joinSubject.next(x.collab)
+            }
+          })
+
           this.PG = dataUpdate.PG
           this.compteurPG = dataUpdate.compteurPG
         }
       } else {
-        // gérer les PG (handlePG) et les autres messages
-        console.log('ERROR unknow message : ', { senderId, msg })
+        if(msg.swimPing){
+          console.log("ping reçu, envoi ack")
+          this.envoyerAck(senderId);
+        }else if(msg.swimAck){
+          console.log("ack reçu")
+          //this.reponse=true;
+        }else{
+          console.log('ERROR unknow message : ', { senderId, msg })
+        }
       }
     })
 
     setInterval(() => {
-      const msg: ISwimDataRequest = { type: TYPE_DATAREQUEST_LABEL, collab: this.me }
-      super.send(wrapToProto(msg), StreamsSubtype.COLLABORATORS_SWIM, 0)
+      if(this.nbCollab()<=1){
+        console.log("envoi dataRequest")
+        const msg: ISwimDataRequest = { type: TYPE_DATAREQUEST_LABEL, collab: this.me } //DEBUG à changer en envoyerDataRequest?
+        super.send(wrapToProto(msg), StreamsSubtype.COLLABORATORS_SWIM, 0)
+      }else{
+        console.log("envoi ping")
+        this.envoyerPing(0);
+      }
     }, 3000)
   }
 
@@ -157,8 +197,36 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
       PG: this.PG,
       compteurPG: this.compteurPG,
     }
-    console.log('envoi Data Update : ', mess)
+    const wrapped = wrapToProto(mess);
+    console.log("envoi dataupdate (apres wrap): ", wrapped)
+    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)
+  }
+
+  envoyerPing(numDest:number){
+    const toPG : Map<number,ISwimPG> = this.createToPG();
+    const mess : ISwimPing = {type: TYPE_PING_LABEL, piggyback: toPG};
     super.send(wrapToProto(mess), StreamsSubtype.COLLABORATORS_SWIM, numDest)
+  }
+
+  envoyerAck(numDest:number){
+    const toPG : Map<number,ISwimPG> = this.createToPG();
+    const mess : ISwimAck = {type: TYPE_ACK_LABEL, piggyback: toPG};
+    super.send(wrapToProto(mess), StreamsSubtype.COLLABORATORS_SWIM, numDest)
+  }
+
+  createToPG(){
+    const toPG : Map<number,ISwimPG> = new Map<number,ISwimPG>();
+    if(this.compteurPG!==undefined){
+      for(const [key,value] of this.PG){
+        if(this.compteurPG.get(key)!>0){
+          this.compteurPG.set(key,this.compteurPG.get(key)!-1);
+          toPG.set(key,value);
+        }else if(this.PG.get(key)!.message===3){
+          toPG.set(key,value);
+        }
+      }
+    }
+    return toPG;
   }
 
   getCollaborator(muteCoreId: number): ICollaborator | undefined {
