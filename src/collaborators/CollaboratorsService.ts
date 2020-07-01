@@ -195,7 +195,11 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
         if (dataUpdate.PG.size > this.PG.size) {
           // DEBUG pourquoi des réponses vides?!
           // update ui
-          this.updateUI(Array.from(dataUpdate.PG.values()).map((a) => a.collab))
+          this.updateUI(
+            Array.from(dataUpdate.PG.values())
+              .filter((a) => a.message !== 4)
+              .map((a) => a.collab)
+          )
           /*
           const collabConnus : ICollaborator[] = [];
             this.PG.forEach((x)=>{
@@ -227,9 +231,12 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
           }
 
           this.reponse = false
-          setTimeout(function(this: CollaboratorsService) {
-            this.envoyerReponsePingReq(senderId, this.reponse)
-          }, coef)
+          setTimeout(
+            function(this: CollaboratorsService) {
+              this.envoyerReponsePingReq(senderId, this.reponse)
+            }.bind(this),
+            coef
+          )
         } else if (msg.swimPingReqRep) {
           this.handlePG(unwrapFromProtoPing(msg.swimPingReqRep).piggyback)
           if (msg.swimPingReqRep.answer) {
@@ -247,7 +254,15 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
         console.log('envoi; ', msg)
         super.send(wrapToProto(msg), StreamsSubtype.COLLABORATORS_SWIM, 0)
       } else {
-        this.pingProcedure(0)
+        const collaborators = Array.from(this.PG.values())
+          .filter((a) => a.message !== 4)
+          .map((a) => a.collab)
+        const ens: Set<number> = new Set(collaborators.map((a) => a.id))
+        ens.delete(this.me.id)
+        const numRandom = Math.floor(Math.random() * ens.size)
+        const numCollab = Array.from(ens)[numRandom]
+
+        this.pingProcedure(numCollab)
       }
     }, 3000)
   }
@@ -261,6 +276,13 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     console.log('handlePG function')
     for (const [key, elem] of piggyback) {
       console.log('PG : ', key, elem)
+      // Update collab properties
+      if (this.PG.has(key) && elem.incarn >= this.PG.get(key)!.incarn) {
+        const PGEntry = this.PG.get(key)!
+        PGEntry.collab = elem.collab
+        this.PG.set(key, PGEntry)
+      }
+      // Evaluate PG message
       switch (elem.message) {
         case 1: // Joined
           if (!this.PG.has(key)) {
@@ -401,54 +423,63 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
   pingProcedure(numCollab: number) {
     this.envoyerPing(numCollab)
     this.reponse = false
-    setTimeout(function(this: CollaboratorsService) {
-      let incarnActu: number = 0
-      if (this.PG.has(numCollab)) {
-        incarnActu = this.PG.get(numCollab)!.incarn
-      }
-      if (!this.reponse) {
-        let idx = nbPR
-        const collaborators = Array.from(this.PG.values())
-          .filter((a) => a.message !== 4)
-          .map((a) => a.collab)
-        if (idx > collaborators.length - 2) {
-          idx = collaborators.length - 2
+    setTimeout(
+      function(this: CollaboratorsService) {
+        let incarnActu: number = 0
+        if (this.PG.has(numCollab)) {
+          incarnActu = this.PG.get(numCollab)!.incarn
         }
-        const ens: Set<number> = new Set(collaborators.map((a) => a.id))
-        ens.delete(this.me.id)
-        ens.delete(numCollab)
-        while (idx > 0) {
-          const numRandom = Math.floor(Math.random() * ens.size)
-          const numCollabReq = Array.from(ens)[numRandom]
-          ens.delete(numCollabReq)
-          this.envoyerPingReq(numCollabReq, numCollab)
-          idx--
-        }
-        clearTimeout()
-        setTimeout(function(this: CollaboratorsService) {
-          const K: number = this.calculNbRebond()
-          if (!this.reponse) {
-            if (this.PG.has(numCollab)) {
-              if (this.PG.get(numCollab)!.message === 1 || this.PG.get(numCollab)!.message === 2) {
-                this.PG.set(numCollab, {
-                  collab: this.PG.get(numCollab)!.collab,
-                  message: 3,
-                  incarn: incarnActu,
-                })
-                this.compteurPG.set(numCollab, K)
-              } else if (this.PG.get(numCollab)!.message === 3) {
-                this.PG.set(numCollab, {
-                  collab: this.PG.get(numCollab)!.collab,
-                  message: 4,
-                  incarn: incarnActu,
-                })
-                this.compteurPG.set(numCollab, K)
-              }
-            }
+        if (!this.reponse) {
+          let idx = nbPR
+          const collaborators = Array.from(this.PG.values())
+            .filter((a) => a.message !== 4)
+            .map((a) => a.collab)
+          if (idx > collaborators.length - 2) {
+            idx = collaborators.length - 2
           }
-        }, 3 * coef)
-      }
-    }, coef)
+          const ens: Set<number> = new Set(collaborators.map((a) => a.id))
+          ens.delete(this.me.id)
+          ens.delete(numCollab)
+          while (idx > 0) {
+            const numRandom = Math.floor(Math.random() * ens.size)
+            const numCollabReq = Array.from(ens)[numRandom]
+            ens.delete(numCollabReq)
+            this.envoyerPingReq(numCollabReq, numCollab)
+            idx--
+          }
+          clearTimeout()
+          setTimeout(
+            function(this: CollaboratorsService) {
+              const K: number = this.calculNbRebond()
+              if (!this.reponse) {
+                if (this.PG.has(numCollab)) {
+                  if (
+                    this.PG.get(numCollab)!.message === 1 ||
+                    this.PG.get(numCollab)!.message === 2
+                  ) {
+                    this.PG.set(numCollab, {
+                      collab: this.PG.get(numCollab)!.collab,
+                      message: 3,
+                      incarn: incarnActu,
+                    })
+                    this.compteurPG.set(numCollab, K)
+                  } else if (this.PG.get(numCollab)!.message === 3) {
+                    this.PG.set(numCollab, {
+                      collab: this.PG.get(numCollab)!.collab,
+                      message: 4,
+                      incarn: incarnActu,
+                    })
+                    this.compteurPG.set(numCollab, K)
+                  }
+                }
+              }
+            }.bind(this),
+            3 * coef
+          )
+        }
+      }.bind(this),
+      coef
+    )
   }
 
   getCollaborator(muteCoreId: number): ICollaborator | undefined {
