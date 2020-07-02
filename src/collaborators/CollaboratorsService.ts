@@ -140,6 +140,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
   private compteurPG: Map<number, number>
   private incarnation: number
   private reponse: boolean
+  private gossip: boolean
 
   constructor(
     messageIn$: Observable<IMessageIn>,
@@ -156,6 +157,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     this.compteurPG = new Map<number, number>()
     this.incarnation = 0
     this.reponse = false
+    this.gossip = true
 
     // this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
     //   const updated = { id: senderId, ...msg }
@@ -249,20 +251,22 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     })
 
     setInterval(() => {
-      if (this.nbCollab() <= 1) {
-        const msg: ISwimDataRequest = { type: TYPE_DATAREQUEST_LABEL, collab: this.me } // DEBUG à changer en envoyerDataRequest?
-        console.log('envoi; ', msg)
-        super.send(wrapToProto(msg), StreamsSubtype.COLLABORATORS_SWIM, 0)
-      } else {
-        const collaborators = Array.from(this.PG.values())
-          .filter((a) => a.message !== 4)
-          .map((a) => a.collab)
-        const ens: Set<number> = new Set(collaborators.map((a) => a.id))
-        ens.delete(this.me.id)
-        const numRandom = Math.floor(Math.random() * ens.size)
-        const numCollab = Array.from(ens)[numRandom]
+      if (this.gossip) {
+        if (this.nbCollab() <= 1) {
+          const msg: ISwimDataRequest = { type: TYPE_DATAREQUEST_LABEL, collab: this.me } // DEBUG à changer en envoyerDataRequest?
+          console.log('envoi; ', msg)
+          super.send(wrapToProto(msg), StreamsSubtype.COLLABORATORS_SWIM, 0)
+        } else {
+          const collaborators = Array.from(this.PG.values())
+            .filter((a) => a.message !== 4)
+            .map((a) => a.collab)
+          const ens: Set<number> = new Set(collaborators.map((a) => a.id))
+          ens.delete(this.me.id)
+          const numRandom = Math.floor(Math.random() * ens.size)
+          const numCollab = Array.from(ens)[numRandom]
 
-        this.pingProcedure(numCollab)
+          this.pingProcedure(numCollab)
+        }
       }
     }, 3000)
   }
@@ -279,8 +283,11 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
       // Update collab properties
       if (this.PG.has(key) && elem.incarn >= this.PG.get(key)!.incarn) {
         const PGEntry = this.PG.get(key)!
-        PGEntry.collab = elem.collab
-        this.PG.set(key, PGEntry)
+        if (PGEntry.collab !== elem.collab) {
+          PGEntry.collab = elem.collab
+          this.PG.set(key, PGEntry)
+          this.updateSubject.next(PGEntry.collab)
+        }
       }
       // Evaluate PG message
       switch (elem.message) {
@@ -538,6 +545,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     this.PG.set(this.me.id, { collab: this.me, message: 4, incarn: this.incarnation })
     this.compteurPG.set(this.me.id, K)
     this.envoyerPing(0)
+    this.gossip = false
 
     this.updateSubject.complete()
     this.joinSubject.complete()
