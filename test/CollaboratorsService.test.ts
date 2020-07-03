@@ -73,3 +73,42 @@ test.failing('peers-joining-correct-delivery', (context) => {
   let counter = 0
   return cs2.join$.pipe(map(({ id }) => context.is(id, expectedIds[counter++].id)))
 })
+
+/*
+test.failing('init', (context) => {
+  const msgOut1 = new Subject<IMessageOut>()
+  const msgOut2 = new Subject<IMessageOut>()
+  const cs1 = new CollaboratorsService(
+    msgOut2.pipe(
+      map((msg) => {
+        const { recipientId, ...rest } = msg
+        return { senderId: 2, ...rest }
+      })
+    ),
+    msgOut1,
+    { id: 1 }
+  )
+  const cs2 = new CollaboratorsService(
+    msgOut1.pipe(
+      map((msg) => {
+        const { recipientId, ...rest } = msg
+        return { senderId: 1, ...rest }
+      })
+    ),
+    msgOut2,
+    { id: 2 }
+  )
+
+  setTimeout(() => {
+    // DEBUG Tester data-request / data-update
+    // Tester juste les données internes pour init?
+    cs1.dispose()
+    cs2.dispose()
+  }, 5 * coef)
+})
+*/
+// Ne pas oublier d'importer coef
+
+// Pour les tests : utiliser des Streams(Subjects) intermédiaires auxquels on s'abonne et qui contiennent les messages du réseau au format des interfaces internes
+// On pourrait ensuite reproduire les tests de prototype de manière relativement simple
+// Il foudra ajouter des tests pour les modifications de données (pseudos...) et les encodages/décodages

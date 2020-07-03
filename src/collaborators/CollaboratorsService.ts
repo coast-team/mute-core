@@ -23,12 +23,18 @@ import {
 } from './ICollaborator'
 
 const nbPR = 2
-const coef = 500
+export const coef = 800
+
+/*
+Commentaires : 
+- L'appli semble bien fonctionner avec très peu d'utilisateurs (4,5 max), ensuite des bugs graves apparaissent
+- La méthode dispose ne semble pas être appellée / dispose est appellée quand on ne peut plus envoyer de message
+- Tests unitaires manquants
+*/
 
 function wrapToProto(msg: ISwim): proto.SwimMsg {
   const res: proto.SwimMsg = { [msg.type]: msg }
   if (msg.type === 'swimDataUpdate' && msg.PG) {
-    // DEBUG pourquoi pas TYPE_DATAUPDATE_LABEL plutôt?
     const varPG = new Array<proto.ISwimPGEntry>()
     for (const [key, elem] of msg.PG) {
       varPG.push({ id: key, swimPG: elem })
@@ -180,6 +186,12 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
       const K: number = this.calculNbRebond()
       console.log('CollaboratorService: received message from: ', senderId)
       console.log('CollaboratorService: msg: ', msg)
+      /*
+      Bug dans la getion des messages :
+      - On lit les messages des inconnus comme ceux des collaborateurs connus
+      (comportement un peu illogique qui génère des bugs comme tout le monde pense que je suis dans le réseau mais je pense être seul)
+      A voir comment modifier, en essayant tout simplement d'ajouter une condition (sur tous les messages sauf DataRequest/DataUpdate), l'application suit mal (j'avais peut-être loupé mon implem quand j'ai testé)...
+      */
       if (msg.swimDataRequest) {
         // const type = TYPE_DATAREQUEST_LABEL
         const collab = { id: senderId, ...msg.swimDataRequest.collab }
@@ -195,25 +207,11 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
       } else if (msg.swimDataUpdate) {
         const dataUpdate = unwrapFromProtoDataUpdate(msg.swimDataUpdate)
         if (dataUpdate.PG.size > this.PG.size) {
-          // DEBUG pourquoi des réponses vides?!
-          // update ui
           this.updateUI(
             Array.from(dataUpdate.PG.values())
               .filter((a) => a.message !== 4)
               .map((a) => a.collab)
           )
-          /*
-          const collabConnus : ICollaborator[] = [];
-            this.PG.forEach((x)=>{
-              collabConnus.push(x.collab)
-            })
-          dataUpdate.PG.forEach((x)=>{
-            if(!collabConnus.includes(x.collab)&&x.collab.id!==this.me.id){
-              this.joinSubject.next(x.collab)
-            }
-          })
-          */
-
           this.PG = dataUpdate.PG
           this.compteurPG = dataUpdate.compteurPG
         }
@@ -251,11 +249,11 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     })
 
     setInterval(() => {
+      // console.log(this.PG)
+      // console.log(this.compteurPG)
       if (this.gossip) {
         if (this.nbCollab() <= 1) {
-          const msg: ISwimDataRequest = { type: TYPE_DATAREQUEST_LABEL, collab: this.me } // DEBUG à changer en envoyerDataRequest?
-          console.log('envoi; ', msg)
-          super.send(wrapToProto(msg), StreamsSubtype.COLLABORATORS_SWIM, 0)
+          this.envoyerDataRequest()
         } else {
           const collaborators = Array.from(this.PG.values())
             .filter((a) => a.message !== 4)
@@ -268,7 +266,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
           this.pingProcedure(numCollab)
         }
       }
-    }, 3000)
+    }, 5 * coef)
   }
 
   calculNbRebond() {
@@ -333,10 +331,19 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
           }
           break
         case 4: // Confirm
-          if (this.PG.has(key)) {
+          if (this.PG.has(key) && this.PG.get(key)!.message !== 4) {
             if (key === this.me.id) {
               console.log("You've been declared dead")
               this.dispose()
+              /*
+              Procédure envisgeable pour rejoindre à nouveau le réseau :
+              (- Attendre quelques périodes)
+              - Envoyer un nouveau data-request
+              - Reçevoir les données du réseau et vérifier si on a des informations à transmettre au groupe
+              - Créer PG et compteur PG à partir des données du réseau (et ajouter nos entrées à transmettre si besoin)
+
+              -> Pour l'instant, Joined ne permet pas d'override Confirm
+              */
             }
             this.leaveSubject.next(elem.collab)
             this.PG.set(key, elem)
@@ -347,6 +354,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     }
   }
 
+  // Parfois, un collaborateur est ajouté en trop à l'interface
   updateUI(collabs: ICollaborator[]): void {
     const collabConnus: ICollaborator[] = []
     this.PG.forEach((x) => {
@@ -369,6 +377,13 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     return nb
   }
 
+  envoyerDataRequest() {
+    const msg: ISwimDataRequest = { type: TYPE_DATAREQUEST_LABEL, collab: this.me }
+    const wrapped = wrapToProto(msg)
+    console.log('sent: ', wrapped)
+    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, 0)
+  }
+
   envoyerDataUpdate(numDest: number) {
     const mess: ISwimDataUpdate = {
       type: TYPE_DATAUPDATE_LABEL,
@@ -376,7 +391,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
       compteurPG: this.compteurPG,
     }
     const wrapped = wrapToProto(mess)
-    console.log('envoi: ', wrapped)
+    console.log('sent: ', wrapped)
     super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)
   }
 
@@ -384,7 +399,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     const toPG: Map<number, ISwimPG> = this.createToPG()
     const mess: ISwimPing = { type: TYPE_PING_LABEL, piggyback: toPG }
     const wrapped = wrapToProto(mess)
-    console.log('envoi: ', wrapped)
+    console.log('sent: ', wrapped)
     super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)
   }
 
@@ -392,7 +407,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     const toPG: Map<number, ISwimPG> = this.createToPG()
     const mess: ISwimPingReq = { type: TYPE_PINGREQ_LABEL, numTarget, piggyback: toPG }
     const wrapped = wrapToProto(mess)
-    console.log('envoi: ', wrapped)
+    console.log('sent: ', wrapped)
     super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)
   }
 
@@ -400,7 +415,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     const toPG: Map<number, ISwimPG> = this.createToPG()
     const mess: ISwimAck = { type: TYPE_ACK_LABEL, piggyback: toPG }
     const wrapped = wrapToProto(mess)
-    console.log('envoi: ', wrapped)
+    console.log('sent: ', wrapped)
     super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)
   }
 
@@ -408,7 +423,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     const toPG: Map<number, ISwimPG> = this.createToPG()
     const mess: ISwimPingReqRep = { type: TYPE_PINGREQREP_LABEL, answer, piggyback: toPG }
     const wrapped = wrapToProto(mess)
-    console.log('envoi: ', wrapped)
+    console.log('sent: ', wrapped)
     super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)
   }
 
@@ -471,6 +486,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
                     })
                     this.compteurPG.set(numCollab, K)
                   } else if (this.PG.get(numCollab)!.message === 3) {
+                    this.leaveSubject.next(this.PG.get(numCollab)!.collab)
                     this.PG.set(numCollab, {
                       collab: this.PG.get(numCollab)!.collab,
                       message: 4,
