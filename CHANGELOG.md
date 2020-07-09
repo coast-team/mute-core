@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.0.0-experiment-3.6"></a>
+# [10.0.0-experiment-3.6](https://github.com/coast-team/mute-core/compare/v10.0.0-experiment-3.5...v10.0.0-experiment-3.6) (2020-07-09)
+
+
+
 <a name="10.0.0-experiment-3.5"></a>
 # [10.0.0-experiment-3.5](https://github.com/coast-team/mute-core/compare/v10.0.0-experiment-3.4...v10.0.0-experiment-3.5) (2020-06-17)
 
