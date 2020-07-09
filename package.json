@@ -53,7 +53,7 @@
   },
   "dependencies": {
     "dotted-logootsplit": "^0.3.0",
-    "mute-structs": "^2.0.0-8",
+    "mute-structs": "^2.0.0-9",
     "rxjs": "^6.5.2",
     "safe-any": "^1.0.2"
   },
