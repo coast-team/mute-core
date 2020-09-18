@@ -70,3 +70,8 @@ enum EnumNumPG {
   Suspect = 3,
   Confirm = 4,
 }
+
+export interface ISwimMessage {
+  idCollab: number
+  content: ISwim
+}

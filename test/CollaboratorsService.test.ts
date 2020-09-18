@@ -112,3 +112,16 @@ test.failing('init', (context) => {
 // Pour les tests : utiliser des Streams(Subjects) intermédiaires auxquels on s'abonne et qui contiennent les messages du réseau au format des interfaces internes
 // On pourrait ensuite reproduire les tests de prototype de manière relativement simple
 // Il foudra ajouter des tests pour les modifications de données (pseudos...) et les encodages/décodages
+
+
+test('init', (context) => {
+  /*
+  const msgOut = new Subject<IMessageOut>()
+  const msgIn = new Subject<IMessageIn>()
+  const collabService = new CollaboratorsService(msgIn, msgOut, { id: 0 })
+  
+  const msgTestOut = collabService.getStreamIntermediaireOut()
+  const msgTestIn = collabService.getStreamIntermediaireIn()*/
+
+  context.deepEqual(1,1);
+})

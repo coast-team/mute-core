@@ -20,6 +20,7 @@ import {
   TYPE_PING_LABEL,
   TYPE_PINGREQ_LABEL,
   TYPE_PINGREQREP_LABEL,
+  ISwimMessage,
 } from './ICollaborator'
 
 const nbPR = 2
@@ -32,6 +33,10 @@ Commentaires :
 - Tests unitaires manquants
 */
 
+
+/*
+  Convertit un message ISwim au format proto.swimMsg
+*/
 function wrapToProto(msg: ISwim): proto.SwimMsg {
   const res: proto.SwimMsg = { [msg.type]: msg }
   if (msg.type === 'swimDataUpdate' && msg.PG) {
@@ -56,6 +61,10 @@ function wrapToProto(msg: ISwim): proto.SwimMsg {
   return res
 }
 
+
+/*
+  Unwrap proto.ISwimDataUpdate ==> ISwimDataUpdate
+*/
 function unwrapFromProtoDataUpdate(swimDataUpdate: proto.ISwimDataUpdate): ISwimDataUpdate {
   const type = TYPE_DATAUPDATE_LABEL
   const PG: Map<number, ISwimPG> = new Map()
@@ -82,6 +91,10 @@ function unwrapFromProtoDataUpdate(swimDataUpdate: proto.ISwimDataUpdate): ISwim
   return { type, PG, compteurPG }
 }
 
+
+/*
+  Unwrap proto.ISwimPing ==> ISwimPing
+*/
 function unwrapFromProtoPing(swimPing: proto.ISwimPing): ISwimPing {
   const type = TYPE_PING_LABEL
   const piggyback: Map<number, ISwimPG> = new Map()
@@ -102,6 +115,64 @@ function unwrapFromProtoPing(swimPing: proto.ISwimPing): ISwimPing {
   return { type, piggyback }
 }
 
+
+/*
+  Unwrap proto.ISwimPingReq ==> ISwimPingReq
+*/
+function unwrapFromProtoPingReq(swimPing: proto.ISwimPingReq): ISwimPingReq {
+  const type = TYPE_PINGREQ_LABEL
+  var numTarget = -1
+  const piggyback: Map<number, ISwimPG> = new Map()
+
+  if (swimPing && swimPing.piggyback && swimPing.numTarget) {
+    numTarget = swimPing.numTarget
+    swimPing.piggyback.forEach((x) => {
+      const obj = { id: x.id, ...x.swimPG.collab }
+      if (isICollaborator(obj)) {
+        const collab: ICollaborator = obj
+        const PGEntry: ISwimPG = { collab, message: x.swimPG.message, incarn: x.swimPG.incarn }
+        piggyback.set(x.id, PGEntry)
+      } else {
+        console.log('error : unwrapFromProtoPingReq')
+      }
+    })
+  } else {
+    console.log('error : unwrapFromProtoPingReq')
+  }
+  return { type, numTarget, piggyback }
+}
+
+
+/*
+  Unwrap proto.ISwimPingReqRep ==> ISwimPingReqRep
+*/
+function unwrapFromProtoPingReqRep(swimPing: proto.ISwimPingReqRep): ISwimPingReqRep {
+  const type = TYPE_PINGREQREP_LABEL
+  var answer = false
+  const piggyback: Map<number, ISwimPG> = new Map()
+
+  if (swimPing && swimPing.piggyback && swimPing.answer) {
+    answer = swimPing.answer
+    swimPing.piggyback.forEach((x) => {
+      const obj = { id: x.id, ...x.swimPG.collab }
+      if (isICollaborator(obj)) {
+        const collab: ICollaborator = obj
+        const PGEntry: ISwimPG = { collab, message: x.swimPG.message, incarn: x.swimPG.incarn }
+        piggyback.set(x.id, PGEntry)
+      } else {
+        console.log('error : unwrapFromProtoPingReq')
+      }
+    })
+  } else {
+    console.log('error : unwrapFromProtoPingReq')
+  }
+  return { type, answer, piggyback }
+}
+
+
+/*
+  Unwrap proto.ISwimAck ==> ISwimAck
+*/
 function unwrapFromProtoAck(swimAck: proto.ISwimAck): ISwimAck {
   const type = TYPE_ACK_LABEL
   const piggyback: Map<number, ISwimPG> = new Map()
@@ -148,6 +219,9 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
   private reponse: boolean
   private gossip: boolean
 
+  private messageTestIn$: Subject<ISwimMessage>
+  private messageTestOut$: Subject<ISwimMessage>
+
   constructor(
     messageIn$: Observable<IMessageIn>,
     messageOut$: Subject<IMessageOut>,
@@ -165,33 +239,116 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     this.reponse = false
     this.gossip = true
 
-    // this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
-    //   const updated = { id: senderId, ...msg }
-    //   const collab = this.collaborators.get(senderId)
-    //   if (collab) {
-    //     collab.muteCoreId = updated.muteCoreId || collab.muteCoreId
-    //     collab.displayName = updated.displayName || collab.displayName
-    //     collab.login = updated.login || collab.login
-    //     collab.email = updated.email || collab.email
-    //     collab.avatar = updated.avatar || collab.avatar
-    //     collab.deviceID = updated.deviceID || collab.deviceID
-    //     this.updateSubject.next(collab)
-    //   } else {
-    //     this.collaborators.set(updated.id, updated)
-    //     this.joinSubject.next(updated)
-    //   }
-    // })
+    this.messageTestIn$ = new Subject()
+    this.messageTestOut$ = new Subject()
 
-    this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
-      const K: number = this.calculNbRebond()
-      console.log('CollaboratorService: received message from: ', senderId)
-      console.log('CollaboratorService: msg: ', msg)
-      /*
+
+    /*
       Bug dans la getion des messages :
       - On lit les messages des inconnus comme ceux des collaborateurs connus
       (comportement un peu illogique qui génère des bugs comme tout le monde pense que je suis dans le réseau mais je pense être seul)
       A voir comment modifier, en essayant tout simplement d'ajouter une condition (sur tous les messages sauf DataRequest/DataUpdate), l'application suit mal (j'avais peut-être loupé mon implem quand j'ai testé)...
       */
+    /*
+      Récupération des messages reçus (format : proto.SwimMsg) ==> Transformation du message au format ISwimMessage
+      Envoie du message vers messageTestIn$ pour le traitement
+    */
+    this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
+      console.log('CollaboratorService: received message from: ', senderId)
+      console.log('CollaboratorService: msg: ', msg)
+
+      if (msg.swimDataRequest) {  /* Data Request */      
+        const collab = { id: senderId, ...msg.swimDataRequest.collab }
+        if (isICollaborator(collab)) {
+          this.messageTestIn$.next({idCollab: senderId, content: {type : TYPE_DATAREQUEST_LABEL, collab: collab}})
+        }
+      } else if (msg.swimDataUpdate) {  /* Date Update */
+          this.messageTestIn$.next({idCollab: senderId, content: unwrapFromProtoDataUpdate(msg.swimDataUpdate)})
+
+      } else if (msg.swimPing) {  /* Ping */
+          this.messageTestIn$.next({idCollab: senderId, content: unwrapFromProtoPing(msg.swimPing)})
+
+      } else if (msg.swimAck) {  /* Ack */
+          this.messageTestIn$.next({idCollab: senderId, content: unwrapFromProtoAck(msg.swimAck)})
+
+      } else if (msg.swimPingReq) {  /* Ping Req */
+          this.messageTestIn$.next({idCollab: senderId, content: unwrapFromProtoPingReq(msg.swimPingReq)})
+         
+      } else if (msg.swimPingReqRep) {  /* Ping Req Reponse */
+        this.messageTestIn$.next({idCollab: senderId, content: unwrapFromProtoPingReqRep(msg.swimPingReqRep)})
+   
+      } else {  /* Error */
+          console.log('ERROR unknow message : ', { senderId, msg })    
+      }
+      
+    })
+
+    this.newSub = this.messageTestIn$.subscribe(({ idCollab, content }) => {
+      
+      if (content.type == TYPE_DATAREQUEST_LABEL) {  /* Data Request */
+        if (content.collab) {
+          const K: number = this.calculNbRebond()
+          if (!this.PG.has(idCollab)) {
+            this.PG.set(idCollab, { collab: content.collab, message: 1, incarn: this.incarnation })
+            this.compteurPG.set(idCollab, K)
+            this.joinSubject.next(content.collab)
+          }
+          this.envoyerDataUpdate(idCollab) // attendre avant d'envoyer? DEBUG
+        }
+        
+
+      } else if (content.type == TYPE_DATAUPDATE_LABEL) {  /* Date Update */
+        if (content.PG.size > this.PG.size) {
+          this.updateUI(
+            Array.from(content.PG.values())
+              .filter((a) => a.message !== 4)
+              .map((a) => a.collab)
+          )
+          this.PG = content.PG
+          this.compteurPG = content.compteurPG
+        }
+      } else if (content.type == TYPE_PING_LABEL) {  /* Ping */
+        this.handlePG(content.piggyback)
+        this.envoyerAck(idCollab)
+
+      } else if (content.type == TYPE_ACK_LABEL) {  /* Ack */
+        this.handlePG(content.piggyback)
+        this.reponse = true
+
+      } else if (content.type == TYPE_PINGREQ_LABEL) {  /* Ping Req */ 
+        this.handlePG(content.piggyback)
+        if (content.numTarget) {
+          this.envoyerPing(content.numTarget)
+        } else {
+          console.log('numTarger error')
+        }
+        this.reponse = false
+        setTimeout(
+          function(this: CollaboratorsService) {
+            this.envoyerReponsePingReq(idCollab, this.reponse)
+          }.bind(this),
+          coef
+        )
+
+      } else if (content.type == TYPE_PINGREQREP_LABEL) {  /* Ping Req Reponse */
+        this.handlePG(content.piggyback)
+        if (content.answer) {
+          this.reponse = content.answer
+        }
+
+      } else {  /* Error */
+        console.log('ERROR unknow message : ', { idCollab, content })    
+      }
+      
+
+    })
+
+/**
+this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
+      const K: number = this.calculNbRebond()
+      console.log('CollaboratorService: received message from: ', senderId)
+      console.log('CollaboratorService: msg: ', msg)
+      
       if (msg.swimDataRequest) {
         // const type = TYPE_DATAREQUEST_LABEL
         const collab = { id: senderId, ...msg.swimDataRequest.collab }
@@ -247,6 +404,8 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
         }
       }
     })
+*/
+    
 
     setInterval(() => {
       // console.log(this.PG)
@@ -575,4 +734,19 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     console.log('subtype: ', subtype)
     console.log('recipientId', recipientId)
   }
+
+
+
+  
+
+
+  getStreamIntermediaireIn() {
+    return this.messageTestIn$;
+  }
+
+  getStreamIntermediaireOut() {
+    return this.messageTestOut$;
+  }
+
+
 }
