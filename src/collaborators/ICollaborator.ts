@@ -72,6 +72,6 @@ enum EnumNumPG {
 }
 
 export interface ISwimMessage {
-  idCollab: number
-  content: ISwim
+  idCollab: number  // Id du collaborateur qui a envoyé le message ou de celui a qui on veut envoyer un message
+  content: ISwim  // Contenu du message
 }

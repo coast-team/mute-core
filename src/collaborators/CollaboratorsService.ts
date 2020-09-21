@@ -283,64 +283,79 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
       
     })
 
-    this.newSub = this.messageTestIn$.subscribe(({ idCollab, content }) => {
-      
-      if (content.type == TYPE_DATAREQUEST_LABEL) {  /* Data Request */
-        if (content.collab) {
+
+    /*
+      Récupération des messages reçus (format : ISwim) ==> Traitement du message en fonction du type
+    */
+    this.newSub = this.messageTestIn$.subscribe((msg: ISwimMessage) => {  
+      if (msg.content.type == TYPE_DATAREQUEST_LABEL) {  /* Data Request */
+        if (msg.content.collab) {
           const K: number = this.calculNbRebond()
-          if (!this.PG.has(idCollab)) {
-            this.PG.set(idCollab, { collab: content.collab, message: 1, incarn: this.incarnation })
-            this.compteurPG.set(idCollab, K)
-            this.joinSubject.next(content.collab)
+          if (!this.PG.has(msg.idCollab)) {
+            this.PG.set(msg.idCollab, { collab: msg.content.collab, message: 1, incarn: this.incarnation })
+            this.compteurPG.set(msg.idCollab, K)
+            this.joinSubject.next(msg.content.collab)
           }
-          this.envoyerDataUpdate(idCollab) // attendre avant d'envoyer? DEBUG
+          this.envoyerDataUpdate(msg.idCollab) // attendre avant d'envoyer? DEBUG
         }
         
-
-      } else if (content.type == TYPE_DATAUPDATE_LABEL) {  /* Date Update */
-        if (content.PG.size > this.PG.size) {
+      } else if (msg.content.type == TYPE_DATAUPDATE_LABEL) {  /* Date Update */
+        if (msg.content.PG.size > this.PG.size) {
           this.updateUI(
-            Array.from(content.PG.values())
+            Array.from(msg.content.PG.values())
               .filter((a) => a.message !== 4)
               .map((a) => a.collab)
           )
-          this.PG = content.PG
-          this.compteurPG = content.compteurPG
+          this.PG = msg.content.PG
+          this.compteurPG = msg.content.compteurPG
         }
-      } else if (content.type == TYPE_PING_LABEL) {  /* Ping */
-        this.handlePG(content.piggyback)
-        this.envoyerAck(idCollab)
 
-      } else if (content.type == TYPE_ACK_LABEL) {  /* Ack */
-        this.handlePG(content.piggyback)
+      } else if (msg.content.type == TYPE_PING_LABEL) {  /* Ping */
+        this.handlePG(msg.content.piggyback)
+        this.envoyerAck(msg.idCollab)
+
+      } else if (msg.content.type == TYPE_ACK_LABEL) {  /* Ack */
+        this.handlePG(msg.content.piggyback)
         this.reponse = true
 
-      } else if (content.type == TYPE_PINGREQ_LABEL) {  /* Ping Req */ 
-        this.handlePG(content.piggyback)
-        if (content.numTarget) {
-          this.envoyerPing(content.numTarget)
+      } else if (msg.content.type == TYPE_PINGREQ_LABEL) {  /* Ping Req */ 
+        this.handlePG(msg.content.piggyback)
+        if (msg.content.numTarget) {
+          this.envoyerPing(msg.content.numTarget)
         } else {
           console.log('numTarger error')
         }
         this.reponse = false
         setTimeout(
           function(this: CollaboratorsService) {
-            this.envoyerReponsePingReq(idCollab, this.reponse)
+            this.envoyerReponsePingReq(msg.idCollab, this.reponse)
           }.bind(this),
           coef
         )
 
-      } else if (content.type == TYPE_PINGREQREP_LABEL) {  /* Ping Req Reponse */
-        this.handlePG(content.piggyback)
-        if (content.answer) {
-          this.reponse = content.answer
+      } else if (msg.content.type == TYPE_PINGREQREP_LABEL) {  /* Ping Req Reponse */
+        this.handlePG(msg.content.piggyback)
+        if (msg.content.answer) {
+          this.reponse = msg.content.answer
         }
 
       } else {  /* Error */
-        console.log('ERROR unknow message : ', { idCollab, content })    
+        console.log('ERROR unknow message : ', msg)    
       }
-      
+    })
 
+    /*
+      Transformation et envoie d'un message (format ISwim => proto.SwimMsg)
+    */
+    this.messageTestOut$.subscribe((msg: ISwimMessage) => {
+      const types = [TYPE_DATAREQUEST_LABEL, TYPE_DATAUPDATE_LABEL, TYPE_PING_LABEL, TYPE_ACK_LABEL, TYPE_PINGREQ_LABEL, TYPE_PINGREQREP_LABEL]
+      if (types.indexOf(msg.content.type)) {  /* Type valide */
+        const wrapped = wrapToProto(msg.content)
+        console.log('sent: ', wrapped)
+        super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, msg.idCollab)
+      } else {  /* Error */
+        console.log('ERROR unknow type message : ', msg)    
+      }
     })
 
 /**
@@ -537,10 +552,12 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
   }
 
   envoyerDataRequest() {
-    const msg: ISwimDataRequest = { type: TYPE_DATAREQUEST_LABEL, collab: this.me }
-    const wrapped = wrapToProto(msg)
+    const mess: ISwimDataRequest = { type: TYPE_DATAREQUEST_LABEL, collab: this.me }
+    this.messageTestOut$.next({idCollab: 0, content: mess})
+    /*
+    const wrapped = wrapToProto(mess)
     console.log('sent: ', wrapped)
-    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, 0)
+    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, 0)*/
   }
 
   envoyerDataUpdate(numDest: number) {
@@ -549,42 +566,50 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
       PG: this.PG,
       compteurPG: this.compteurPG,
     }
+    this.messageTestOut$.next({idCollab: numDest, content: mess})
+    /*
     const wrapped = wrapToProto(mess)
     console.log('sent: ', wrapped)
-    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)
+    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)*/
   }
 
   envoyerPing(numDest: number) {
     const toPG: Map<number, ISwimPG> = this.createToPG()
     const mess: ISwimPing = { type: TYPE_PING_LABEL, piggyback: toPG }
-    const wrapped = wrapToProto(mess)
+    
+    this.messageTestOut$.next({idCollab: numDest, content: mess})
+    /*const wrapped = wrapToProto(mess)
     console.log('sent: ', wrapped)
-    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)
+    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)*/
   }
 
   envoyerPingReq(numDest: number, numTarget: number) {
     const toPG: Map<number, ISwimPG> = this.createToPG()
     const mess: ISwimPingReq = { type: TYPE_PINGREQ_LABEL, numTarget, piggyback: toPG }
-    const wrapped = wrapToProto(mess)
+    this.messageTestOut$.next({idCollab: numDest, content: mess})
+    /*const wrapped = wrapToProto(mess)
     console.log('sent: ', wrapped)
-    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)
+    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)*/
   }
 
   envoyerAck(numDest: number) {
     const toPG: Map<number, ISwimPG> = this.createToPG()
     const mess: ISwimAck = { type: TYPE_ACK_LABEL, piggyback: toPG }
-    const wrapped = wrapToProto(mess)
+    this.messageTestOut$.next({idCollab: numDest, content: mess})
+    /*const wrapped = wrapToProto(mess)
     console.log('sent: ', wrapped)
-    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)
+    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)*/
   }
 
   envoyerReponsePingReq(numDest: number, answer: boolean) {
     const toPG: Map<number, ISwimPG> = this.createToPG()
     const mess: ISwimPingReqRep = { type: TYPE_PINGREQREP_LABEL, answer, piggyback: toPG }
-    const wrapped = wrapToProto(mess)
+    this.messageTestOut$.next({idCollab: numDest, content: mess})
+    /*const wrapped = wrapToProto(mess)
     console.log('sent: ', wrapped)
-    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)
+    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)*/
   }
+
 
   createToPG() {
     const toPG: Map<number, ISwimPG> = new Map<number, ISwimPG>()
