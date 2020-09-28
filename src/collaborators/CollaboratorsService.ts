@@ -121,7 +121,7 @@ function unwrapFromProtoPing(swimPing: proto.ISwimPing): ISwimPing {
 */
 function unwrapFromProtoPingReq(swimPing: proto.ISwimPingReq): ISwimPingReq {
   const type = TYPE_PINGREQ_LABEL
-  var numTarget = -1
+  let numTarget = -1
   const piggyback: Map<number, ISwimPG> = new Map()
 
   if (swimPing && swimPing.piggyback && swimPing.numTarget) {
@@ -148,7 +148,7 @@ function unwrapFromProtoPingReq(swimPing: proto.ISwimPingReq): ISwimPingReq {
 */
 function unwrapFromProtoPingReqRep(swimPing: proto.ISwimPingReqRep): ISwimPingReqRep {
   const type = TYPE_PINGREQREP_LABEL
-  var answer = false
+  let answer = false
   const piggyback: Map<number, ISwimPG> = new Map()
 
   if (swimPing && swimPing.piggyback && swimPing.answer) {
@@ -219,8 +219,8 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
   private reponse: boolean
   private gossip: boolean
 
-  private messageTestIn$: Subject<ISwimMessage>
-  private messageTestOut$: Subject<ISwimMessage>
+  private messageISwimIn$: Subject<ISwimMessage>
+  private messageISwimOut$: Subject<ISwimMessage>
 
   constructor(
     messageIn$: Observable<IMessageIn>,
@@ -239,8 +239,8 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     this.reponse = false
     this.gossip = true
 
-    this.messageTestIn$ = new Subject()
-    this.messageTestOut$ = new Subject()
+    this.messageISwimIn$ = new Subject()
+    this.messageISwimOut$ = new Subject()
 
 
     /*
@@ -251,7 +251,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
       */
     /*
       Récupération des messages reçus (format : proto.SwimMsg) ==> Transformation du message au format ISwimMessage
-      Envoie du message vers messageTestIn$ pour le traitement
+      Envoie du message vers messageISwimIn$ pour le traitement
     */
     this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
       console.log('CollaboratorService: received message from: ', senderId)
@@ -260,22 +260,22 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
       if (msg.swimDataRequest) {  /* Data Request */      
         const collab = { id: senderId, ...msg.swimDataRequest.collab }
         if (isICollaborator(collab)) {
-          this.messageTestIn$.next({idCollab: senderId, content: {type : TYPE_DATAREQUEST_LABEL, collab: collab}})
+          this.messageISwimIn$.next({idCollab: senderId, content: {type : TYPE_DATAREQUEST_LABEL, collab: collab}})
         }
       } else if (msg.swimDataUpdate) {  /* Date Update */
-          this.messageTestIn$.next({idCollab: senderId, content: unwrapFromProtoDataUpdate(msg.swimDataUpdate)})
+          this.messageISwimIn$.next({idCollab: senderId, content: unwrapFromProtoDataUpdate(msg.swimDataUpdate)})
 
       } else if (msg.swimPing) {  /* Ping */
-          this.messageTestIn$.next({idCollab: senderId, content: unwrapFromProtoPing(msg.swimPing)})
+          this.messageISwimIn$.next({idCollab: senderId, content: unwrapFromProtoPing(msg.swimPing)})
 
       } else if (msg.swimAck) {  /* Ack */
-          this.messageTestIn$.next({idCollab: senderId, content: unwrapFromProtoAck(msg.swimAck)})
+          this.messageISwimIn$.next({idCollab: senderId, content: unwrapFromProtoAck(msg.swimAck)})
 
       } else if (msg.swimPingReq) {  /* Ping Req */
-          this.messageTestIn$.next({idCollab: senderId, content: unwrapFromProtoPingReq(msg.swimPingReq)})
+          this.messageISwimIn$.next({idCollab: senderId, content: unwrapFromProtoPingReq(msg.swimPingReq)})
          
       } else if (msg.swimPingReqRep) {  /* Ping Req Reponse */
-        this.messageTestIn$.next({idCollab: senderId, content: unwrapFromProtoPingReqRep(msg.swimPingReqRep)})
+        this.messageISwimIn$.next({idCollab: senderId, content: unwrapFromProtoPingReqRep(msg.swimPingReqRep)})
    
       } else {  /* Error */
           console.log('ERROR unknow message : ', { senderId, msg })    
@@ -287,8 +287,8 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     /*
       Récupération des messages reçus (format : ISwim) ==> Traitement du message en fonction du type
     */
-    this.newSub = this.messageTestIn$.subscribe((msg: ISwimMessage) => {  
-      if (msg.content.type == TYPE_DATAREQUEST_LABEL) {  /* Data Request */
+    this.newSub = this.messageISwimIn$.subscribe((msg: ISwimMessage) => {  
+      if (msg.content.type === TYPE_DATAREQUEST_LABEL) {  /* Data Request */
         if (msg.content.collab) {
           const K: number = this.calculNbRebond()
           if (!this.PG.has(msg.idCollab)) {
@@ -299,7 +299,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
           this.envoyerDataUpdate(msg.idCollab) // attendre avant d'envoyer? DEBUG
         }
         
-      } else if (msg.content.type == TYPE_DATAUPDATE_LABEL) {  /* Date Update */
+      } else if (msg.content.type === TYPE_DATAUPDATE_LABEL) {  /* Date Update */
         if (msg.content.PG.size > this.PG.size) {
           this.updateUI(
             Array.from(msg.content.PG.values())
@@ -310,15 +310,15 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
           this.compteurPG = msg.content.compteurPG
         }
 
-      } else if (msg.content.type == TYPE_PING_LABEL) {  /* Ping */
+      } else if (msg.content.type === TYPE_PING_LABEL) {  /* Ping */
         this.handlePG(msg.content.piggyback)
         this.envoyerAck(msg.idCollab)
 
-      } else if (msg.content.type == TYPE_ACK_LABEL) {  /* Ack */
+      } else if (msg.content.type === TYPE_ACK_LABEL) {  /* Ack */
         this.handlePG(msg.content.piggyback)
         this.reponse = true
 
-      } else if (msg.content.type == TYPE_PINGREQ_LABEL) {  /* Ping Req */ 
+      } else if (msg.content.type === TYPE_PINGREQ_LABEL) {  /* Ping Req */ 
         this.handlePG(msg.content.piggyback)
         if (msg.content.numTarget) {
           this.envoyerPing(msg.content.numTarget)
@@ -333,7 +333,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
           coef
         )
 
-      } else if (msg.content.type == TYPE_PINGREQREP_LABEL) {  /* Ping Req Reponse */
+      } else if (msg.content.type === TYPE_PINGREQREP_LABEL) {  /* Ping Req Reponse */
         this.handlePG(msg.content.piggyback)
         if (msg.content.answer) {
           this.reponse = msg.content.answer
@@ -347,15 +347,10 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     /*
       Transformation et envoie d'un message (format ISwim => proto.SwimMsg)
     */
-    this.messageTestOut$.subscribe((msg: ISwimMessage) => {
-      const types = [TYPE_DATAREQUEST_LABEL, TYPE_DATAUPDATE_LABEL, TYPE_PING_LABEL, TYPE_ACK_LABEL, TYPE_PINGREQ_LABEL, TYPE_PINGREQREP_LABEL]
-      if (types.indexOf(msg.content.type)) {  /* Type valide */
-        const wrapped = wrapToProto(msg.content)
-        console.log('sent: ', wrapped)
-        super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, msg.idCollab)
-      } else {  /* Error */
-        console.log('ERROR unknow type message : ', msg)    
-      }
+    this.messageISwimOut$.subscribe((msg: ISwimMessage) => {
+      const wrapped = wrapToProto(msg.content)
+      console.log('sent: ', wrapped)
+      super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, msg.idCollab)
     })
 
 /**
@@ -553,11 +548,7 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
 
   envoyerDataRequest() {
     const mess: ISwimDataRequest = { type: TYPE_DATAREQUEST_LABEL, collab: this.me }
-    this.messageTestOut$.next({idCollab: 0, content: mess})
-    /*
-    const wrapped = wrapToProto(mess)
-    console.log('sent: ', wrapped)
-    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, 0)*/
+    this.messageISwimOut$.next({idCollab: 0, content: mess})
   }
 
   envoyerDataUpdate(numDest: number) {
@@ -566,48 +557,36 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
       PG: this.PG,
       compteurPG: this.compteurPG,
     }
-    this.messageTestOut$.next({idCollab: numDest, content: mess})
-    /*
-    const wrapped = wrapToProto(mess)
-    console.log('sent: ', wrapped)
-    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)*/
+
+    this.messageISwimOut$.next({idCollab: numDest, content: mess})
   }
 
   envoyerPing(numDest: number) {
     const toPG: Map<number, ISwimPG> = this.createToPG()
     const mess: ISwimPing = { type: TYPE_PING_LABEL, piggyback: toPG }
     
-    this.messageTestOut$.next({idCollab: numDest, content: mess})
-    /*const wrapped = wrapToProto(mess)
-    console.log('sent: ', wrapped)
-    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)*/
+    this.messageISwimOut$.next({idCollab: numDest, content: mess})
   }
 
   envoyerPingReq(numDest: number, numTarget: number) {
     const toPG: Map<number, ISwimPG> = this.createToPG()
     const mess: ISwimPingReq = { type: TYPE_PINGREQ_LABEL, numTarget, piggyback: toPG }
-    this.messageTestOut$.next({idCollab: numDest, content: mess})
-    /*const wrapped = wrapToProto(mess)
-    console.log('sent: ', wrapped)
-    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)*/
+
+    this.messageISwimOut$.next({idCollab: numDest, content: mess})
   }
 
   envoyerAck(numDest: number) {
     const toPG: Map<number, ISwimPG> = this.createToPG()
     const mess: ISwimAck = { type: TYPE_ACK_LABEL, piggyback: toPG }
-    this.messageTestOut$.next({idCollab: numDest, content: mess})
-    /*const wrapped = wrapToProto(mess)
-    console.log('sent: ', wrapped)
-    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)*/
+
+    this.messageISwimOut$.next({idCollab: numDest, content: mess})
   }
 
   envoyerReponsePingReq(numDest: number, answer: boolean) {
     const toPG: Map<number, ISwimPG> = this.createToPG()
     const mess: ISwimPingReqRep = { type: TYPE_PINGREQREP_LABEL, answer, piggyback: toPG }
-    this.messageTestOut$.next({idCollab: numDest, content: mess})
-    /*const wrapped = wrapToProto(mess)
-    console.log('sent: ', wrapped)
-    super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, numDest)*/
+    
+    this.messageISwimOut$.next({idCollab: numDest, content: mess})
   }
 
 
@@ -766,11 +745,24 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
 
 
   getStreamIntermediaireIn() {
-    return this.messageTestIn$;
+    return this.messageISwimIn$;
   }
 
   getStreamIntermediaireOut() {
-    return this.messageTestOut$;
+    return this.messageISwimOut$;
+  }
+
+  /*
+    Retourne la liste des collaborateurs connectés
+  */
+  getListConnectedCollab() : number[] {
+    let connectedCollab : number[] = [this.me.id]
+    this.PG.forEach(element => {
+      if(element.message !== 4) {
+        connectedCollab.push(element.collab.id)  // Utilisation de muteCoreId plutôt que id ???
+      }
+    })
+    return connectedCollab
   }
 
 
