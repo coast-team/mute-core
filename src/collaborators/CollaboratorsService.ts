@@ -31,6 +31,9 @@ Commentaires :
 - L'appli semble bien fonctionner avec très peu d'utilisateurs (4,5 max), ensuite des bugs graves apparaissent
 - La méthode dispose ne semble pas être appellée / dispose est appellée quand on ne peut plus envoyer de message
 - Tests unitaires manquants
+
+- Le collaborateur s'ajoute lui même au PG à partir du momeent où l'UI lui envoie les informations de l'utilisateur.
+Si l'utilisateur modifie son profil, son numéro incarn est réinitialiser à 0 ==> cela peut être source de bugs, les autres collab peuveunt croire que les messages envoyé sont des vieux messages et les ignorer
 */
 
 
@@ -756,7 +759,7 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
     Retourne la liste des collaborateurs connectés
   */
   getListConnectedCollab() : number[] {
-    let connectedCollab : number[] = [this.me.id]
+    let connectedCollab : number[] = []
     this.PG.forEach(element => {
       if(element.message !== 4) {
         connectedCollab.push(element.collab.id)  // Utilisation de muteCoreId plutôt que id ???
