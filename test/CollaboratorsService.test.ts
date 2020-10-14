@@ -143,7 +143,14 @@ test('receptionPing', (context) => {
     context.deepEqual(msg.content.type, TYPE_ACK_LABEL) // Le type du message devrait être : ack
   })
 
-  msgIntermediaireIn.next({idCollab: 1, content:{type: TYPE_PING_LABEL, piggyback: collabService.createToPG()}})
+  const pg = new Map<number, ISwimPG>()
+  pg.set(1, {
+    collab: { id: 1 },
+    message: 1,
+    incarn: 0,
+  })
+  collabService.setPG(pg)
+  msgIntermediaireIn.next({idCollab: 1, content:{type: TYPE_PING_LABEL, piggyback: new Map<number, ISwimPG>()}})
 })
 
 /*
@@ -164,7 +171,14 @@ test('receptionPingReq', (context) => {
     context.deepEqual(msg.content.type, TYPE_PING_LABEL)  // Le type du message devrait être un ping
   })
 
-  msgIntermediaireIn.next({idCollab: 1, content:{type: TYPE_PINGREQ_LABEL, numTarget: 2, piggyback: collabService.createToPG()}})
+  const pg = new Map<number, ISwimPG>()
+  pg.set(1, {
+    collab: { id: 1 },
+    message: 1,
+    incarn: 0,
+  })
+  collabService.setPG(pg)
+  msgIntermediaireIn.next({idCollab: 1, content:{type: TYPE_PINGREQ_LABEL, numTarget: 2, piggyback: new Map<number, ISwimPG>()}})
 })
 
 
@@ -178,9 +192,6 @@ test('joined', (context) => {
   const msgOut = new Subject<IMessageOut>()
   const msgIn = new Subject<IMessageIn>()
   const collabService = new CollaboratorsService(msgIn, msgOut, { id: 0 })
-  const msgOut1 = new Subject<IMessageOut>()
-  const msgIn1 = new Subject<IMessageIn>()
-  const collabService1 = new CollaboratorsService(msgIn1, msgOut1, { id: 1 })
 
   const msgIntermediaireIn = collabService.getStreamIntermediaireIn()
   const msgIntermediaireOut = collabService.getStreamIntermediaireOut()
@@ -191,14 +202,14 @@ test('joined', (context) => {
   })
 
   // On crée et on ajoute au Piggyback (pg) 
-  const pg : Map<number, ISwimPG> = collabService.createToPG()
+  const pg : Map<number, ISwimPG> = new Map<number, ISwimPG>()
   pg.set(0, {
     collab: collabService.me,
     message: 1,
     incarn: 0,
   })
   pg.set(1, {
-    collab: collabService1.me,
+    collab: { id: 1 },
     message: 1,
     incarn: 0,
   })
@@ -212,14 +223,11 @@ test('joined', (context) => {
       on vérifie que CollabService a ajouté le nouveau collab à sa liste, qu'il reçoit un message pour le suspecté et un autre pour le déclarer dead et le supprimer
 */
 test('suspect&confirm', (context) => {
-  context.plan(6)
+  context.plan(4)
   
   const msgOut = new Subject<IMessageOut>()
   const msgIn = new Subject<IMessageIn>()
   const collabService = new CollaboratorsService(msgIn, msgOut, { id: 0 })
-  const msgOut1 = new Subject<IMessageOut>()
-  const msgIn1 = new Subject<IMessageIn>()
-  const collabService1 = new CollaboratorsService(msgIn1, msgOut1, { id: 1 })
 
   const msgIntermediaireIn = collabService.getStreamIntermediaireIn()
   const msgIntermediaireOut = collabService.getStreamIntermediaireOut()
@@ -229,16 +237,23 @@ test('suspect&confirm', (context) => {
   msgIntermediaireOut.subscribe((msg: ISwimMessage) => {
     switch(cpt){
       case 0:
-        // 1 doit doit être ajouté
-        context.deepEqual(collabService.getListConnectedCollab(), [0, 1])  // La liste des collaborateur
-        context.deepEqual(msg.content.type, TYPE_ACK_LABEL)  // Le type du message devrait être un ack
-        break;
-      case 1:
         // 1 doit doit être suspecté
         context.deepEqual(collabService.getListConnectedCollab(), [0, 1])  // La liste des collaborateur
         context.deepEqual(msg.content.type, TYPE_ACK_LABEL)  // Le type du message devrait être un ack
+
+        if(msg.content.type === TYPE_ACK_LABEL) {
+          cpt++
+          // On déclare le collab 1 dead
+          pg.set(1, {
+            collab: { id: 1 },
+            message: 4,
+            incarn: 0,
+          })
+          ping = {type: TYPE_PING_LABEL, piggyback: pg}
+          msgIntermediaireIn.next({idCollab: 1, content:ping})
+        }
         break;
-      case 2:
+      case 1:
         // 1 doit doit être supprimé
         context.deepEqual(collabService.getListConnectedCollab(), [0])  // La liste des collaborateur
         context.deepEqual(msg.content.type, TYPE_ACK_LABEL)  // Le type du message devrait être un ack
@@ -246,38 +261,29 @@ test('suspect&confirm', (context) => {
       default:
         context.fail("Défault du switch, le test a échoué")
     }  
-    cpt++
   })
 
   // On crée et on ajoute au Piggyback (pg) 
-  let pg : Map<number, ISwimPG> = collabService.createToPG()
+  let pg : Map<number, ISwimPG> = new Map<number, ISwimPG>()
   pg.set(0, {
     collab: collabService.me,
     message: 1,
     incarn: 0,
   })
   pg.set(1, {
-    collab: collabService1.me,
+    collab: { id: 1 },
     message: 1,
     incarn: 0,
   })
-  let ping: ISwimPing = {type: TYPE_PING_LABEL, piggyback: pg}
-  msgIntermediaireIn.next({idCollab: 1, content:ping})
+  collabService.setPG(pg)
+
   // On suspecte le collab 1
   pg.set(1, {
-    collab: collabService1.me,
+    collab: { id: 1 },
     message: 3,
     incarn: 0,
   })
-  ping = {type: TYPE_PING_LABEL, piggyback: pg}
-  msgIntermediaireIn.next({idCollab: 2, content:ping})
-  // On déclare le collab 1 dead
-  pg.set(1, {
-    collab: collabService1.me,
-    message: 4,
-    incarn: 0,
-  })
-  ping = {type: TYPE_PING_LABEL, piggyback: pg}
+  let ping: ISwimPing = {type: TYPE_PING_LABEL, piggyback: pg}
   msgIntermediaireIn.next({idCollab: 2, content:ping})
 })
 
@@ -287,14 +293,11 @@ test('suspect&confirm', (context) => {
   Test du collab qui lève sa suspicion : on vérifie que CollabService ne supprime pas le collab suspecté précédement
 */
 test('dementi', (context) => {
-  context.plan(6)
+  context.plan(2)
   
   const msgOut = new Subject<IMessageOut>()
   const msgIn = new Subject<IMessageIn>()
   const collabService = new CollaboratorsService(msgIn, msgOut, { id: 0 })
-  const msgOut1 = new Subject<IMessageOut>()
-  const msgIn1 = new Subject<IMessageIn>()
-  const collabService1 = new CollaboratorsService(msgIn1, msgOut1, { id: 1 })
 
   const msgIntermediaireIn = collabService.getStreamIntermediaireIn()
   const msgIntermediaireOut = collabService.getStreamIntermediaireOut()
@@ -306,35 +309,26 @@ test('dementi', (context) => {
   })
 
   // On crée et on ajoute au Piggyback (pg) 
-  const pg : Map<number, ISwimPG> = collabService.createToPG()
+  const pg : Map<number, ISwimPG> = new Map<number, ISwimPG>()
   pg.set(0, {
     collab: collabService.me,
     message: 1,
     incarn: 0,
   })
   pg.set(1, {
-    collab: collabService1.me,
-    message: 1,
-    incarn: 0,
-  })
-  let ping: ISwimPing = {type: TYPE_PING_LABEL, piggyback: pg}
-  msgIntermediaireIn.next({idCollab: 1, content:ping})
-  // On suspecte le collab 1
-  pg.set(1, {
-    collab: collabService1.me,
+    collab: { id: 1 },
     message: 3,
     incarn: 0,
-  })
-  ping = {type: TYPE_PING_LABEL, piggyback: pg}
-  msgIntermediaireIn.next({idCollab: 2, content:ping})
+  })  // le collab 1 est suspect
+  collabService.setPG(pg)
+
   // 1 démenti sa mort 
   pg.set(1, {
-    collab: collabService1.me,
+    collab: { id: 1 },
     message: 2,
     incarn: 1,
   })
-  ping = {type: TYPE_PING_LABEL, piggyback: pg}
-  msgIntermediaireIn.next({idCollab: 2, content:ping})
+  msgIntermediaireIn.next({idCollab: 2, content: {type: TYPE_PING_LABEL, piggyback: pg}})
 })
 
 
@@ -342,33 +336,35 @@ test('dementi', (context) => {
   Test la bonne exécution du protocole SWIM --> envoie ping puis recoit ack
 */
 test("pingProcedureOKdirect",(context)=>{
-  context.plan(9);
+  context.plan(6);
 
   let cpt =0;
 
   const msgOut = new Subject<IMessageOut>()
   const msgIn = new Subject<IMessageIn>()
   const collabService = new CollaboratorsService(msgIn, msgOut, { id: 0 })
-  const msgOut1 = new Subject<IMessageOut>()
-  const msgIn1 = new Subject<IMessageIn>()
-  const collabService1 = new CollaboratorsService(msgIn1, msgOut1, { id: 1 })
   
   const msgIntermediaireIn = collabService.getStreamIntermediaireIn()
   const msgIntermediaireOut = collabService.getStreamIntermediaireOut()
 
+  let rep : ISwimPing | ISwimAck
+
   msgIntermediaireOut.subscribe((msg: ISwimMessage) => {
     switch(cpt){
-      case 0:  // On vérifie que les collab ont été ajouté
-      context.deepEqual(collabService.getListConnectedCollab(),[0, 1])
-      context.deepEqual(msg.content.type, TYPE_ACK_LABEL)  // Le type du message devrait être un ack
-      context.deepEqual(msg.idCollab, 1) // Le destinataire du ack devrait être 1
-        break;
-      case 1:  // On vérifie que que le collab envoie bien un ping à 1
+      case 0:  // On vérifie que que le collab envoie bien un ping à 1
         context.deepEqual(msg.idCollab, 1) // Le destinataire du ping devrait être 1
         context.deepEqual(msg.content.type, TYPE_PING_LABEL)  // Le type du message devrait être un ping
         context.deepEqual(collabService.getListConnectedCollab(),[0,1])
+
+        if(msg.content.type === TYPE_PING_LABEL) {
+          cpt++
+          rep = {type: TYPE_ACK_LABEL, piggyback: pg};
+          msgIntermediaireIn.next({idCollab: 1, content: rep}) // le collab reçoit un ack
+          rep = {type: TYPE_PING_LABEL, piggyback: pg}
+          msgIntermediaireIn.next({idCollab: 1, content: rep}) // le collab reçoit un ping
+        }
         break;
-      case 2:  // On vérifie que l'on renvoie bien un ack
+      case 1:  // On vérifie que l'on renvoie bien un ack
         context.deepEqual(collabService.getListConnectedCollab(),[0,1])
         context.deepEqual(msg.idCollab, 1) // Le destinataire du ack devrait être 1
         context.deepEqual(msg.content.type, TYPE_ACK_LABEL)  // Le type du message devrait être un ack  
@@ -376,27 +372,22 @@ test("pingProcedureOKdirect",(context)=>{
       default:
         context.is(true,false);
     }
-    cpt++
   })
 
-  let rep : ISwimPing | ISwimAck
-  const pg : Map<number, ISwimPG> = collabService.createToPG()
+  const pg : Map<number, ISwimPG> = new Map<number, ISwimPG>()
   pg.set(0, {
     collab: collabService.me,
     message: 1,
     incarn: 0,
   })
   pg.set(1, {
-    collab: collabService1.me,
+    collab: { id: 1 },
     message: 1,
     incarn: 0,
   })
-  msgIntermediaireIn.next({idCollab: 1, content:{type: TYPE_PING_LABEL, piggyback: pg}}) // On vient ajouter le collab 1
+  collabService.setPG(pg)
+
   collabService.pingProcedure(1);
-  rep = {type: TYPE_ACK_LABEL, piggyback: pg};
-  msgIntermediaireIn.next({idCollab: 1, content: rep}) // le collab reçoit un ack
-  rep = {type: TYPE_PING_LABEL, piggyback: pg}
-  msgIntermediaireIn.next({idCollab: 1, content: rep}) // le collab reçoit un ping
 })
 
 
@@ -405,19 +396,13 @@ test("pingProcedureOKdirect",(context)=>{
   Test la bonne exécution du protocole SWIM avec intermédiaire --> ping sans réponse, puis pingReq qui va récupérer un ack
 */
 test("pingProcedureOKindirect",async context=>{
-  context.plan(9);
+  context.plan(6);
 
   let cpt = 0;
 
   const msgOut = new Subject<IMessageOut>()
   const msgIn = new Subject<IMessageIn>()
   const collabService = new CollaboratorsService(msgIn, msgOut, { id: 0 })
-  const msgOut1 = new Subject<IMessageOut>()
-  const msgIn1 = new Subject<IMessageIn>()
-  const collabService1 = new CollaboratorsService(msgIn1, msgOut1, { id: 1 })
-  const msgOut2 = new Subject<IMessageOut>()
-  const msgIn2 = new Subject<IMessageIn>()
-  const collabService2 = new CollaboratorsService(msgIn2, msgOut2, { id: 2 })
   
   const msgIntermediaireIn = collabService.getStreamIntermediaireIn()
   const msgIntermediaireOut = collabService.getStreamIntermediaireOut()
@@ -425,17 +410,23 @@ test("pingProcedureOKindirect",async context=>{
   let idCollabCible: number = 0
   msgIntermediaireOut.subscribe((msg: ISwimMessage) => {
     switch(cpt){
-      case 0:  // On vérifie que les collab ont été ajouté
-        context.deepEqual(collabService.getListConnectedCollab(),[0, 1, 2])
-        context.deepEqual(msg.content.type, TYPE_ACK_LABEL)  // Le type du message devrait être un ack
-        context.deepEqual(msg.idCollab, 1) // Le destinataire du ack devrait être 1
-        break
-      case 1:  // On véfirie que pingProcedure envoie un ping à un autre collaborateur
+      case 0:  // On véfirie que pingProcedure envoie un ping à un autre collaborateur
         context.deepEqual(collabService.getListConnectedCollab(),[0, 1, 2])
         context.deepEqual(msg.content.type, TYPE_PING_LABEL)  // Le type du message devrait être un ping
         idCollabCible = msg.idCollab
+
+        if(msg.content.type === TYPE_PING_LABEL) {
+          cpt++
+          let pingReq: ISwimMessage
+          if(idCollabCible === 1) {
+            pingReq = {idCollab: 2, content:  {type: TYPE_PINGREQREP_LABEL, answer: true, piggyback: pg}}
+          } else {
+            pingReq = {idCollab: 1, content:  {type: TYPE_PINGREQREP_LABEL, answer: true, piggyback: pg}}
+          } 
+          msgIntermediaireIn.next(pingReq)  // Envoie de la réponse du pingReq
+        }
         break
-      case 2:  // On vérifie que pingProcedure envoie un pingReq
+      case 1:  // On vérifie que pingProcedure envoie un pingReq
         context.deepEqual(collabService.getListConnectedCollab(),[0, 1, 2])
         context.deepEqual(msg.content.type, TYPE_PINGREQ_LABEL)  // Le type du message devrait être un pingreq
         if(msg.content.type === TYPE_PINGREQ_LABEL) {
@@ -451,37 +442,30 @@ test("pingProcedureOKindirect",async context=>{
       default:
           context.is(true,false)
     }
-  cpt++
   })
     
   // On crée le PG avec l'état de tous les collab
-  const pg : Map<number, ISwimPG> = collabService.createToPG()
+  const pg : Map<number, ISwimPG> = new Map<number, ISwimPG>()
   pg.set(0, {
     collab: collabService.me,
     message: 1,
     incarn: 0,
   })
   pg.set(1, {
-    collab: collabService1.me,
+    collab: { id: 1 },
     message: 1,
     incarn: 0,
   })
   pg.set(2, {
-    collab: collabService2.me,
+    collab: { id: 2 },
     message: 1,
     incarn: 0,
   })
+  collabService.setPG(pg)
 
-  msgIntermediaireIn.next({idCollab: 1, content:{type: TYPE_PING_LABEL, piggyback: pg}}) // On vient ajouter less collab 1 et 2
   // On attend que collabService lance la pingProcedure() par lui même
   await delay(6000)
-  let pingReq: ISwimMessage
-  if(idCollabCible === 1) {
-    pingReq = {idCollab: 2, content:  {type: TYPE_PINGREQREP_LABEL, answer: true, piggyback: pg}}
-  } else {
-    pingReq = {idCollab: 1, content:  {type: TYPE_PINGREQREP_LABEL, answer: true, piggyback: pg}}
-  } 
-  msgIntermediaireIn.next(pingReq)  // Envoie de la réponse du pingReq
+  
 })
 
 
@@ -491,23 +475,17 @@ function delay(ms: number) {
 
 
 
-
-
-
+/*
+  Test la bonne exécution du protocole SWIM avec intermédiaire --> ping sans réponse, puis pingReq sans réponse 
+*/
 test("pingProcedureKO",async context=>{
-  context.plan(9);
+  context.plan(6);
 
   let cpt =0;
 
   const msgOut = new Subject<IMessageOut>()
   const msgIn = new Subject<IMessageIn>()
   const collabService = new CollaboratorsService(msgIn, msgOut, { id: 0 })
-  const msgOut1 = new Subject<IMessageOut>()
-  const msgIn1 = new Subject<IMessageIn>()
-  const collabService1 = new CollaboratorsService(msgIn1, msgOut1, { id: 1 })
-  const msgOut2 = new Subject<IMessageOut>()
-  const msgIn2 = new Subject<IMessageIn>()
-  const collabService2 = new CollaboratorsService(msgIn2, msgOut2, { id: 2 })
   
   const msgIntermediaireIn = collabService.getStreamIntermediaireIn()
   const msgIntermediaireOut = collabService.getStreamIntermediaireOut()
@@ -515,17 +493,23 @@ test("pingProcedureKO",async context=>{
   let idCollabCible: number = 0
   msgIntermediaireOut.subscribe((msg: ISwimMessage) => {
     switch(cpt){
-      case 0:  // On vérifie que les collab ont été ajouté
-        context.deepEqual(collabService.getListConnectedCollab(),[0, 1, 2])
-        context.deepEqual(msg.content.type, TYPE_ACK_LABEL)  // Le type du message devrait être un ack
-        context.deepEqual(msg.idCollab, 1) // Le destinataire du ack devrait être 1
-        break
-      case 1:  // On véfirie que pingProcedure envoie un ping à un autre collaborateur
+      case 0:  // On véfirie que pingProcedure envoie un ping à un autre collaborateur
         context.deepEqual(collabService.getListConnectedCollab(),[0, 1, 2])
         context.deepEqual(msg.content.type, TYPE_PING_LABEL)  // Le type du message devrait être un ping
         idCollabCible = msg.idCollab
+
+        if(msg.content.type === TYPE_PING_LABEL) {
+          cpt++
+          let pingReq: ISwimMessage
+          if(idCollabCible === 1) {
+            pingReq = {idCollab: 2, content:  {type: TYPE_PINGREQREP_LABEL, answer: false, piggyback: pg}}
+          } else {
+            pingReq = {idCollab: 1, content:  {type: TYPE_PINGREQREP_LABEL, answer: false, piggyback: pg}}
+          } 
+          msgIntermediaireIn.next(pingReq)  // Envoie de la réponse du pingReq
+        }
         break
-      case 2:  // On vérifie que pingProcedure envoie un pingReq
+      case 1:  // On vérifie que pingProcedure envoie un pingReq
         context.deepEqual(collabService.getListConnectedCollab(),[0, 1, 2])
         context.deepEqual(msg.content.type, TYPE_PINGREQ_LABEL)  // Le type du message devrait être un pingreq
         if(msg.content.type === TYPE_PINGREQ_LABEL) {
@@ -538,58 +522,30 @@ test("pingProcedureKO",async context=>{
           }
         }  
         break
-      /*case 3:  // On véfirie que pingProcedure envoie un ping à un autre collaborateur
-        context.deepEqual(collabService.getListConnectedCollab(),[0, 1, 2])
-        context.deepEqual(msg.content.type, TYPE_PING_LABEL)  // Le type du message devrait être un ping
-        break
-      case 4:  // On vérifie que pingProcedure envoie un pingReq
-        context.deepEqual(collabService.getListConnectedCollab(),[0, 1, 2])
-        context.deepEqual(msg.content.type, TYPE_PINGREQ_LABEL)  // Le type du message devrait être un pingreq
-        if(msg.content.type === TYPE_PINGREQ_LABEL) {
-          if(idCollabCible === 2) {
-            context.deepEqual(msg.idCollab, 1) // Le destinataire du pingreq devrait être 1
-            context.deepEqual(msg.content.numTarget, 2) // La cible du pingreq devrait être 2
-          } else {
-            context.deepEqual(msg.idCollab, 2) // Le destinataire du pingreq devrait être 2
-            context.deepEqual(msg.content.numTarget, 1) // La cible du pingreq devrait être 1   
-          }
-        }  
-        break*/
       default:
           context.is(true,false)
     }
-  cpt++
   })
 
 
-  const pg : Map<number, ISwimPG> = collabService.createToPG()
+  const pg : Map<number, ISwimPG> = new Map<number, ISwimPG>()
   pg.set(0, {
     collab: collabService.me,
     message: 1,
     incarn: 0,
   })
   pg.set(1, {
-    collab: collabService1.me,
+    collab: { id: 1 },
     message: 1,
     incarn: 0,
   })
   pg.set(2, {
-    collab: collabService2.me,
+    collab: { id: 2 },
     message: 1,
     incarn: 0,
   })
-  msgIntermediaireIn.next({idCollab: 1, content:{type: TYPE_PING_LABEL, piggyback: pg}}) // On vient ajouter less collab 1 et 2
+  collabService.setPG(pg)
+
   // On attend que collabService lance la pingProcedure() par lui même
   await delay(6000)
-  let pingReq: ISwimMessage
-  if(idCollabCible === 1) {
-    pingReq = {idCollab: 2, content:  {type: TYPE_PINGREQREP_LABEL, answer: false, piggyback: pg}}
-  } else {
-    pingReq = {idCollab: 1, content:  {type: TYPE_PINGREQREP_LABEL, answer: false, piggyback: pg}}
-  } 
-  msgIntermediaireIn.next(pingReq)  // Envoie de la réponse du pingReq
-
-  /*collabService.pingProcedure(idCollabCible)
-  msgIntermediaireIn.next(pingReq)
-  msgIntermediaireIn.next({idCollab: 1, content:{type: TYPE_PING_LABEL, piggyback: pg}})*/
 })
