@@ -22,6 +22,7 @@ import {
   TYPE_PINGREQREP_LABEL,
   ISwimMessage,
 } from './ICollaborator'
+import { Piggyback } from './Piggyback'
 
 const nbPR = 2
 export const coef = 800
@@ -212,12 +213,12 @@ function isICollaborator(o: unknown): o is ICollaborator {
 export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg> {
   public me: ICollaborator
 
-  private updateSubject: Subject<ICollaborator>
-  private joinSubject: Subject<ICollaborator>
-  private leaveSubject: Subject<ICollaborator>
+  private updateSubject: Subject<ICollaborator> // Permet d'informer l'UI qu'un collab a mis à jour ses infos
+  private joinSubject: Subject<ICollaborator> // Permet d'informer l'UI qu'un collab a rejoint 
+  private leaveSubject: Subject<ICollaborator> // Permet d'informer l'UI qu'un collab a quitté
 
-  private PG: Map<number, ISwimPG>
-  private compteurPG: Map<number, number>
+  private piggyback: Piggyback
+
   private incarnation: number
   private reponse: boolean
   private gossip: boolean
@@ -236,8 +237,8 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     this.joinSubject = new Subject()
     this.leaveSubject = new Subject()
 
-    this.PG = new Map<number, ISwimPG>()
-    this.compteurPG = new Map<number, number>()
+    this.piggyback = new Piggyback()
+
     this.incarnation = 0
     this.reponse = false
     this.gossip = true
@@ -293,36 +294,35 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     this.newSub = this.messageISwimIn$.subscribe((msg: ISwimMessage) => {  
       if (msg.content.type === TYPE_DATAREQUEST_LABEL) {  /* Data Request */
         if (msg.content.collab) {
-          const K: number = this.calculNbRebond()
-          if (!this.PG.has(msg.idCollab)) {
-            this.PG.set(msg.idCollab, { collab: msg.content.collab, message: 1, incarn: this.incarnation })
-            this.compteurPG.set(msg.idCollab, K)
+          if (!this.piggyback.PGHas(msg.idCollab)) {
+            this.piggyback.setValuePG(msg.idCollab, { collab: msg.content.collab, message: 1, incarn: this.incarnation })
+            this.piggyback.setValueCompteurPG(msg.idCollab)
             this.joinSubject.next(msg.content.collab)
           }
           this.envoyerDataUpdate(msg.idCollab) // attendre avant d'envoyer? DEBUG
         }
         
       } else if (msg.content.type === TYPE_DATAUPDATE_LABEL) {  /* Date Update */
-        if (msg.content.PG.size > this.PG.size) {
+        if (msg.content.PG.size > this.piggyback.getSizePG()) {
           this.updateUI(
             Array.from(msg.content.PG.values())
               .filter((a) => a.message !== 4)
               .map((a) => a.collab)
           )
-          this.PG = msg.content.PG
-          this.compteurPG = msg.content.compteurPG
+          this.piggyback.setNewPG(msg.content.PG)
+          this.piggyback.setNewCompteurPG(msg.content.compteurPG)
         }
 
       } else if (msg.content.type === TYPE_PING_LABEL) {  /* Ping */
-        this.handlePG(msg.content.piggyback)
+        this.piggyback.handlePG(msg.content.piggyback, this.me)   // HANDLE \\
         this.envoyerAck(msg.idCollab)
 
       } else if (msg.content.type === TYPE_ACK_LABEL) {  /* Ack */
-        this.handlePG(msg.content.piggyback)
+        this.piggyback.handlePG(msg.content.piggyback, this.me)   // HANDLE \\
         this.reponse = true
 
       } else if (msg.content.type === TYPE_PINGREQ_LABEL) {  /* Ping Req */ 
-        this.handlePG(msg.content.piggyback)
+        this.piggyback.handlePG(msg.content.piggyback, this.me)   // HANDLE \\
         if (msg.content.numTarget) {
           this.envoyerPing(msg.content.numTarget)
         } else {
@@ -337,7 +337,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
         )
 
       } else if (msg.content.type === TYPE_PINGREQREP_LABEL) {  /* Ping Req Reponse */
-        this.handlePG(msg.content.piggyback)
+        this.piggyback.handlePG(msg.content.piggyback, this.me)   // HANDLE \\
         if (msg.content.answer) {
           this.reponse = msg.content.answer
         }
@@ -358,7 +358,6 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
 
 /**
 this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
-      const K: number = this.calculNbRebond()
       console.log('CollaboratorService: received message from: ', senderId)
       console.log('CollaboratorService: msg: ', msg)
       
@@ -369,7 +368,7 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
           // const dataRequest: ISwimDataRequest = { type, collab }
           if (!this.PG.has(senderId)) {
             this.PG.set(senderId, { collab, message: 1, incarn: this.incarnation })
-            this.compteurPG.set(senderId, K)
+            this.compteurPG.set(senderId)
             this.joinSubject.next(collab)
           }
           this.envoyerDataUpdate(senderId) // attendre avant d'envoyer? DEBUG
@@ -419,15 +418,17 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
     })
 */
     
-
+    /**
+     * Exécutée toutes les 5 * coef millisecondes
+     * Lance une pingPorcedure avec un nombre aléatoire
+     */
     setInterval(() => {
-      // console.log(this.PG)
-      // console.log(this.compteurPG)
       if (this.gossip) {
-        if (this.nbCollab() <= 1) {
+        if (this.piggyback.nbCollab() <= 1) {
           this.envoyerDataRequest()
         } else {
-          const collaborators = Array.from(this.PG.values())
+          let pg = this.piggyback.getPG()
+          const collaborators = Array.from(pg.values())
             .filter((a) => a.message !== 4)
             .map((a) => a.collab)
           const ens: Set<number> = new Set(collaborators.map((a) => a.id))
@@ -439,71 +440,69 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
         }
       }
     }, 5 * coef)
-  }
 
-  calculNbRebond() {
-    return Math.ceil(3 * Math.log2(this.nbCollab() + 1))
-  }
+
+
+  } // Fin constructor
 
   handlePG(piggyback: Map<number, ISwimPG>) {
-    const K = this.calculNbRebond()
     console.log('handlePG function')
     for (const [key, elem] of piggyback) {
       console.log('PG : ', key, elem)
       // Update collab properties
-      if (this.PG.has(key) && elem.incarn >= this.PG.get(key)!.incarn) {
-        const PGEntry = this.PG.get(key)!
+      if (this.piggyback.PGHas(key) && elem.incarn >= this.piggyback.getValueByKeyPG(key)!.incarn) {
+        const PGEntry = this.piggyback.getValueByKeyPG(key)!
         if (PGEntry.collab !== elem.collab) {
           PGEntry.collab = elem.collab
-          this.PG.set(key, PGEntry)
+          this.piggyback.setValuePG(key, PGEntry)
           this.updateSubject.next(PGEntry.collab)
         }
       }
       // Evaluate PG message
       switch (elem.message) {
         case 1: // Joined
-          if (!this.PG.has(key)) {
+          if (!this.piggyback.PGHas(key)) {
             this.joinSubject.next(elem.collab)
-            this.PG.set(key, elem)
-            this.compteurPG.set(key, K)
+            this.piggyback.setValuePG(key, elem)
+            this.piggyback.setValueCompteurPG(key)
           }
           break
         case 2: // Alive
-          if (this.PG.has(key) && elem.incarn > this.PG.get(key)!.incarn) {
-            this.PG.set(key, elem)
-            this.compteurPG.set(key, K)
+          if (this.piggyback.PGHas(key) && elem.incarn > this.piggyback.getValueByKeyPG(key)!.incarn) {
+            this.piggyback.setValuePG(key, elem)
+            this.piggyback.setValueCompteurPG(key)
           }
           break
         case 3: // Suspect
           if (key === this.me.id) {
             this.incarnation++
-            this.PG.set(this.me.id, { collab: this.me, message: 2, incarn: this.incarnation })
-            this.compteurPG.set(this.me.id, K)
+            this.piggyback.setValuePG(this.me.id, { collab: this.me, message: 2, incarn: this.incarnation })
+            this.piggyback.setValueCompteurPG(this.me.id)
           } else {
-            if (this.PG.has(key)) {
+            if (this.piggyback.PGHas(key)) {
               let overide = false
-              if (this.PG.get(key) === undefined) {
+              if (this.piggyback.getValueByKeyPG(key) === undefined) {
                 overide = true
               } else if (
-                this.PG.get(key)!.message === 3 &&
-                elem.incarn > this.PG.get(key)!.incarn
+                this.piggyback.getValueByKeyPG(key)!.message === 3 &&
+                elem.incarn > this.piggyback.getValueByKeyPG(key)!.incarn
               ) {
                 overide = true
               } else if (
-                (this.PG.get(key)!.message === 1 || this.PG.get(key)!.message === 2) &&
-                elem.incarn >= this.PG.get(key)!.incarn
+                (this.piggyback.getValueByKeyPG(key)!.message === 1 || this.piggyback.getValueByKeyPG(key)!.message === 2) &&
+                elem.incarn >= this.piggyback.getValueByKeyPG(key)!.incarn
               ) {
                 overide = true
               }
               if (overide) {
-                this.PG.set(key, elem)
-                this.compteurPG.set(key, K)
+                this.piggyback.setValuePG(key, elem)
+                this.piggyback.setValueCompteurPG(key)
               }
             }
           }
           break
         case 4: // Confirm
-          if (this.PG.has(key) && this.PG.get(key)!.message !== 4) {
+          if (this.piggyback.PGHas(key) && this.piggyback.getValueByKeyPG(key)!.message !== 4) {
             if (key === this.me.id) {
               console.log("You've been declared dead")
               this.dispose()
@@ -518,8 +517,8 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
               */
             }
             this.leaveSubject.next(elem.collab)
-            this.PG.set(key, elem)
-            this.compteurPG.set(key, K)
+            this.piggyback.setValuePG(key, elem)
+            this.piggyback.setValueCompteurPG(key)
           }
           break
       }
@@ -529,7 +528,8 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
   // Parfois, un collaborateur est ajouté en trop à l'interface
   updateUI(collabs: ICollaborator[]): void {
     const collabConnus: ICollaborator[] = []
-    this.PG.forEach((x) => {
+    let pg = this.piggyback.getPG()
+    pg.forEach((x) => {
       collabConnus.push(x.collab)
     })
     collabs.forEach((x) => {
@@ -537,16 +537,6 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
         this.joinSubject.next(x)
       }
     })
-  }
-
-  nbCollab() {
-    let nb = 0
-    this.PG.forEach((x) => {
-      if (x.message !== 4) {
-        nb++
-      }
-    })
-    return nb
   }
 
   envoyerDataRequest() {
@@ -557,56 +547,41 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
   envoyerDataUpdate(numDest: number) {
     const mess: ISwimDataUpdate = {
       type: TYPE_DATAUPDATE_LABEL,
-      PG: this.PG,
-      compteurPG: this.compteurPG,
+      PG: this.piggyback.getPG(),
+      compteurPG: this.piggyback.getCompteurPG(),
     }
 
     this.messageISwimOut$.next({idCollab: numDest, content: mess})
   }
 
   envoyerPing(numDest: number) {
-    const toPG: Map<number, ISwimPG> = this.createToPG()
+    const toPG: Map<number, ISwimPG> = this.piggyback.createToPG()
     const mess: ISwimPing = { type: TYPE_PING_LABEL, piggyback: toPG }
     
     this.messageISwimOut$.next({idCollab: numDest, content: mess})
   }
 
   envoyerPingReq(numDest: number, numTarget: number) {
-    const toPG: Map<number, ISwimPG> = this.createToPG()
+    const toPG: Map<number, ISwimPG> = this.piggyback.createToPG()
     const mess: ISwimPingReq = { type: TYPE_PINGREQ_LABEL, numTarget, piggyback: toPG }
 
     this.messageISwimOut$.next({idCollab: numDest, content: mess})
   }
 
   envoyerAck(numDest: number) {
-    const toPG: Map<number, ISwimPG> = this.createToPG()
+    const toPG: Map<number, ISwimPG> = this.piggyback.createToPG()
     const mess: ISwimAck = { type: TYPE_ACK_LABEL, piggyback: toPG }
 
     this.messageISwimOut$.next({idCollab: numDest, content: mess})
   }
 
   envoyerReponsePingReq(numDest: number, answer: boolean) {
-    const toPG: Map<number, ISwimPG> = this.createToPG()
+    const toPG: Map<number, ISwimPG> = this.piggyback.createToPG()
     const mess: ISwimPingReqRep = { type: TYPE_PINGREQREP_LABEL, answer, piggyback: toPG }
     
     this.messageISwimOut$.next({idCollab: numDest, content: mess})
   }
 
-
-  createToPG() {
-    const toPG: Map<number, ISwimPG> = new Map<number, ISwimPG>()
-    if (this.compteurPG !== undefined) {
-      for (const [key, value] of this.PG) {
-        if (this.compteurPG.get(key)! > 0) {
-          this.compteurPG.set(key, this.compteurPG.get(key)! - 1)
-          toPG.set(key, value)
-        } else if (this.PG.get(key)!.message === 3) {
-          toPG.set(key, value)
-        }
-      }
-    }
-    return toPG
-  }
 
   pingProcedure(numCollab: number) {
     this.envoyerPing(numCollab)
@@ -614,12 +589,13 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
     setTimeout(
       function(this: CollaboratorsService) {
         let incarnActu: number = 0
-        if (this.PG.has(numCollab)) {
-          incarnActu = this.PG.get(numCollab)!.incarn
+        if (this.piggyback.PGHas(numCollab)) {
+          incarnActu = this.piggyback.getValueByKeyPG(numCollab)!.incarn
         }
         if (!this.reponse) {
           let idx = nbPR
-          const collaborators = Array.from(this.PG.values())
+          let pg = this.piggyback.getPG()
+          const collaborators = Array.from(pg.values())
             .filter((a) => a.message !== 4)
             .map((a) => a.collab)
           if (idx > collaborators.length - 2) {
@@ -638,27 +614,23 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
           clearTimeout()
           setTimeout(
             function(this: CollaboratorsService) {
-              const K: number = this.calculNbRebond()
               if (!this.reponse) {
-                if (this.PG.has(numCollab)) {
-                  if (
-                    this.PG.get(numCollab)!.message === 1 ||
-                    this.PG.get(numCollab)!.message === 2
-                  ) {
-                    this.PG.set(numCollab, {
-                      collab: this.PG.get(numCollab)!.collab,
+                if (this.piggyback.PGHas(numCollab)) {
+                  if (this.piggyback.getValueByKeyPG(numCollab)!.message === 1 || this.piggyback.getValueByKeyPG(numCollab)!.message === 2) {
+                    this.piggyback.setValuePG(numCollab, {
+                      collab: this.piggyback.getValueByKeyPG(numCollab)!.collab,
                       message: 3,
                       incarn: incarnActu,
                     })
-                    this.compteurPG.set(numCollab, K)
-                  } else if (this.PG.get(numCollab)!.message === 3) {
-                    this.leaveSubject.next(this.PG.get(numCollab)!.collab)
-                    this.PG.set(numCollab, {
-                      collab: this.PG.get(numCollab)!.collab,
+                    this.piggyback.setValueCompteurPG(numCollab)
+                  } else if (this.piggyback.getValueByKeyPG(numCollab)!.message === 3) {
+                    this.leaveSubject.next(this.piggyback.getValueByKeyPG(numCollab)!.collab)
+                    this.piggyback.setValuePG(numCollab, {
+                      collab: this.piggyback.getValueByKeyPG(numCollab)!.collab,
                       message: 4,
                       incarn: incarnActu,
                     })
-                    this.compteurPG.set(numCollab, K)
+                    this.piggyback.setValueCompteurPG(numCollab)
                   }
                 }
               }
@@ -671,25 +643,24 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
     )
   }
 
+  /**
+   * Retourne le collab qui a pour id mute-core celui qui est passé en paramètre
+   * @param muteCoreId du collaborateur recherché
+   */
   getCollaborator(muteCoreId: number): ICollaborator | undefined {
-    for (const c of this.PG.values()) {
-      if (c.collab.muteCoreId === muteCoreId) {
-        return c.collab
-      }
-    }
-    return undefined
+    return this.piggyback.getCollaborator(muteCoreId)
   }
 
   get remoteUpdate$(): Observable<ICollaborator> {
-    return this.updateSubject.asObservable()
+    return this.piggyback.remoteUpdate$
   }
 
   get join$(): Observable<ICollaborator> {
-    return this.joinSubject.asObservable()
+    return this.piggyback.join$
   }
 
   get leave$(): Observable<ICollaborator> {
-    return this.leaveSubject.asObservable()
+    return this.piggyback.leave$
   }
 
   // set memberJoin$(source: Observable<number>) {
@@ -710,25 +681,25 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
 
   set localUpdate(source: Observable<ICollaborator>) {
     this.newSub = source.subscribe((data: ICollaborator) => {
-      this.PG.delete(this.me.id)
-      this.compteurPG.delete(this.me.id)
+      this.piggyback.deleteValuePG(this.me.id)
+      this.piggyback.deleteValueCompteurPG(this.me.id)
       Object.assign(this.me, data)
-      this.PG.set(this.me.id, { collab: this.me, message: 1, incarn: 0 })
-      this.compteurPG.set(this.me.id, this.calculNbRebond())
+      this.piggyback.setValuePG(this.me.id, { collab: this.me, message: 1, incarn: 0 })
+      this.piggyback.setValueCompteurPG(this.me.id)
       console.log(this.me)
-      console.log(this.PG)
-      console.log(this.compteurPG)
+      console.log(this.piggyback.getPG())
+      console.log(this.piggyback.getCompteurPG())
       this.emitUpdate(StreamsSubtype.COLLABORATORS_LOCAL_UPDATE)
     })
   }
 
   dispose() {
-    const K: number = this.calculNbRebond()
-    this.PG.set(this.me.id, { collab: this.me, message: 4, incarn: this.incarnation })
-    this.compteurPG.set(this.me.id, K)
+    this.piggyback.setValuePG(this.me.id, { collab: this.me, message: 4, incarn: this.incarnation })
+    this.piggyback.setValueCompteurPG(this.me.id)
     this.envoyerPing(0)
     this.gossip = false
 
+    this.piggyback.completeSubject()
     this.updateSubject.complete()
     this.joinSubject.complete()
     this.leaveSubject.complete()
@@ -755,18 +726,19 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
     return this.messageISwimOut$;
   }
 
-  /*
-    Retourne la liste des collaborateurs connectés
-  */
+  /**
+   * Retourne la liste des collaborateurs connectés
+   */
   getListConnectedCollab() : number[] {
-    let connectedCollab : number[] = []
-    this.PG.forEach(element => {
-      if(element.message !== 4) {
-        connectedCollab.push(element.collab.id)  // Utilisation de muteCoreId plutôt que id ???
-      }
-    })
-    return connectedCollab
+    return this.piggyback.getListConnectedCollab()
   }
 
+  /**
+   * Set une nouvelle map à pg dans Piggyback
+   * @param pg nouvelle Map<number, ISwimPG>
+   */
+  setPG(pg : Map<number, ISwimPG>) {
+    this.piggyback.setNewPG(pg)
+  }
 
 }
