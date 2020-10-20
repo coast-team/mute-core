@@ -14,6 +14,7 @@ import {
   TYPE_PINGREQ_LABEL,
   TYPE_PINGREQREP_LABEL,
   ISwimMessage,
+  EnumNumPG
 } from '../src/collaborators/ICollaborator'
 
 /*test.failing('pseudos-correct-send-and-delivery', (context) => {
@@ -146,7 +147,7 @@ test('receptionPing', (context) => {
   const pg = new Map<number, ISwimPG>()
   pg.set(1, {
     collab: { id: 1 },
-    message: 1,
+    message: EnumNumPG.Alive,
     incarn: 0,
   })
   collabService.setPG(pg)
@@ -174,7 +175,7 @@ test('receptionPingReq', (context) => {
   const pg = new Map<number, ISwimPG>()
   pg.set(1, {
     collab: { id: 1 },
-    message: 1,
+    message: EnumNumPG.Alive,
     incarn: 0,
   })
   collabService.setPG(pg)
@@ -205,12 +206,12 @@ test('joined', (context) => {
   const pg : Map<number, ISwimPG> = new Map<number, ISwimPG>()
   pg.set(0, {
     collab: collabService.me,
-    message: 1,
+    message: EnumNumPG.Alive,
     incarn: 0,
   })
   pg.set(1, {
     collab: { id: 1 },
-    message: 1,
+    message: EnumNumPG.Alive,
     incarn: 0,
   })
   const ping: ISwimPing = {type: TYPE_PING_LABEL, piggyback: pg}
@@ -246,7 +247,7 @@ test('suspect&confirm', (context) => {
           // On déclare le collab 1 dead
           pg.set(1, {
             collab: { id: 1 },
-            message: 4,
+            message: EnumNumPG.Dead,
             incarn: 0,
           })
           ping = {type: TYPE_PING_LABEL, piggyback: pg}
@@ -267,12 +268,12 @@ test('suspect&confirm', (context) => {
   let pg : Map<number, ISwimPG> = new Map<number, ISwimPG>()
   pg.set(0, {
     collab: collabService.me,
-    message: 1,
+    message: EnumNumPG.Alive,
     incarn: 0,
   })
   pg.set(1, {
     collab: { id: 1 },
-    message: 1,
+    message: EnumNumPG.Alive,
     incarn: 0,
   })
   collabService.setPG(pg)
@@ -280,7 +281,7 @@ test('suspect&confirm', (context) => {
   // On suspecte le collab 1
   pg.set(1, {
     collab: { id: 1 },
-    message: 3,
+    message: EnumNumPG.Suspect,
     incarn: 0,
   })
   let ping: ISwimPing = {type: TYPE_PING_LABEL, piggyback: pg}
@@ -312,12 +313,12 @@ test('dementi', (context) => {
   const pg : Map<number, ISwimPG> = new Map<number, ISwimPG>()
   pg.set(0, {
     collab: collabService.me,
-    message: 1,
+    message: EnumNumPG.Alive,
     incarn: 0,
   })
   pg.set(1, {
     collab: { id: 1 },
-    message: 3,
+    message: EnumNumPG.Suspect,
     incarn: 0,
   })  // le collab 1 est suspect
   collabService.setPG(pg)
@@ -325,7 +326,7 @@ test('dementi', (context) => {
   // 1 démenti sa mort 
   pg.set(1, {
     collab: { id: 1 },
-    message: 2,
+    message: EnumNumPG.Alive,
     incarn: 1,
   })
   msgIntermediaireIn.next({idCollab: 2, content: {type: TYPE_PING_LABEL, piggyback: pg}})
@@ -377,12 +378,12 @@ test("pingProcedureOKdirect",(context)=>{
   const pg : Map<number, ISwimPG> = new Map<number, ISwimPG>()
   pg.set(0, {
     collab: collabService.me,
-    message: 1,
+    message: EnumNumPG.Alive,
     incarn: 0,
   })
   pg.set(1, {
     collab: { id: 1 },
-    message: 1,
+    message: EnumNumPG.Alive,
     incarn: 0,
   })
   collabService.setPG(pg)
@@ -448,17 +449,17 @@ test("pingProcedureOKindirect",async context=>{
   const pg : Map<number, ISwimPG> = new Map<number, ISwimPG>()
   pg.set(0, {
     collab: collabService.me,
-    message: 1,
+    message: EnumNumPG.Alive,
     incarn: 0,
   })
   pg.set(1, {
     collab: { id: 1 },
-    message: 1,
+    message: EnumNumPG.Alive,
     incarn: 0,
   })
   pg.set(2, {
     collab: { id: 2 },
-    message: 1,
+    message: EnumNumPG.Alive,
     incarn: 0,
   })
   collabService.setPG(pg)
@@ -531,17 +532,17 @@ test("pingProcedureKO",async context=>{
   const pg : Map<number, ISwimPG> = new Map<number, ISwimPG>()
   pg.set(0, {
     collab: collabService.me,
-    message: 1,
+    message: EnumNumPG.Alive,
     incarn: 0,
   })
   pg.set(1, {
     collab: { id: 1 },
-    message: 1,
+    message: EnumNumPG.Alive,
     incarn: 0,
   })
   pg.set(2, {
     collab: { id: 2 },
-    message: 1,
+    message: EnumNumPG.Alive,
     incarn: 0,
   })
   collabService.setPG(pg)
