@@ -21,6 +21,7 @@ import {
   TYPE_PINGREQ_LABEL,
   TYPE_PINGREQREP_LABEL,
   ISwimMessage,
+  EnumNumPG
 } from './ICollaborator'
 import { Piggyback } from './Piggyback'
 
@@ -197,6 +198,10 @@ function unwrapFromProtoAck(swimAck: proto.ISwimAck): ISwimAck {
   return { type, piggyback }
 }
 
+/**
+ * Retourne true si le paramètre est un ICollaborator
+ * @param o objet à tester
+ */
 function isICollaborator(o: unknown): o is ICollaborator {
   return (
     isObject<ICollaborator>(o) &&
@@ -213,13 +218,8 @@ function isICollaborator(o: unknown): o is ICollaborator {
 export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg> {
   public me: ICollaborator
 
-  private updateSubject: Subject<ICollaborator> // Permet d'informer l'UI qu'un collab a mis à jour ses infos
-  private joinSubject: Subject<ICollaborator> // Permet d'informer l'UI qu'un collab a rejoint 
-  private leaveSubject: Subject<ICollaborator> // Permet d'informer l'UI qu'un collab a quitté
-
   private piggyback: Piggyback
 
-  private incarnation: number
   private reponse: boolean
   private gossip: boolean
 
@@ -233,13 +233,9 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
   ) {
     super(messageIn$, messageOut$, Streams.COLLABORATORS, proto.SwimMsg)
     this.me = me
-    this.updateSubject = new Subject()
-    this.joinSubject = new Subject()
-    this.leaveSubject = new Subject()
 
     this.piggyback = new Piggyback()
 
-    this.incarnation = 0
     this.reponse = false
     this.gossip = true
 
@@ -263,8 +259,8 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
 
       if (msg.swimDataRequest) {  /* Data Request */      
         const collab = { id: senderId, ...msg.swimDataRequest.collab }
-        if (isICollaborator(collab)) {
-          this.messageISwimIn$.next({idCollab: senderId, content: {type : TYPE_DATAREQUEST_LABEL, collab: collab}})
+        if (isICollaborator(collab) && msg.swimDataRequest.incarn) {
+          this.messageISwimIn$.next({idCollab: senderId, content: {type : TYPE_DATAREQUEST_LABEL, collab: collab, incarn: msg.swimDataRequest.incarn}})
         }
       } else if (msg.swimDataUpdate) {  /* Date Update */
           this.messageISwimIn$.next({idCollab: senderId, content: unwrapFromProtoDataUpdate(msg.swimDataUpdate)})
@@ -294,16 +290,21 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     this.newSub = this.messageISwimIn$.subscribe((msg: ISwimMessage) => {  
       if (msg.content.type === TYPE_DATAREQUEST_LABEL) {  /* Data Request */
         if (msg.content.collab) {
-          if (!this.piggyback.PGHas(msg.idCollab)) {
-            this.piggyback.setValuePG(msg.idCollab, { collab: msg.content.collab, message: 1, incarn: this.incarnation })
+          /*if (!this.piggyback.PGHas(msg.idCollab)) {
+            this.piggyback.setValuePG(msg.idCollab, { collab: msg.content.collab, message: 1, incarn: 0 })
             this.piggyback.setValueCompteurPG(msg.idCollab)
             this.joinSubject.next(msg.content.collab)
-          }
+          }*/
+          const pg : Map<number, ISwimPG> = new Map()
+          pg.set(msg.content.collab.id, {collab: msg.content.collab, message: EnumNumPG.Alive, incarn: msg.content.incarn })
+          this.piggyback.handlePG(pg, this.me)
+
           this.envoyerDataUpdate(msg.idCollab) // attendre avant d'envoyer? DEBUG
         }
         
       } else if (msg.content.type === TYPE_DATAUPDATE_LABEL) {  /* Date Update */
-        if (msg.content.PG.size > this.piggyback.getSizePG()) {
+        /*if (msg.content.PG.size > this.piggyback.getSizePG()) {
+          
           this.updateUI(
             Array.from(msg.content.PG.values())
               .filter((a) => a.message !== 4)
@@ -311,18 +312,19 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
           )
           this.piggyback.setNewPG(msg.content.PG)
           this.piggyback.setNewCompteurPG(msg.content.compteurPG)
-        }
+        }*/
+        this.piggyback.handlePG(msg.content.PG, this.me)
 
       } else if (msg.content.type === TYPE_PING_LABEL) {  /* Ping */
-        this.piggyback.handlePG(msg.content.piggyback, this.me)   // HANDLE \\
+        this.piggyback.handlePG(msg.content.piggyback, this.me)
         this.envoyerAck(msg.idCollab)
 
       } else if (msg.content.type === TYPE_ACK_LABEL) {  /* Ack */
-        this.piggyback.handlePG(msg.content.piggyback, this.me)   // HANDLE \\
+        this.piggyback.handlePG(msg.content.piggyback, this.me)
         this.reponse = true
 
       } else if (msg.content.type === TYPE_PINGREQ_LABEL) {  /* Ping Req */ 
-        this.piggyback.handlePG(msg.content.piggyback, this.me)   // HANDLE \\
+        this.piggyback.handlePG(msg.content.piggyback, this.me)
         if (msg.content.numTarget) {
           this.envoyerPing(msg.content.numTarget)
         } else {
@@ -337,7 +339,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
         )
 
       } else if (msg.content.type === TYPE_PINGREQREP_LABEL) {  /* Ping Req Reponse */
-        this.piggyback.handlePG(msg.content.piggyback, this.me)   // HANDLE \\
+        this.piggyback.handlePG(msg.content.piggyback, this.me)
         if (msg.content.answer) {
           this.reponse = msg.content.answer
         }
@@ -347,77 +349,16 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
       }
     })
 
-    /*
-      Transformation et envoie d'un message (format ISwim => proto.SwimMsg)
-    */
+    /**
+     * Transformation et envoie d'un message (format ISwim => proto.SwimMsg)
+     */
     this.messageISwimOut$.subscribe((msg: ISwimMessage) => {
       const wrapped = wrapToProto(msg.content)
       console.log('sent: ', wrapped)
       super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, msg.idCollab)
     })
 
-/**
-this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
-      console.log('CollaboratorService: received message from: ', senderId)
-      console.log('CollaboratorService: msg: ', msg)
-      
-      if (msg.swimDataRequest) {
-        // const type = TYPE_DATAREQUEST_LABEL
-        const collab = { id: senderId, ...msg.swimDataRequest.collab }
-        if (isICollaborator(collab)) {
-          // const dataRequest: ISwimDataRequest = { type, collab }
-          if (!this.PG.has(senderId)) {
-            this.PG.set(senderId, { collab, message: 1, incarn: this.incarnation })
-            this.compteurPG.set(senderId)
-            this.joinSubject.next(collab)
-          }
-          this.envoyerDataUpdate(senderId) // attendre avant d'envoyer? DEBUG
-        }
-      } else if (msg.swimDataUpdate) {
-        const dataUpdate = unwrapFromProtoDataUpdate(msg.swimDataUpdate)
-        if (dataUpdate.PG.size > this.PG.size) {
-          this.updateUI(
-            Array.from(dataUpdate.PG.values())
-              .filter((a) => a.message !== 4)
-              .map((a) => a.collab)
-          )
-          this.PG = dataUpdate.PG
-          this.compteurPG = dataUpdate.compteurPG
-        }
-      } else {
-        if (msg.swimPing) {
-          this.handlePG(unwrapFromProtoPing(msg.swimPing).piggyback)
-          this.envoyerAck(senderId)
-        } else if (msg.swimAck) {
-          this.handlePG(unwrapFromProtoAck(msg.swimAck).piggyback)
-          this.reponse = true
-        } else if (msg.swimPingReq) {
-          this.handlePG(unwrapFromProtoPing(msg.swimPingReq).piggyback)
-          if (msg.swimPingReq.numTarget) {
-            this.envoyerPing(msg.swimPingReq.numTarget)
-          } else {
-            console.log('numTarger error')
-          }
 
-          this.reponse = false
-          setTimeout(
-            function(this: CollaboratorsService) {
-              this.envoyerReponsePingReq(senderId, this.reponse)
-            }.bind(this),
-            coef
-          )
-        } else if (msg.swimPingReqRep) {
-          this.handlePG(unwrapFromProtoPing(msg.swimPingReqRep).piggyback)
-          if (msg.swimPingReqRep.answer) {
-            this.reponse = msg.swimPingReqRep.answer
-          }
-        } else {
-          console.log('ERROR unknow message : ', { senderId, msg })
-        }
-      }
-    })
-*/
-    
     /**
      * Exécutée toutes les 5 * coef millisecondes
      * Lance une pingPorcedure avec un nombre aléatoire
@@ -429,7 +370,7 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
         } else {
           let pg = this.piggyback.getPG()
           const collaborators = Array.from(pg.values())
-            .filter((a) => a.message !== 4)
+            .filter((a) => a.message !== EnumNumPG.Dead)
             .map((a) => a.collab)
           const ens: Set<number> = new Set(collaborators.map((a) => a.id))
           ens.delete(this.me.id)
@@ -442,108 +383,19 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
     }, 5 * coef)
 
 
-
   } // Fin constructor
 
-  handlePG(piggyback: Map<number, ISwimPG>) {
-    console.log('handlePG function')
-    for (const [key, elem] of piggyback) {
-      console.log('PG : ', key, elem)
-      // Update collab properties
-      if (this.piggyback.PGHas(key) && elem.incarn >= this.piggyback.getValueByKeyPG(key)!.incarn) {
-        const PGEntry = this.piggyback.getValueByKeyPG(key)!
-        if (PGEntry.collab !== elem.collab) {
-          PGEntry.collab = elem.collab
-          this.piggyback.setValuePG(key, PGEntry)
-          this.updateSubject.next(PGEntry.collab)
-        }
-      }
-      // Evaluate PG message
-      switch (elem.message) {
-        case 1: // Joined
-          if (!this.piggyback.PGHas(key)) {
-            this.joinSubject.next(elem.collab)
-            this.piggyback.setValuePG(key, elem)
-            this.piggyback.setValueCompteurPG(key)
-          }
-          break
-        case 2: // Alive
-          if (this.piggyback.PGHas(key) && elem.incarn > this.piggyback.getValueByKeyPG(key)!.incarn) {
-            this.piggyback.setValuePG(key, elem)
-            this.piggyback.setValueCompteurPG(key)
-          }
-          break
-        case 3: // Suspect
-          if (key === this.me.id) {
-            this.incarnation++
-            this.piggyback.setValuePG(this.me.id, { collab: this.me, message: 2, incarn: this.incarnation })
-            this.piggyback.setValueCompteurPG(this.me.id)
-          } else {
-            if (this.piggyback.PGHas(key)) {
-              let overide = false
-              if (this.piggyback.getValueByKeyPG(key) === undefined) {
-                overide = true
-              } else if (
-                this.piggyback.getValueByKeyPG(key)!.message === 3 &&
-                elem.incarn > this.piggyback.getValueByKeyPG(key)!.incarn
-              ) {
-                overide = true
-              } else if (
-                (this.piggyback.getValueByKeyPG(key)!.message === 1 || this.piggyback.getValueByKeyPG(key)!.message === 2) &&
-                elem.incarn >= this.piggyback.getValueByKeyPG(key)!.incarn
-              ) {
-                overide = true
-              }
-              if (overide) {
-                this.piggyback.setValuePG(key, elem)
-                this.piggyback.setValueCompteurPG(key)
-              }
-            }
-          }
-          break
-        case 4: // Confirm
-          if (this.piggyback.PGHas(key) && this.piggyback.getValueByKeyPG(key)!.message !== 4) {
-            if (key === this.me.id) {
-              console.log("You've been declared dead")
-              this.dispose()
-              /*
-              Procédure envisgeable pour rejoindre à nouveau le réseau :
-              (- Attendre quelques périodes)
-              - Envoyer un nouveau data-request
-              - Reçevoir les données du réseau et vérifier si on a des informations à transmettre au groupe
-              - Créer PG et compteur PG à partir des données du réseau (et ajouter nos entrées à transmettre si besoin)
-
-              -> Pour l'instant, Joined ne permet pas d'override Confirm
-              */
-            }
-            this.leaveSubject.next(elem.collab)
-            this.piggyback.setValuePG(key, elem)
-            this.piggyback.setValueCompteurPG(key)
-          }
-          break
-      }
-    }
-  }
-
-  // Parfois, un collaborateur est ajouté en trop à l'interface
-  updateUI(collabs: ICollaborator[]): void {
-    const collabConnus: ICollaborator[] = []
-    let pg = this.piggyback.getPG()
-    pg.forEach((x) => {
-      collabConnus.push(x.collab)
-    })
-    collabs.forEach((x) => {
-      if (!collabConnus.includes(x) && x.id !== this.me.id) {
-        this.joinSubject.next(x)
-      }
-    })
-  }
-
+  /**
+   * Envoie un message de type DataRequest
+   */
   envoyerDataRequest() {
-    const mess: ISwimDataRequest = { type: TYPE_DATAREQUEST_LABEL, collab: this.me }
+    const mess: ISwimDataRequest = { type: TYPE_DATAREQUEST_LABEL, collab: this.me, incarn: this.piggyback.getIncarnation() }
     this.messageISwimOut$.next({idCollab: 0, content: mess})
   }
 
+  /**
+   * Envoie un message de type DataUpdate
+   */
   envoyerDataUpdate(numDest: number) {
     const mess: ISwimDataUpdate = {
       type: TYPE_DATAUPDATE_LABEL,
@@ -554,6 +406,9 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
     this.messageISwimOut$.next({idCollab: numDest, content: mess})
   }
 
+  /**
+   * Envoie un message de type Ping
+   */
   envoyerPing(numDest: number) {
     const toPG: Map<number, ISwimPG> = this.piggyback.createToPG()
     const mess: ISwimPing = { type: TYPE_PING_LABEL, piggyback: toPG }
@@ -561,6 +416,9 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
     this.messageISwimOut$.next({idCollab: numDest, content: mess})
   }
 
+  /**
+   * Envoie un message de type Ping-Req
+   */
   envoyerPingReq(numDest: number, numTarget: number) {
     const toPG: Map<number, ISwimPG> = this.piggyback.createToPG()
     const mess: ISwimPingReq = { type: TYPE_PINGREQ_LABEL, numTarget, piggyback: toPG }
@@ -568,6 +426,9 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
     this.messageISwimOut$.next({idCollab: numDest, content: mess})
   }
 
+  /**
+   * Envoie un message de type Ack
+   */
   envoyerAck(numDest: number) {
     const toPG: Map<number, ISwimPG> = this.piggyback.createToPG()
     const mess: ISwimAck = { type: TYPE_ACK_LABEL, piggyback: toPG }
@@ -575,6 +436,9 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
     this.messageISwimOut$.next({idCollab: numDest, content: mess})
   }
 
+  /**
+   * Envoie un message de type Ping-Req-Reponse
+   */
   envoyerReponsePingReq(numDest: number, answer: boolean) {
     const toPG: Map<number, ISwimPG> = this.piggyback.createToPG()
     const mess: ISwimPingReqRep = { type: TYPE_PINGREQREP_LABEL, answer, piggyback: toPG }
@@ -596,7 +460,7 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
           let idx = nbPR
           let pg = this.piggyback.getPG()
           const collaborators = Array.from(pg.values())
-            .filter((a) => a.message !== 4)
+            .filter((a) => a.message !== EnumNumPG.Dead)
             .map((a) => a.collab)
           if (idx > collaborators.length - 2) {
             idx = collaborators.length - 2
@@ -616,21 +480,23 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
             function(this: CollaboratorsService) {
               if (!this.reponse) {
                 if (this.piggyback.PGHas(numCollab)) {
-                  if (this.piggyback.getValueByKeyPG(numCollab)!.message === 1 || this.piggyback.getValueByKeyPG(numCollab)!.message === 2) {
+                  if (this.piggyback.getValueByKeyPG(numCollab)!.message === EnumNumPG.Alive) {
                     this.piggyback.setValuePG(numCollab, {
                       collab: this.piggyback.getValueByKeyPG(numCollab)!.collab,
-                      message: 3,
+                      message: EnumNumPG.Suspect,
                       incarn: incarnActu,
                     })
                     this.piggyback.setValueCompteurPG(numCollab)
-                  } else if (this.piggyback.getValueByKeyPG(numCollab)!.message === 3) {
-                    this.leaveSubject.next(this.piggyback.getValueByKeyPG(numCollab)!.collab)
+                  } else if (this.piggyback.getValueByKeyPG(numCollab)!.message === EnumNumPG.Suspect) {
+                    /*this.leaveSubject.next(this.piggyback.getValueByKeyPG(numCollab)!.collab)
                     this.piggyback.setValuePG(numCollab, {
                       collab: this.piggyback.getValueByKeyPG(numCollab)!.collab,
                       message: 4,
                       incarn: incarnActu,
                     })
-                    this.piggyback.setValueCompteurPG(numCollab)
+                    this.piggyback.setValueCompteurPG(numCollab)*/
+
+                    this.piggyback.collabLeave(numCollab)
                   }
                 }
               }
@@ -663,46 +529,26 @@ this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
     return this.piggyback.leave$
   }
 
-  // set memberJoin$(source: Observable<number>) {
-  //   this.newSub = source.subscribe((id: number) =>
-  //     this.emitUpdate(StreamsSubtype.COLLABORATORS_JOIN, id)
-  //   )
-  // }
-
-  // set memberLeave$(source: Observable<number>) {
-  //   this.newSub = source.subscribe((id: number) => {
-  //     const collab = this.collaborators.get(id)
-  //     if (collab) {
-  //       this.leaveSubject.next(collab)
-  //     }
-  //     this.collaborators.delete(id)
-  //   })
-  // }
-
   set localUpdate(source: Observable<ICollaborator>) {
     this.newSub = source.subscribe((data: ICollaborator) => {
-      this.piggyback.deleteValuePG(this.me.id)
-      this.piggyback.deleteValueCompteurPG(this.me.id)
+      //this.piggyback.deleteValuePG(this.me.id)
+      //this.piggyback.deleteValueCompteurPG(this.me.id)
       Object.assign(this.me, data)
-      this.piggyback.setValuePG(this.me.id, { collab: this.me, message: 1, incarn: 0 })
+      this.piggyback.increaseIncarnation()
+      this.piggyback.setValuePG(this.me.id, { collab: this.me, message: EnumNumPG.Alive, incarn: this.piggyback.getIncarnation() })
       this.piggyback.setValueCompteurPG(this.me.id)
-      console.log(this.me)
-      console.log(this.piggyback.getPG())
-      console.log(this.piggyback.getCompteurPG())
       this.emitUpdate(StreamsSubtype.COLLABORATORS_LOCAL_UPDATE)
     })
   }
 
   dispose() {
-    this.piggyback.setValuePG(this.me.id, { collab: this.me, message: 4, incarn: this.incarnation })
+    this.piggyback.setValuePG(this.me.id, { collab: this.me, message: EnumNumPG.Dead, incarn: this.piggyback.getIncarnation() })
     this.piggyback.setValueCompteurPG(this.me.id)
     this.envoyerPing(0)
     this.gossip = false
 
     this.piggyback.completeSubject()
-    this.updateSubject.complete()
-    this.joinSubject.complete()
-    this.leaveSubject.complete()
+    
     super.dispose()
   }
 

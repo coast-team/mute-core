@@ -40,6 +40,7 @@ export const TYPE_DATAREQUEST_LABEL = 'swimDataRequest'
 export interface ISwimDataRequest {
   type: typeof TYPE_DATAREQUEST_LABEL
   collab: ICollaborator
+  incarn : number
 }
 
 export const TYPE_DATAUPDATE_LABEL = 'swimDataUpdate'
@@ -64,11 +65,10 @@ export interface ISwimPG {
   incarn: number
 }
 
-enum EnumNumPG {
-  Joined = 1,
+export enum EnumNumPG {
   Alive = 2,
   Suspect = 3,
-  Confirm = 4,
+  Dead = 4,
 }
 
 export interface ISwimMessage {

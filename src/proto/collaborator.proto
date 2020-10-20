@@ -52,6 +52,7 @@ message SwimAck {
 message SwimDataRequest {
   string type = 0;
   Collaborator collab = 1;
+  sint32 incarn = 2;
 }
 
 message SwimDataUpdate {

@@ -1304,6 +1304,9 @@ export namespace collaborator {
 
         /** SwimDataRequest collab */
         collab?: (collaborator.ICollaborator|null);
+
+        /** SwimDataRequest incarn */
+        incarn?: (number|null);
     }
 
     /** Represents a SwimDataRequest. */
@@ -1320,6 +1323,9 @@ export namespace collaborator {
 
         /** SwimDataRequest collab. */
         public collab?: (collaborator.ICollaborator|null);
+
+        /** SwimDataRequest incarn. */
+        public incarn: number;
 
         /**
          * Creates a new SwimDataRequest instance using the specified properties.

@@ -2481,6 +2481,7 @@ var collaborator = $root.collaborator = (function () {
         }
         SwimDataRequest.prototype.type = "";
         SwimDataRequest.prototype.collab = null;
+        SwimDataRequest.prototype.incarn = 0;
         SwimDataRequest.create = function create(properties) {
             return new SwimDataRequest(properties);
         };
@@ -2491,6 +2492,8 @@ var collaborator = $root.collaborator = (function () {
                 writer.uint32(2).string(message.type);
             if (message.collab != null && message.hasOwnProperty("collab"))
                 $root.collaborator.Collaborator.encode(message.collab, writer.uint32(10).fork()).ldelim();
+            if (message.incarn != null && message.hasOwnProperty("incarn"))
+                writer.uint32(16).sint32(message.incarn);
             return writer;
         };
         SwimDataRequest.decode = function decode(reader, length) {
@@ -2505,6 +2508,9 @@ var collaborator = $root.collaborator = (function () {
                         break;
                     case 1:
                         message.collab = $root.collaborator.Collaborator.decode(reader, reader.uint32());
+                        break;
+                    case 2:
+                        message.incarn = reader.sint32();
                         break;
                     default:
                         reader.skipType(tag & 7);
