@@ -447,6 +447,10 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
   }
 
 
+  /**
+   * Ping Procedure : permet de savoir mettre à jour l'état d'un Collaborateur (celui en paramètre)
+   * @param numCollab id du collaborateur sur qui est lancée la ping procedure
+   */
   pingProcedure(numCollab: number) {
     this.envoyerPing(numCollab)
     this.reponse = false

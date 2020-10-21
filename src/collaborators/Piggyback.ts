@@ -150,11 +150,23 @@ export class Piggyback {
       // Evaluate PG message
       switch (elem.message) {
         case EnumNumPG.Alive: // ALIVE
-          this.majInfoCollaborator(key, elem)
+          if(this.PGHas(key)) {
+            let current = this.getValueByKeyPG(key)
+            if(elem.incarn >= current!.incarn) {
+              if(!this.collabEquals(current!.collab, elem.collab)) {
+                this.subjectCollabUbdate.next(elem.collab)
+              }
+              this.setValuePG(key, elem)
+              this.setValueCompteurPG(key)
+            }
+          } else {
+            this.subjectCollabJoin.next(elem.collab)
+            this.setValuePG(key, elem)
+            this.setValueCompteurPG(key)
+          }
           break
 
         case EnumNumPG.Suspect: // SUSPECT
-          this.majInfoCollaborator(key, elem)
           if (key === me.id) {
             this.increaseIncarnation()
             this.setValuePG(me.id, { collab: me, message: EnumNumPG.Alive, incarn: this.incarnation })
@@ -162,23 +174,31 @@ export class Piggyback {
           } else {
             if (this.PGHas(key)) {
               let overide = false
-              if (this.getValueByKeyPG(key) === undefined) {
+              let current = this.getValueByKeyPG(key)
+              /*if (this.getValueByKeyPG(key) === undefined) {
                 overide = true
-              } else if (this.getValueByKeyPG(key)!.message === EnumNumPG.Suspect && elem.incarn > this.getValueByKeyPG(key)!.incarn) {
+              } else*/
+              if (current!.message === EnumNumPG.Suspect && elem.incarn > current!.incarn) {
                 overide = true
-              } else if (this.getValueByKeyPG(key)!.message === EnumNumPG.Alive && elem.incarn >= this.getValueByKeyPG(key)!.incarn) {
+              } else if (current!.message === EnumNumPG.Alive && elem.incarn >= current!.incarn) {
                 overide = true
+              }
+              if(!this.collabEquals(elem.collab, current!.collab)) {
+                this.subjectCollabUbdate.next(elem.collab)
               }
               if (overide) {
                 this.setValuePG(key, elem)
                 this.setValueCompteurPG(key)
               }
+            } else {
+              this.subjectCollabJoin.next(elem.collab)
+              this.setValuePG(key, elem)
+              this.setValueCompteurPG(key)
             }
           }
           break
 
         case EnumNumPG.Dead: // DEAD
-          this.majInfoCollaborator(key, elem)
           if (this.PGHas(key) && this.getValueByKeyPG(key)!.message !== EnumNumPG.Dead) {
             if (key === me.id) {
               console.log("You've been declared dead")
@@ -207,7 +227,7 @@ export class Piggyback {
    * @param key id du collaborateur
    * @param elem état du colaborateur
    */
-  majInfoCollaborator(key: number, elem: ISwimPG) {
+  /*majInfoCollaborator(key: number, elem: ISwimPG) {
     if (this.PGHas(key)) {
       if(elem.incarn >= this.getValueByKeyPG(key)!.incarn) {
         const PGEntry = this.getValueByKeyPG(key)!
@@ -223,7 +243,7 @@ export class Piggyback {
       this.setValueCompteurPG(key)
       this.subjectCollabJoin.next(elem.collab)
     }
-  }
+  }*/
 
 
   /**
