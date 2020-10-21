@@ -192,12 +192,12 @@ test('handlePG-case_Suspect', (context) => {
   pg.set(1, {
     collab: { id: 1, login: "toto" },
     message: EnumNumPG.Suspect,
-    incarn: 0,
+    incarn: 1,
   })
   pg.set(2, {
     collab: { id: 1, login: "durand" },
     message: EnumNumPG.Suspect,
-    incarn: 2,
+    incarn: 3,
   })
 
   piggyback.handlePG(pg, {id : 1})
@@ -209,7 +209,7 @@ test('handlePG-case_Suspect', (context) => {
   context.deepEqual(piggyback.getPG().get(2), {
     collab: { id: 1, login: "durand" },
     message: EnumNumPG.Suspect,
-    incarn: 2,
+    incarn: 3,
   })
 })
 test('handlePG-case_Dead', (context) => {

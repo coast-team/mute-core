@@ -169,7 +169,7 @@ export class Piggyback {
         case EnumNumPG.Suspect: // SUSPECT
           if (key === me.id) {
             this.increaseIncarnation()
-            this.setValuePG(me.id, { collab: me, message: EnumNumPG.Alive, incarn: this.incarnation })
+            this.setValuePG(me.id, { collab: elem.collab, message: EnumNumPG.Alive, incarn: this.incarnation })
             this.setValueCompteurPG(me.id)
           } else {
             if (this.PGHas(key)) {
