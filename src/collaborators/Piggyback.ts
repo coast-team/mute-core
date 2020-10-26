@@ -144,106 +144,83 @@ export class Piggyback {
     return toPG
   }
 
-
-  handlePG(piggyback: Map<number, ISwimPG>, me: ICollaborator) {
-    for (const [key, elem] of piggyback) {
-      // Evaluate PG message
-      switch (elem.message) {
-        case EnumNumPG.Alive: // ALIVE
-          if(this.PGHas(key)) {
-            let current = this.getValueByKeyPG(key)
-            if(elem.incarn >= current!.incarn) {
-              if(!this.collabEquals(current!.collab, elem.collab)) {
-                this.subjectCollabUbdate.next(elem.collab)
-              }
-              this.setValuePG(key, elem)
-              this.setValueCompteurPG(key)
-            }
-          } else {
-            this.subjectCollabJoin.next(elem.collab)
-            this.setValuePG(key, elem)
-            this.setValueCompteurPG(key)
-          }
-          break
-
-        case EnumNumPG.Suspect: // SUSPECT
-          if (key === me.id) {
-            this.increaseIncarnation()
-            this.setValuePG(me.id, { collab: elem.collab, message: EnumNumPG.Alive, incarn: this.incarnation })
-            this.setValueCompteurPG(me.id)
-          } else {
-            if (this.PGHas(key)) {
-              let overide = false
-              let current = this.getValueByKeyPG(key)
-              /*if (this.getValueByKeyPG(key) === undefined) {
-                overide = true
-              } else*/
-              if (current!.message === EnumNumPG.Suspect && elem.incarn > current!.incarn) {
-                overide = true
-              } else if (current!.message === EnumNumPG.Alive && elem.incarn >= current!.incarn) {
-                overide = true
-              }
-              if(!this.collabEquals(elem.collab, current!.collab)) {
-                this.subjectCollabUbdate.next(elem.collab)
-              }
-              if (overide) {
-                this.setValuePG(key, elem)
-                this.setValueCompteurPG(key)
-              }
-            } else {
-              this.subjectCollabJoin.next(elem.collab)
-              this.setValuePG(key, elem)
-              this.setValueCompteurPG(key)
-            }
-          }
-          break
-
-        case EnumNumPG.Dead: // DEAD
-          if (this.PGHas(key) && this.getValueByKeyPG(key)!.message !== EnumNumPG.Dead) {
-            if (key === me.id) {
-              console.log("You've been declared dead")
-              
-              /*
-              Procédure envisgeable pour rejoindre à nouveau le réseau :
-              (- Attendre quelques périodes)
-              - Envoyer un nouveau data-request
-              - Reçevoir les données du réseau et vérifier si on a des informations à transmettre au groupe
-              - Créer PG et compteur PG à partir des données du réseau (et ajouter nos entrées à transmettre si besoin)
-
-              -> Pour l'instant, Joined ne permet pas d'override Confirm
-              */
-            }
-            this.subjectCollabLeave.next(elem.collab)
-            this.setValuePG(key, elem)
-            this.setValueCompteurPG(key)
-          }
-          break
-      }
-    }
-  }
-
   /**
-   * Mets à jour les infos d'un collaborateur sur l'interface
-   * @param key id du collaborateur
-   * @param elem état du colaborateur
+   * Permet de tenir à jour les collaborateurs ainsi que leur état grâce aux infos reçu (piggyback)
+   * @param piggyback Map qu'il faut comparer avec celle existante et merger si besoin
+   * @param me ICollaborateur (le mien)
    */
-  /*majInfoCollaborator(key: number, elem: ISwimPG) {
-    if (this.PGHas(key)) {
-      if(elem.incarn >= this.getValueByKeyPG(key)!.incarn) {
-        const PGEntry = this.getValueByKeyPG(key)!
-        if (!this.collabEquals(PGEntry.collab, elem.collab)) {
-          PGEntry.collab = elem.collab
-        }
-        PGEntry.incarn = elem.incarn
-        this.setValuePG(key, PGEntry)
-        this.subjectCollabUbdate.next(PGEntry.collab)
-      }
-    } else {
-      this.setValuePG(key, elem)
-      this.setValueCompteurPG(key)
-      this.subjectCollabJoin.next(elem.collab)
-    }
-  }*/
+  handlePG(piggyback: Map<number, ISwimPG>, me: ICollaborator) {
+    let carryOn = true  // Utiliser pour stopper le traitement lorsqu'on est déclaré Dead
+    for (const [key, elem] of piggyback) {
+      if(carryOn) {
+
+        if(this.PGHas(key)) {
+          if(elem.incarn >= this.getValueByKeyPG(key)!.incarn) {   // On ne traite pas les anciens messages
+            
+            // Evaluate PG message
+            switch (elem.message) {
+              case EnumNumPG.Alive: // ALIVE
+                let current = this.getValueByKeyPG(key)
+                if(elem.incarn >= current!.incarn) {
+                  if(!this.collabEquals(current!.collab, elem.collab)) {
+                    this.subjectCollabUbdate.next(elem.collab)
+                  }
+                  this.setValuePG(key, elem)
+                  this.setValueCompteurPG(key)
+                }          
+              break
+    
+              case EnumNumPG.Suspect: // SUSPECT
+                if (key === me.id) {
+                  this.increaseIncarnation()
+                  this.setValuePG(me.id, { collab: elem.collab, message: EnumNumPG.Alive, incarn: this.incarnation })
+                  this.setValueCompteurPG(me.id)
+                } else {
+                  let overide = false
+                  let current = this.getValueByKeyPG(key)
+                  if (current!.message === EnumNumPG.Suspect && elem.incarn > current!.incarn) {
+                    overide = true
+                  } else if (current!.message === EnumNumPG.Alive && elem.incarn >= current!.incarn) {
+                    overide = true
+                  }
+                  if (overide) {
+                    if(!this.collabEquals(elem.collab, current!.collab)) {
+                      this.subjectCollabUbdate.next(elem.collab)
+                    }
+                    this.setValuePG(key, elem)
+                    this.setValueCompteurPG(key)
+                  }        
+                }
+              break
+    
+              case EnumNumPG.Dead: // DEAD
+                if (this.getValueByKeyPG(key)!.message !== EnumNumPG.Dead) {
+                  if (key === me.id) {
+                    carryOn = false
+                    this.increaseIncarnation()
+                    this.PG.clear()
+                    this.compteurPG.clear()
+                    this.setValuePG(key, {collab: me, message: EnumNumPG.Alive, incarn: this.incarnation})
+                  } else {
+                    this.subjectCollabLeave.next(elem.collab)
+                    this.setValuePG(key, elem)
+                    this.setValueCompteurPG(key)
+                  }                    
+                }       
+              break
+
+            } // End switch
+          } // End if(old message)
+        } else {  // Else ==> if(PGHas)
+          if(elem.message !== EnumNumPG.Dead) {
+            this.subjectCollabJoin.next(elem.collab)
+          }
+          this.setValuePG(key, elem)
+          this.setValueCompteurPG(key)
+        } 
+      } // End if(carryOn)
+    } // End for{}
+  }
 
 
   /**

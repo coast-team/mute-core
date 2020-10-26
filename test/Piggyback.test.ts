@@ -134,6 +134,94 @@ test('createToPG-compteur0', (context) => {
 /*
   Tests de la fonction HandlePG
 */
+test('handlePG-PGHasNot', (context) => {
+  context.plan(4)
+  
+  const piggyback : Piggyback = new Piggyback()
+  piggyback.setValuePG(1, {
+    collab: { id: 1 },
+    message: EnumNumPG.Alive,
+    incarn: 5,
+  })
+
+  let pg = new Map<number, ISwimPG>()
+  pg.set(5, {
+    collab: { id: 5 },
+    message: EnumNumPG.Suspect,
+    incarn: 4,
+  })
+  pg.set(8, {
+    collab: { id: 8 },
+    message: EnumNumPG.Alive,
+    incarn: 1,
+  })
+  pg.set(2, {
+    collab: { id: 2 },
+    message: EnumNumPG.Dead,
+    incarn: 6,
+  })
+
+  piggyback.handlePG(pg, {id : 1})
+  context.deepEqual(piggyback.getPG().get(1), {
+    collab: { id: 1 },
+    message: EnumNumPG.Alive,
+    incarn: 5,
+  })
+  context.deepEqual(piggyback.getPG().get(5), {
+    collab: { id: 5, },
+    message: EnumNumPG.Suspect,
+    incarn: 4,
+  })
+  context.deepEqual(piggyback.getPG().get(8), {
+    collab: { id: 8, },
+    message: EnumNumPG.Alive,
+    incarn: 1,
+  })
+  context.deepEqual(piggyback.getPG().get(2), {
+    collab: { id: 2, },
+    message: EnumNumPG.Dead,
+    incarn: 6,
+  })
+})
+test('handlePG-old_message', (context) => {
+  context.plan(2)
+  
+  const piggyback : Piggyback = new Piggyback()
+  piggyback.setValuePG(1, {
+    collab: { id: 1, login: "jean" },
+    message: EnumNumPG.Alive,
+    incarn: 5,
+  })
+  piggyback.setValuePG(2, {
+    collab: { id: 2 },
+    message: EnumNumPG.Alive,
+    incarn: 9,
+  })
+
+  let pg = new Map<number, ISwimPG>()
+  pg.set(1, {
+    collab: { id: 1, login: "toto" },
+    message: EnumNumPG.Suspect,
+    incarn: 4,
+  })
+  pg.set(2, {
+    collab: { id: 2 },
+    message: EnumNumPG.Dead,
+    incarn: 6,
+  })
+
+  piggyback.handlePG(pg, {id : 1})
+  context.deepEqual(piggyback.getPG().get(1), {
+    collab: { id: 1, login: "jean" },
+    message: EnumNumPG.Alive,
+    incarn: 5,
+  })
+  context.deepEqual(piggyback.getPG().get(2), {
+    collab: { id: 2, },
+    message: EnumNumPG.Alive,
+    incarn: 9,
+  })
+})
 test('handlePG-case_Alive', (context) => {
   context.plan(2)
   
@@ -153,7 +241,7 @@ test('handlePG-case_Alive', (context) => {
   pg.set(1, {
     collab: { id: 1, login: "toto" },
     message: EnumNumPG.Alive,
-    incarn: 0,
+    incarn: 1,
   })
   pg.set(2, {
     collab: { id: 2 },
@@ -165,7 +253,7 @@ test('handlePG-case_Alive', (context) => {
   context.deepEqual(piggyback.getPG().get(1), {
     collab: { id: 1, login: "toto" },
     message: EnumNumPG.Alive,
-    incarn: 0,
+    incarn: 1,
   })
   context.deepEqual(piggyback.getPG().get(2), {
     collab: { id: 2, },
@@ -174,6 +262,94 @@ test('handlePG-case_Alive', (context) => {
   })
 })
 test('handlePG-case_Suspect', (context) => {
+  context.plan(3)
+  
+  const piggyback : Piggyback = new Piggyback()
+  piggyback.setValuePG(1, {
+    collab: { id: 1 },
+    message: EnumNumPG.Alive,
+    incarn: 0,
+  })
+  piggyback.setValuePG(2, {
+    collab: { id: 2 },
+    message: EnumNumPG.Alive,
+    incarn: 0,
+  })
+  piggyback.setValuePG(3, {
+    collab: { id: 3 },
+    message: EnumNumPG.Suspect,
+    incarn: 3,
+  })
+
+  let pg = new Map<number, ISwimPG>()
+  pg.set(1, {
+    collab: { id: 1, login: "toto" },
+    message: EnumNumPG.Suspect,
+    incarn: 0,
+  })
+  pg.set(2, {
+    collab: { id: 2, login: "durand" },
+    message: EnumNumPG.Suspect,
+    incarn: 3,
+  })
+  pg.set(3, {
+    collab: { id: 3, login: "jean" },
+    message: EnumNumPG.Suspect,
+    incarn: 4,
+  })
+
+  piggyback.handlePG(pg, {id : 1})
+  context.deepEqual(piggyback.getPG().get(1), {
+    collab: { id: 1, login: "toto" },
+    message: EnumNumPG.Alive,
+    incarn: 1,
+  })
+  context.deepEqual(piggyback.getPG().get(2), {
+    collab: { id: 2, login: "durand" },
+    message: EnumNumPG.Suspect,
+    incarn: 3,
+  })
+  context.deepEqual(piggyback.getPG().get(3), {
+    collab: { id: 3, login: "jean" },
+    message: EnumNumPG.Suspect,
+    incarn: 4,
+  })
+})
+test('handlePG-case_Dead_ME', (context) => {
+  context.plan(2)
+  
+  const piggyback : Piggyback = new Piggyback()
+  piggyback.setValuePG(1, {
+    collab: { id: 1 },
+    message: EnumNumPG.Alive,
+    incarn: 0,
+  })
+  piggyback.setValuePG(2, {
+    collab: { id: 2 },
+    message: EnumNumPG.Alive,
+    incarn: 0,
+  })
+
+  let pg = new Map<number, ISwimPG>()
+  pg.set(2, {
+    collab: { id: 2 },
+    message: EnumNumPG.Dead,
+    incarn: 0,
+  })
+
+  piggyback.handlePG(pg, {id : 1})
+  context.deepEqual(piggyback.getPG().get(1), {
+    collab: { id: 1 },
+    message: EnumNumPG.Alive,
+    incarn: 0,
+  })
+  context.deepEqual(piggyback.getPG().get(2), {
+    collab: { id: 2 },
+    message: EnumNumPG.Dead,
+    incarn: 0,
+  })
+})
+test('handlePG-case_Dead_NotME', (context) => {
   context.plan(2)
   
   const piggyback : Piggyback = new Piggyback()
@@ -190,51 +366,23 @@ test('handlePG-case_Suspect', (context) => {
 
   let pg = new Map<number, ISwimPG>()
   pg.set(1, {
-    collab: { id: 1, login: "toto" },
-    message: EnumNumPG.Suspect,
-    incarn: 1,
+    collab: { id: 1 },
+    message: EnumNumPG.Dead,
+    incarn: 0,
   })
   pg.set(2, {
-    collab: { id: 1, login: "durand" },
-    message: EnumNumPG.Suspect,
-    incarn: 3,
+    collab: { id: 2 },
+    message: EnumNumPG.Alive,
+    incarn: 0,
   })
 
   piggyback.handlePG(pg, {id : 1})
   context.deepEqual(piggyback.getPG().get(1), {
-    collab: { id: 1, login: "toto" },
+    collab: { id: 1 },
     message: EnumNumPG.Alive,
     incarn: 1,
   })
-  context.deepEqual(piggyback.getPG().get(2), {
-    collab: { id: 1, login: "durand" },
-    message: EnumNumPG.Suspect,
-    incarn: 3,
-  })
-})
-test('handlePG-case_Dead', (context) => {
-  context.plan(1)
-  
-  const piggyback : Piggyback = new Piggyback()
-  piggyback.setValuePG(1, {
-    collab: { id: 1 },
-    message: EnumNumPG.Alive,
-    incarn: 0,
-  })
-
-  let pg = new Map<number, ISwimPG>()
-  pg.set(1, {
-    collab: { id: 1 },
-    message: EnumNumPG.Dead,
-    incarn: 0,
-  })
-
-  piggyback.handlePG(pg, {id : 1})
-  context.deepEqual(piggyback.getPG().get(1), {
-    collab: { id: 1 },
-    message: EnumNumPG.Dead,
-    incarn: 0,
-  })
+  context.deepEqual(piggyback.getListConnectedCollab(), [1])
 })
 
 
@@ -288,5 +436,30 @@ test('collabEqual_false', (context) => {
   }
 
   context.deepEqual(piggyback.collabEquals(collab1, collab2), false)
+})
+
+
+test('collabLeave', (context) => {
+  context.plan(2)
+  
+  const piggyback : Piggyback = new Piggyback()
+  piggyback.setValuePG(1, {
+    collab: { id: 1 },
+    message: EnumNumPG.Alive,
+    incarn: 0,
+  })
+  piggyback.setValuePG(2, {
+    collab: { id: 2 },
+    message: EnumNumPG.Alive,
+    incarn: 0,
+  })
+  
+  piggyback.collabLeave(2)
+  context.deepEqual(piggyback.getListConnectedCollab(), [1])
+  context.deepEqual(piggyback.getPG().get(2), {
+    collab: { id: 2 },
+    message: EnumNumPG.Dead,
+    incarn: 0,
+  })
 })
 
