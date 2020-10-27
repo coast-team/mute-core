@@ -685,7 +685,7 @@ function newError(name) {
         if (Error.captureStackTrace)
             Error.captureStackTrace(this, CustomError);
         else
-            Object.defineProperty(this, "stack", { value: (new Error()).stack || "" });
+            Object.defineProperty(this, "stack", { value: new Error().stack || "" });
         if (properties)
             merge(this, properties);
     }
@@ -762,15 +762,18 @@ function Writer() {
     this.tail = this.head;
     this.states = null;
 }
-Writer.create = minimal.Buffer
-    ? function create_buffer_setup() {
-        return (Writer.create = function create_buffer() {
-            return new BufferWriter();
-        })();
-    }
-    : function create_array() {
-        return new Writer();
-    };
+var create = function create() {
+    return minimal.Buffer
+        ? function create_buffer_setup() {
+            return (Writer.create = function create_buffer() {
+                return new BufferWriter();
+            })();
+        }
+        : function create_array() {
+            return new Writer();
+        };
+};
+Writer.create = create();
 Writer.alloc = function alloc(size) {
     return new minimal.Array(size);
 };
@@ -930,49 +933,53 @@ Writer.prototype.finish = function finish() {
 };
 Writer._configure = function(BufferWriter_) {
     BufferWriter = BufferWriter_;
+    Writer.create = create();
+    BufferWriter._configure();
 };
 
 var writer_buffer = BufferWriter$1;
 (BufferWriter$1.prototype = Object.create(writer.prototype)).constructor = BufferWriter$1;
-var Buffer = minimal.Buffer;
 function BufferWriter$1() {
     writer.call(this);
 }
-BufferWriter$1.alloc = function alloc_buffer(size) {
-    return (BufferWriter$1.alloc = minimal._Buffer_allocUnsafe)(size);
-};
-var writeBytesBuffer = Buffer && Buffer.prototype instanceof Uint8Array && Buffer.prototype.set.name === "set"
-    ? function writeBytesBuffer_set(val, buf, pos) {
-        buf.set(val, pos);
-    }
-    : function writeBytesBuffer_copy(val, buf, pos) {
-        if (val.copy)
+BufferWriter$1._configure = function () {
+    BufferWriter$1.alloc = minimal._Buffer_allocUnsafe;
+    BufferWriter$1.writeBytesBuffer = minimal.Buffer && minimal.Buffer.prototype instanceof Uint8Array && minimal.Buffer.prototype.set.name === "set"
+        ? function writeBytesBuffer_set(val, buf, pos) {
+          buf.set(val, pos);
+        }
+        : function writeBytesBuffer_copy(val, buf, pos) {
+          if (val.copy)
             val.copy(buf, pos, 0, val.length);
-        else for (var i = 0; i < val.length;)
+          else for (var i = 0; i < val.length;)
             buf[pos++] = val[i++];
-    };
+        };
+};
 BufferWriter$1.prototype.bytes = function write_bytes_buffer(value) {
     if (minimal.isString(value))
         value = minimal._Buffer_from(value, "base64");
     var len = value.length >>> 0;
     this.uint32(len);
     if (len)
-        this._push(writeBytesBuffer, len, value);
+        this._push(BufferWriter$1.writeBytesBuffer, len, value);
     return this;
 };
 function writeStringBuffer(val, buf, pos) {
     if (val.length < 40)
         minimal.utf8.write(val, buf, pos);
-    else
+    else if (buf.utf8Write)
         buf.utf8Write(val, pos);
+    else
+        buf.write(val, pos);
 }
 BufferWriter$1.prototype.string = function write_string_buffer(value) {
-    var len = Buffer.byteLength(value);
+    var len = minimal.Buffer.byteLength(value);
     this.uint32(len);
     if (len)
         this._push(writeStringBuffer, len, value);
     return this;
 };
+BufferWriter$1._configure();
 
 var reader = Reader;
 var BufferReader;
@@ -997,15 +1004,18 @@ var create_array = typeof Uint8Array !== "undefined"
             return new Reader(buffer);
         throw Error("illegal buffer");
     };
-Reader.create = minimal.Buffer
-    ? function create_buffer_setup(buffer) {
-        return (Reader.create = function create_buffer(buffer) {
-            return minimal.Buffer.isBuffer(buffer)
-                ? new BufferReader(buffer)
-                : create_array(buffer);
-        })(buffer);
-    }
-    : create_array;
+var create$1 = function create() {
+    return minimal.Buffer
+        ? function create_buffer_setup(buffer) {
+            return (Reader.create = function create_buffer(buffer) {
+                return minimal.Buffer.isBuffer(buffer)
+                    ? new BufferReader(buffer)
+                    : create_array(buffer);
+            })(buffer);
+        }
+        : create_array;
+};
+Reader.create = create$1();
 Reader.prototype._slice = minimal.Array.prototype.subarray ||  minimal.Array.prototype.slice;
 Reader.prototype.uint32 = (function read_uint32_setup() {
     var value = 4294967295;
@@ -1165,6 +1175,8 @@ Reader.prototype.skipType = function(wireType) {
 };
 Reader._configure = function(BufferReader_) {
     BufferReader = BufferReader_;
+    Reader.create = create$1();
+    BufferReader._configure();
     var fn = minimal.Long ? "toLong" :  "toNumber";
     minimal.merge(Reader.prototype, {
         int64: function read_int64() {
@@ -1190,12 +1202,17 @@ var reader_buffer = BufferReader$1;
 function BufferReader$1(buffer) {
     reader.call(this, buffer);
 }
-if (minimal.Buffer)
-    BufferReader$1.prototype._slice = minimal.Buffer.prototype.slice;
+BufferReader$1._configure = function () {
+    if (minimal.Buffer)
+        BufferReader$1.prototype._slice = minimal.Buffer.prototype.slice;
+};
 BufferReader$1.prototype.string = function read_string_buffer() {
     var len = this.uint32();
-    return this.buf.utf8Slice(this.pos, this.pos = Math.min(this.pos + len, this.len));
+    return this.buf.utf8Slice
+        ? this.buf.utf8Slice(this.pos, this.pos = Math.min(this.pos + len, this.len))
+        : this.buf.toString("utf-8", this.pos, this.pos = Math.min(this.pos + len, this.len));
 };
+BufferReader$1._configure();
 
 var service = Service;
 (Service.prototype = Object.create(minimal.EventEmitter.prototype)).constructor = Service;
@@ -1277,10 +1294,10 @@ protobuf.rpc          = rpc_1;
 protobuf.roots        = roots;
 protobuf.configure    = configure;
 function configure() {
-    protobuf.Reader._configure(protobuf.BufferReader);
     protobuf.util._configure();
+    protobuf.Writer._configure(protobuf.BufferWriter);
+    protobuf.Reader._configure(protobuf.BufferReader);
 }
-protobuf.Writer._configure(protobuf.BufferWriter);
 configure();
 });
 
@@ -1314,9 +1331,9 @@ var sync = $root.sync = (function () {
         RichOperationMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.richLogootSOpsMsg != null && message.hasOwnProperty("richLogootSOpsMsg"))
+            if (message.richLogootSOpsMsg != null && Object.hasOwnProperty.call(message, "richLogootSOpsMsg"))
                 $root.sync.RichLogootSOperationMsg.encode(message.richLogootSOpsMsg, writer.uint32(10).fork()).ldelim();
-            if (message.richDottedLogootsOpsMsg != null && message.hasOwnProperty("richDottedLogootsOpsMsg"))
+            if (message.richDottedLogootsOpsMsg != null && Object.hasOwnProperty.call(message, "richDottedLogootsOpsMsg"))
                 $root.sync.RichDottedLogootSOperationMsg.encode(message.richDottedLogootsOpsMsg, writer.uint32(18).fork()).ldelim();
             return writer;
         };
@@ -1363,11 +1380,11 @@ var sync = $root.sync = (function () {
         SyncMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.richOpMsg != null && message.hasOwnProperty("richOpMsg"))
+            if (message.richOpMsg != null && Object.hasOwnProperty.call(message, "richOpMsg"))
                 $root.sync.RichOperationMsg.encode(message.richOpMsg, writer.uint32(10).fork()).ldelim();
-            if (message.querySync != null && message.hasOwnProperty("querySync"))
+            if (message.querySync != null && Object.hasOwnProperty.call(message, "querySync"))
                 $root.sync.QuerySyncMsg.encode(message.querySync, writer.uint32(18).fork()).ldelim();
-            if (message.replySync != null && message.hasOwnProperty("replySync"))
+            if (message.replySync != null && Object.hasOwnProperty.call(message, "replySync"))
                 $root.sync.ReplySyncMsg.encode(message.replySync, writer.uint32(26).fork()).ldelim();
             return writer;
         };
@@ -1411,7 +1428,7 @@ var sync = $root.sync = (function () {
         QuerySyncMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.vector != null && message.hasOwnProperty("vector"))
+            if (message.vector != null && Object.hasOwnProperty.call(message, "vector"))
                 for (var keys = Object.keys(message.vector), i = 0; i < keys.length; ++i)
                     writer.uint32(10).fork().uint32(8).int32(keys[i]).uint32(16).int32(message.vector[keys[i]]).ldelim();
             return writer;
@@ -1549,13 +1566,13 @@ var sync = $root.sync = (function () {
         IdentifierTupleMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.random != null && message.hasOwnProperty("random"))
+            if (message.random != null && Object.hasOwnProperty.call(message, "random"))
                 writer.uint32(8).int32(message.random);
-            if (message.replicaNumber != null && message.hasOwnProperty("replicaNumber"))
+            if (message.replicaNumber != null && Object.hasOwnProperty.call(message, "replicaNumber"))
                 writer.uint32(16).int32(message.replicaNumber);
-            if (message.clock != null && message.hasOwnProperty("clock"))
+            if (message.clock != null && Object.hasOwnProperty.call(message, "clock"))
                 writer.uint32(24).int32(message.clock);
-            if (message.offset != null && message.hasOwnProperty("offset"))
+            if (message.offset != null && Object.hasOwnProperty.call(message, "offset"))
                 writer.uint32(32).int32(message.offset);
             return writer;
         };
@@ -1602,9 +1619,9 @@ var sync = $root.sync = (function () {
         IdentifierIntervalMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.idBegin != null && message.hasOwnProperty("idBegin"))
+            if (message.idBegin != null && Object.hasOwnProperty.call(message, "idBegin"))
                 $root.sync.IdentifierMsg.encode(message.idBegin, writer.uint32(10).fork()).ldelim();
-            if (message.end != null && message.hasOwnProperty("end"))
+            if (message.end != null && Object.hasOwnProperty.call(message, "end"))
                 writer.uint32(16).int32(message.end);
             return writer;
         };
@@ -1646,11 +1663,11 @@ var sync = $root.sync = (function () {
         IntervalMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.id != null && message.hasOwnProperty("id"))
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 writer.uint32(8).int32(message.id);
-            if (message.begin != null && message.hasOwnProperty("begin"))
+            if (message.begin != null && Object.hasOwnProperty.call(message, "begin"))
                 writer.uint32(16).int32(message.begin);
-            if (message.end != null && message.hasOwnProperty("end"))
+            if (message.end != null && Object.hasOwnProperty.call(message, "end"))
                 writer.uint32(24).int32(message.end);
             return writer;
         };
@@ -1703,15 +1720,15 @@ var sync = $root.sync = (function () {
         RichLogootSOperationMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.id != null && message.hasOwnProperty("id"))
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 writer.uint32(8).int32(message.id);
-            if (message.clock != null && message.hasOwnProperty("clock"))
+            if (message.clock != null && Object.hasOwnProperty.call(message, "clock"))
                 writer.uint32(16).int32(message.clock);
-            if (message.logootSAddMsg != null && message.hasOwnProperty("logootSAddMsg"))
+            if (message.logootSAddMsg != null && Object.hasOwnProperty.call(message, "logootSAddMsg"))
                 $root.sync.LogootSAddMsg.encode(message.logootSAddMsg, writer.uint32(26).fork()).ldelim();
-            if (message.logootSDelMsg != null && message.hasOwnProperty("logootSDelMsg"))
+            if (message.logootSDelMsg != null && Object.hasOwnProperty.call(message, "logootSDelMsg"))
                 $root.sync.LogootSDelMsg.encode(message.logootSDelMsg, writer.uint32(34).fork()).ldelim();
-            if (message.dependencies != null && message.hasOwnProperty("dependencies"))
+            if (message.dependencies != null && Object.hasOwnProperty.call(message, "dependencies"))
                 for (var keys = Object.keys(message.dependencies), i = 0; i < keys.length; ++i)
                     writer.uint32(42).fork().uint32(8).int32(keys[i]).uint32(16).int32(message.dependencies[keys[i]]).ldelim();
             return writer;
@@ -1767,9 +1784,9 @@ var sync = $root.sync = (function () {
         LogootSAddMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.id != null && message.hasOwnProperty("id"))
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 $root.sync.IdentifierMsg.encode(message.id, writer.uint32(10).fork()).ldelim();
-            if (message.content != null && message.hasOwnProperty("content"))
+            if (message.content != null && Object.hasOwnProperty.call(message, "content"))
                 writer.uint32(18).string(message.content);
             return writer;
         };
@@ -1814,7 +1831,7 @@ var sync = $root.sync = (function () {
             if (message.lid != null && message.lid.length)
                 for (var i = 0; i < message.lid.length; ++i)
                     $root.sync.IdentifierIntervalMsg.encode(message.lid[i], writer.uint32(10).fork()).ldelim();
-            if (message.author != null && message.hasOwnProperty("author"))
+            if (message.author != null && Object.hasOwnProperty.call(message, "author"))
                 writer.uint32(16).int32(message.author);
             return writer;
         };
@@ -1860,13 +1877,13 @@ var sync = $root.sync = (function () {
         RichDottedLogootSOperationMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.id != null && message.hasOwnProperty("id"))
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 writer.uint32(8).int32(message.id);
-            if (message.clock != null && message.hasOwnProperty("clock"))
+            if (message.clock != null && Object.hasOwnProperty.call(message, "clock"))
                 writer.uint32(16).int32(message.clock);
-            if (message.blockOperationMsg != null && message.hasOwnProperty("blockOperationMsg"))
+            if (message.blockOperationMsg != null && Object.hasOwnProperty.call(message, "blockOperationMsg"))
                 $root.sync.DottedLogootSBlockMsg.encode(message.blockOperationMsg, writer.uint32(26).fork()).ldelim();
-            if (message.dependencies != null && message.hasOwnProperty("dependencies"))
+            if (message.dependencies != null && Object.hasOwnProperty.call(message, "dependencies"))
                 for (var keys = Object.keys(message.dependencies), i = 0; i < keys.length; ++i)
                     writer.uint32(34).fork().uint32(8).int32(keys[i]).uint32(16).int32(message.dependencies[keys[i]]).ldelim();
             return writer;
@@ -1925,11 +1942,11 @@ var sync = $root.sync = (function () {
         DottedLogootSBlockMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.lowerPos != null && message.hasOwnProperty("lowerPos"))
+            if (message.lowerPos != null && Object.hasOwnProperty.call(message, "lowerPos"))
                 $root.sync.SimpleDotPos.encode(message.lowerPos, writer.uint32(10).fork()).ldelim();
-            if (message.content != null && message.hasOwnProperty("content"))
+            if (message.content != null && Object.hasOwnProperty.call(message, "content"))
                 writer.uint32(18).string(message.content);
-            if (message.concatLength != null && message.hasOwnProperty("concatLength"))
+            if (message.concatLength != null && Object.hasOwnProperty.call(message, "concatLength"))
                 $root.sync.ConcatLength.encode(message.concatLength, writer.uint32(26).fork()).ldelim();
             return writer;
         };
@@ -1972,7 +1989,7 @@ var sync = $root.sync = (function () {
         ConcatLength.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.length != null && message.hasOwnProperty("length"))
+            if (message.length != null && Object.hasOwnProperty.call(message, "length"))
                 writer.uint32(8).uint32(message.length);
             return writer;
         };
@@ -2011,11 +2028,11 @@ var sync = $root.sync = (function () {
         SimpleDotPosPart.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.priority != null && message.hasOwnProperty("priority"))
+            if (message.priority != null && Object.hasOwnProperty.call(message, "priority"))
                 writer.uint32(8).uint32(message.priority);
-            if (message.replica != null && message.hasOwnProperty("replica"))
+            if (message.replica != null && Object.hasOwnProperty.call(message, "replica"))
                 writer.uint32(16).uint32(message.replica);
-            if (message.seq != null && message.hasOwnProperty("seq"))
+            if (message.seq != null && Object.hasOwnProperty.call(message, "seq"))
                 writer.uint32(24).uint32(message.seq);
             return writer;
         };
@@ -2108,17 +2125,17 @@ var collaborator = $root.collaborator = (function () {
         Collaborator.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.muteCoreId != null && message.hasOwnProperty("muteCoreId"))
+            if (message.muteCoreId != null && Object.hasOwnProperty.call(message, "muteCoreId"))
                 writer.uint32(8).sint32(message.muteCoreId);
-            if (message.displayName != null && message.hasOwnProperty("displayName"))
+            if (message.displayName != null && Object.hasOwnProperty.call(message, "displayName"))
                 writer.uint32(18).string(message.displayName);
-            if (message.login != null && message.hasOwnProperty("login"))
+            if (message.login != null && Object.hasOwnProperty.call(message, "login"))
                 writer.uint32(26).string(message.login);
-            if (message.email != null && message.hasOwnProperty("email"))
+            if (message.email != null && Object.hasOwnProperty.call(message, "email"))
                 writer.uint32(34).string(message.email);
-            if (message.avatar != null && message.hasOwnProperty("avatar"))
+            if (message.avatar != null && Object.hasOwnProperty.call(message, "avatar"))
                 writer.uint32(42).string(message.avatar);
-            if (message.deviceID != null && message.hasOwnProperty("deviceID"))
+            if (message.deviceID != null && Object.hasOwnProperty.call(message, "deviceID"))
                 writer.uint32(50).string(message.deviceID);
             return writer;
         };
@@ -2277,17 +2294,17 @@ var collaborator = $root.collaborator = (function () {
         SwimMsg.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.swimPing != null && message.hasOwnProperty("swimPing"))
+            if (message.swimPing != null && Object.hasOwnProperty.call(message, "swimPing"))
                 $root.collaborator.SwimPing.encode(message.swimPing, writer.uint32(2).fork()).ldelim();
-            if (message.swimPingReq != null && message.hasOwnProperty("swimPingReq"))
+            if (message.swimPingReq != null && Object.hasOwnProperty.call(message, "swimPingReq"))
                 $root.collaborator.SwimPingReq.encode(message.swimPingReq, writer.uint32(10).fork()).ldelim();
-            if (message.swimAck != null && message.hasOwnProperty("swimAck"))
+            if (message.swimAck != null && Object.hasOwnProperty.call(message, "swimAck"))
                 $root.collaborator.SwimAck.encode(message.swimAck, writer.uint32(18).fork()).ldelim();
-            if (message.swimDataRequest != null && message.hasOwnProperty("swimDataRequest"))
+            if (message.swimDataRequest != null && Object.hasOwnProperty.call(message, "swimDataRequest"))
                 $root.collaborator.SwimDataRequest.encode(message.swimDataRequest, writer.uint32(26).fork()).ldelim();
-            if (message.swimDataUpdate != null && message.hasOwnProperty("swimDataUpdate"))
+            if (message.swimDataUpdate != null && Object.hasOwnProperty.call(message, "swimDataUpdate"))
                 $root.collaborator.SwimDataUpdate.encode(message.swimDataUpdate, writer.uint32(34).fork()).ldelim();
-            if (message.swimPingReqRep != null && message.hasOwnProperty("swimPingReqRep"))
+            if (message.swimPingReqRep != null && Object.hasOwnProperty.call(message, "swimPingReqRep"))
                 $root.collaborator.SwimPingReqRep.encode(message.swimPingReqRep, writer.uint32(42).fork()).ldelim();
             return writer;
         };
@@ -2341,7 +2358,7 @@ var collaborator = $root.collaborator = (function () {
         SwimPing.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.type != null && message.hasOwnProperty("type"))
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 writer.uint32(2).string(message.type);
             if (message.piggyback != null && message.piggyback.length)
                 for (var i = 0; i < message.piggyback.length; ++i)
@@ -2389,9 +2406,9 @@ var collaborator = $root.collaborator = (function () {
         SwimPingReq.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.type != null && message.hasOwnProperty("type"))
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 writer.uint32(2).string(message.type);
-            if (message.numTarget != null && message.hasOwnProperty("numTarget"))
+            if (message.numTarget != null && Object.hasOwnProperty.call(message, "numTarget"))
                 writer.uint32(8).sint32(message.numTarget);
             if (message.piggyback != null && message.piggyback.length)
                 for (var i = 0; i < message.piggyback.length; ++i)
@@ -2441,7 +2458,7 @@ var collaborator = $root.collaborator = (function () {
         SwimAck.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.type != null && message.hasOwnProperty("type"))
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 writer.uint32(2).string(message.type);
             if (message.piggyback != null && message.piggyback.length)
                 for (var i = 0; i < message.piggyback.length; ++i)
@@ -2488,11 +2505,11 @@ var collaborator = $root.collaborator = (function () {
         SwimDataRequest.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.type != null && message.hasOwnProperty("type"))
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 writer.uint32(2).string(message.type);
-            if (message.collab != null && message.hasOwnProperty("collab"))
+            if (message.collab != null && Object.hasOwnProperty.call(message, "collab"))
                 $root.collaborator.Collaborator.encode(message.collab, writer.uint32(10).fork()).ldelim();
-            if (message.incarn != null && message.hasOwnProperty("incarn"))
+            if (message.incarn != null && Object.hasOwnProperty.call(message, "incarn"))
                 writer.uint32(16).sint32(message.incarn);
             return writer;
         };
@@ -2539,12 +2556,12 @@ var collaborator = $root.collaborator = (function () {
         SwimDataUpdate.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.type != null && message.hasOwnProperty("type"))
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 writer.uint32(2).string(message.type);
             if (message.PG != null && message.PG.length)
                 for (var i = 0; i < message.PG.length; ++i)
                     $root.collaborator.SwimPGEntry.encode(message.PG[i], writer.uint32(10).fork()).ldelim();
-            if (message.compteurPG != null && message.hasOwnProperty("compteurPG"))
+            if (message.compteurPG != null && Object.hasOwnProperty.call(message, "compteurPG"))
                 for (var keys = Object.keys(message.compteurPG), i = 0; i < keys.length; ++i)
                     writer.uint32(18).fork().uint32(8).sint32(keys[i]).uint32(16).sint32(message.compteurPG[keys[i]]).ldelim();
             return writer;
@@ -2598,9 +2615,9 @@ var collaborator = $root.collaborator = (function () {
         SwimPingReqRep.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.type != null && message.hasOwnProperty("type"))
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 writer.uint32(2).string(message.type);
-            if (message.answer != null && message.hasOwnProperty("answer"))
+            if (message.answer != null && Object.hasOwnProperty.call(message, "answer"))
                 writer.uint32(8).bool(message.answer);
             if (message.piggyback != null && message.piggyback.length)
                 for (var i = 0; i < message.piggyback.length; ++i)
@@ -2653,9 +2670,9 @@ var metadata = $root.metadata = (function () {
         MetaData.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.type != null && message.hasOwnProperty("type"))
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 writer.uint32(0).int32(message.type);
-            if (message.data != null && message.hasOwnProperty("data"))
+            if (message.data != null && Object.hasOwnProperty.call(message, "data"))
                 writer.uint32(10).string(message.data);
             return writer;
         };

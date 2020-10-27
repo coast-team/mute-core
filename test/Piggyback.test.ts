@@ -135,7 +135,7 @@ test('createToPG-compteur0', (context) => {
   Tests de la fonction HandlePG
 */
 test('handlePG-PGHasNot', (context) => {
-  context.plan(4)
+  context.plan(6)
   
   const piggyback : Piggyback = new Piggyback()
   piggyback.setValuePG(1, {
@@ -161,6 +161,19 @@ test('handlePG-PGHasNot', (context) => {
     incarn: 6,
   })
 
+  let cpt = 0
+  piggyback.join$.subscribe((collab: ICollaborator) => {
+    switch (cpt) {
+      case 0: 
+        context.deepEqual(collab, { id: 5 })
+        cpt ++
+      break
+      case 1: 
+        context.deepEqual(collab, { id: 8 })
+      break
+    }
+  })
+
   piggyback.handlePG(pg, {id : 1})
   context.deepEqual(piggyback.getPG().get(1), {
     collab: { id: 1 },
@@ -182,6 +195,8 @@ test('handlePG-PGHasNot', (context) => {
     message: EnumNumPG.Dead,
     incarn: 6,
   })
+
+  
 })
 test('handlePG-old_message', (context) => {
   context.plan(2)
@@ -261,8 +276,8 @@ test('handlePG-case_Alive', (context) => {
     incarn: 7,
   })
 })
-test('handlePG-case_Suspect', (context) => {
-  context.plan(3)
+test('handlePG-case_Suspect_&&_StreamUpdate', (context) => {
+  context.plan(6)
   
   const piggyback : Piggyback = new Piggyback()
   piggyback.setValuePG(1, {
@@ -279,6 +294,23 @@ test('handlePG-case_Suspect', (context) => {
     collab: { id: 3 },
     message: EnumNumPG.Suspect,
     incarn: 3,
+  })
+
+  let cpt = 0
+  piggyback.remoteUpdate$.subscribe((collab: ICollaborator) => {
+    switch (cpt) {
+      case 0: 
+        context.deepEqual(collab, { id: 1, login: "toto" })
+        cpt ++
+      break
+      case 1: 
+        context.deepEqual(collab, { id: 2, login: "durand" })
+        cpt ++
+      break
+      case 2: 
+        context.deepEqual(collab, { id: 3, login: "jean" })
+      break
+    }
   })
 
   let pg = new Map<number, ISwimPG>()
@@ -315,8 +347,8 @@ test('handlePG-case_Suspect', (context) => {
     incarn: 4,
   })
 })
-test('handlePG-case_Dead_ME', (context) => {
-  context.plan(2)
+test('handlePG-case_Dead_NotME', (context) => {
+  context.plan(3)
   
   const piggyback : Piggyback = new Piggyback()
   piggyback.setValuePG(1, {
@@ -328,6 +360,10 @@ test('handlePG-case_Dead_ME', (context) => {
     collab: { id: 2 },
     message: EnumNumPG.Alive,
     incarn: 0,
+  })
+
+  piggyback.leave$.subscribe((collab: ICollaborator) => {
+    context.deepEqual(collab, { id: 2 })
   })
 
   let pg = new Map<number, ISwimPG>()
@@ -349,7 +385,7 @@ test('handlePG-case_Dead_ME', (context) => {
     incarn: 0,
   })
 })
-test('handlePG-case_Dead_NotME', (context) => {
+test('handlePG-case_Dead_ME', (context) => {
   context.plan(2)
   
   const piggyback : Piggyback = new Piggyback()
@@ -462,4 +498,3 @@ test('collabLeave', (context) => {
     incarn: 0,
   })
 })
-

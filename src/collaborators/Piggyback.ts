@@ -161,17 +161,18 @@ export class Piggyback {
             switch (elem.message) {
               case EnumNumPG.Alive: // ALIVE
                 let current = this.getValueByKeyPG(key)
-                if(elem.incarn >= current!.incarn) {
-                  if(!this.collabEquals(current!.collab, elem.collab)) {
-                    this.subjectCollabUbdate.next(elem.collab)
-                  }
-                  this.setValuePG(key, elem)
-                  this.setValueCompteurPG(key)
-                }          
+                if(!this.collabEquals(current!.collab, elem.collab)) {
+                  this.subjectCollabUbdate.next(elem.collab)
+                }
+                this.setValuePG(key, elem)
+                this.setValueCompteurPG(key)                  
               break
     
               case EnumNumPG.Suspect: // SUSPECT
                 if (key === me.id) {
+                  if(!this.collabEquals(this.getValueByKeyPG(key)!.collab, elem.collab)) {
+                    this.subjectCollabUbdate.next(elem.collab)
+                  }
                   this.increaseIncarnation()
                   this.setValuePG(me.id, { collab: elem.collab, message: EnumNumPG.Alive, incarn: this.incarnation })
                   this.setValueCompteurPG(me.id)
@@ -180,7 +181,7 @@ export class Piggyback {
                   let current = this.getValueByKeyPG(key)
                   if (current!.message === EnumNumPG.Suspect && elem.incarn > current!.incarn) {
                     overide = true
-                  } else if (current!.message === EnumNumPG.Alive && elem.incarn >= current!.incarn) {
+                  } else if (current!.message === EnumNumPG.Alive) {
                     overide = true
                   }
                   if (overide) {
@@ -201,6 +202,7 @@ export class Piggyback {
                     this.PG.clear()
                     this.compteurPG.clear()
                     this.setValuePG(key, {collab: me, message: EnumNumPG.Alive, incarn: this.incarnation})
+                    this.setValueCompteurPG(key)
                   } else {
                     this.subjectCollabLeave.next(elem.collab)
                     this.setValuePG(key, elem)
