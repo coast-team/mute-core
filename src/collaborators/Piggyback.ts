@@ -165,7 +165,7 @@ export class Piggyback {
                   this.subjectCollabUbdate.next(elem.collab)
                 }
                 this.setValuePG(key, elem)
-                this.setValueCompteurPG(key)                  
+                this.setValueCompteurPG(key)    
               break
     
               case EnumNumPG.Suspect: // SUSPECT

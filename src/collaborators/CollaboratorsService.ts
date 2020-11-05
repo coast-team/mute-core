@@ -254,13 +254,10 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
       Envoie du message vers messageISwimIn$ pour le traitement
     */
     this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
-      console.log('CollaboratorService: received message from: ', senderId)
-      console.log('CollaboratorService: msg: ', msg)
-
-      if (msg.swimDataRequest) {  /* Data Request */      
+      if (msg.swimDataRequest) {  /* Data Request */
         const collab = { id: senderId, ...msg.swimDataRequest.collab }
-        if (isICollaborator(collab) && msg.swimDataRequest.incarn) {
-          this.messageISwimIn$.next({idCollab: senderId, content: {type : TYPE_DATAREQUEST_LABEL, collab: collab, incarn: msg.swimDataRequest.incarn}})
+        if (isICollaborator(collab) && msg.swimDataRequest!.incarn !== null && msg.swimDataRequest!.incarn !== undefined) {
+          this.messageISwimIn$.next({idCollab: senderId, content: {type : TYPE_DATAREQUEST_LABEL, collab: collab, incarn: msg.swimDataRequest!.incarn}})          
         }
       } else if (msg.swimDataUpdate) {  /* Date Update */
           this.messageISwimIn$.next({idCollab: senderId, content: unwrapFromProtoDataUpdate(msg.swimDataUpdate)})
@@ -279,22 +276,16 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
    
       } else {  /* Error */
           console.log('ERROR unknow message : ', { senderId, msg })    
-      }
-      
+      }  
     })
 
 
     /*
       Récupération des messages reçus (format : ISwim) ==> Traitement du message en fonction du type
     */
-    this.newSub = this.messageISwimIn$.subscribe((msg: ISwimMessage) => {  
+    this.newSub = this.messageISwimIn$.subscribe((msg: ISwimMessage) => {
       if (msg.content.type === TYPE_DATAREQUEST_LABEL) {  /* Data Request */
         if (msg.content.collab) {
-          /*if (!this.piggyback.PGHas(msg.idCollab)) {
-            this.piggyback.setValuePG(msg.idCollab, { collab: msg.content.collab, message: 1, incarn: 0 })
-            this.piggyback.setValueCompteurPG(msg.idCollab)
-            this.joinSubject.next(msg.content.collab)
-          }*/
           const pg : Map<number, ISwimPG> = new Map()
           pg.set(msg.content.collab.id, {collab: msg.content.collab, message: EnumNumPG.Alive, incarn: msg.content.incarn })
           this.piggyback.handlePG(pg, this.me)
@@ -303,16 +294,6 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
         }
         
       } else if (msg.content.type === TYPE_DATAUPDATE_LABEL) {  /* Date Update */
-        /*if (msg.content.PG.size > this.piggyback.getSizePG()) {
-          
-          this.updateUI(
-            Array.from(msg.content.PG.values())
-              .filter((a) => a.message !== 4)
-              .map((a) => a.collab)
-          )
-          this.piggyback.setNewPG(msg.content.PG)
-          this.piggyback.setNewCompteurPG(msg.content.compteurPG)
-        }*/
         this.piggyback.handlePG(msg.content.PG, this.me)
 
       } else if (msg.content.type === TYPE_PING_LABEL) {  /* Ping */
@@ -354,7 +335,6 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
      */
     this.messageISwimOut$.subscribe((msg: ISwimMessage) => {
       const wrapped = wrapToProto(msg.content)
-      console.log('sent: ', wrapped)
       super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, msg.idCollab)
     })
 
@@ -492,14 +472,6 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
                     })
                     this.piggyback.setValueCompteurPG(numCollab)
                   } else if (this.piggyback.getValueByKeyPG(numCollab)!.message === EnumNumPG.Suspect) {
-                    /*this.leaveSubject.next(this.piggyback.getValueByKeyPG(numCollab)!.collab)
-                    this.piggyback.setValuePG(numCollab, {
-                      collab: this.piggyback.getValueByKeyPG(numCollab)!.collab,
-                      message: 4,
-                      incarn: incarnActu,
-                    })
-                    this.piggyback.setValueCompteurPG(numCollab)*/
-
                     this.piggyback.collabLeave(numCollab)
                   }
                 }
@@ -535,13 +507,10 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
 
   set localUpdate(source: Observable<ICollaborator>) {
     this.newSub = source.subscribe((data: ICollaborator) => {
-      //this.piggyback.deleteValuePG(this.me.id)
-      //this.piggyback.deleteValueCompteurPG(this.me.id)
       Object.assign(this.me, data)
       this.piggyback.increaseIncarnation()
       this.piggyback.setValuePG(this.me.id, { collab: this.me, message: EnumNumPG.Alive, incarn: this.piggyback.getIncarnation() })
       this.piggyback.setValueCompteurPG(this.me.id)
-      this.emitUpdate(StreamsSubtype.COLLABORATORS_LOCAL_UPDATE)
     })
   }
 
@@ -555,18 +524,6 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     
     super.dispose()
   }
-
-  private emitUpdate(subtype: StreamsSubtype, recipientId?: number) {
-    // const { id, ...rest } = this.me
-    // super.send(rest, subtype, recipientId)
-    console.log('subtype: ', subtype)
-    console.log('recipientId', recipientId)
-  }
-
-
-
-  
-
 
   getStreamIntermediaireIn() {
     return this.messageISwimIn$;
