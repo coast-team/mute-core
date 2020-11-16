@@ -45,6 +45,7 @@ export abstract class Sync<Op> extends Disposable {
     super()
 
     this.id = id
+    console.log("Sync.ts - constructor - this.id: " + this.id)
     this.clock = 0
     this.vector = new StateVector()
 
