@@ -52,7 +52,7 @@ function wrapToProto(msg: ISwim): proto.SwimMsg {
     if (varPG && res.swimDataUpdate) {
       res.swimDataUpdate.PG = varPG
     }
-  } else if ((msg.type === 'swimPing' || msg.type === 'swimAck') && msg.piggyback) {
+  } else if ((msg.type === 'swimPing' || msg.type === 'swimAck' || msg.type === 'swimPingReqRep') && msg.piggyback) {
     const varPG = new Array<proto.ISwimPGEntry>()
     for (const [key, elem] of msg.piggyback) {
       varPG.push({ id: key, swimPG: elem })
@@ -61,6 +61,8 @@ function wrapToProto(msg: ISwim): proto.SwimMsg {
       res.swimPing.piggyback = varPG
     } else if (varPG && res.swimAck) {
       res.swimAck.piggyback = varPG
+    } else if (varPG && res.swimPingReqRep) {
+      res.swimPingReqRep.piggyback = varPG
     }
   }
   return res
@@ -82,11 +84,11 @@ function unwrapFromProtoDataUpdate(swimDataUpdate: proto.ISwimDataUpdate): ISwim
         const PGEntry: ISwimPG = { collab, message: x.swimPG.message, incarn: x.swimPG.incarn }
         PG.set(x.id, PGEntry)
       } else {
-        console.log('error : unwrapFromProtoDataUpdate')
+        console.log('error : unwrapFromProtoDataUpdate --> obj n\'est pas du type Collaborator')
       }
     })
   } else {
-    console.log('error : unwrapFromProtoDataUpdate')
+    console.log('error : unwrapFromProtoDataUpdate --> une des infos est null/undifined')
   }
   for (const key in swimDataUpdate.compteurPG) {
     if (swimDataUpdate.compteurPG.hasOwnProperty(key)) {
@@ -111,11 +113,11 @@ function unwrapFromProtoPing(swimPing: proto.ISwimPing): ISwimPing {
         const PGEntry: ISwimPG = { collab, message: x.swimPG.message, incarn: x.swimPG.incarn }
         piggyback.set(x.id, PGEntry)
       } else {
-        console.log('error : unwrapFromProtoPing')
+        console.log('error : unwrapFromProtoPing --> obj n\'est pas du type Collaborator')
       }
     })
   } else {
-    console.log('error : unwrapFromProtoPing')
+    console.log('error : unwrapFromProtoPing --> une des infos est null/undifined')
   }
   return { type, piggyback }
 }
@@ -138,11 +140,11 @@ function unwrapFromProtoPingReq(swimPing: proto.ISwimPingReq): ISwimPingReq {
         const PGEntry: ISwimPG = { collab, message: x.swimPG.message, incarn: x.swimPG.incarn }
         piggyback.set(x.id, PGEntry)
       } else {
-        console.log('error : unwrapFromProtoPingReq')
+        console.log('error : unwrapFromProtoPingReq --> obj n\'est pas du type Collaborator')
       }
     })
   } else {
-    console.log('error : unwrapFromProtoPingReq')
+    console.log('error : unwrapFromProtoPingReq --> une des infos est null/undifined')
   }
   return { type, numTarget, piggyback }
 }
@@ -156,7 +158,7 @@ function unwrapFromProtoPingReqRep(swimPing: proto.ISwimPingReqRep): ISwimPingRe
   let answer = false
   const piggyback: Map<number, ISwimPG> = new Map()
 
-  if (swimPing && swimPing.piggyback && swimPing.answer) {
+  if (swimPing && swimPing.piggyback && swimPing.answer !== null && swimPing.answer !== undefined) {
     answer = swimPing.answer
     swimPing.piggyback.forEach((x) => {
       const obj = { id: x.id, ...x.swimPG.collab }
@@ -165,11 +167,11 @@ function unwrapFromProtoPingReqRep(swimPing: proto.ISwimPingReqRep): ISwimPingRe
         const PGEntry: ISwimPG = { collab, message: x.swimPG.message, incarn: x.swimPG.incarn }
         piggyback.set(x.id, PGEntry)
       } else {
-        console.log('error : unwrapFromProtoPingReq')
+        console.log('error : unwrapFromProtoPingReqRep --> obj n\'est pas du type Collaborator')
       }
     })
   } else {
-    console.log('error : unwrapFromProtoPingReq')
+    console.log('error : unwrapFromProtoPingReqRep --> une des infos est null/undifined')
   }
   return { type, answer, piggyback }
 }
@@ -189,11 +191,11 @@ function unwrapFromProtoAck(swimAck: proto.ISwimAck): ISwimAck {
         const PGEntry: ISwimPG = { collab, message: x.swimPG.message, incarn: x.swimPG.incarn }
         piggyback.set(x.id, PGEntry)
       } else {
-        console.log('error : unwrapFromProtoAck')
+        console.log('error : unwrapFromProtoAck --> obj n\'est pas du type Collaborator')
       }
     })
   } else {
-    console.log('error : unwrapFromProtoAck')
+    console.log('error : unwrapFromProtoAck --> une des infos est null/undifined')
   }
   return { type, piggyback }
 }
