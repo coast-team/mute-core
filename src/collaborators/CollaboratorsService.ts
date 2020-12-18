@@ -207,8 +207,7 @@ function unwrapFromProtoAck(swimAck: proto.ISwimAck): ISwimAck {
 function isICollaborator(o: unknown): o is ICollaborator {
   return (
     isObject<ICollaborator>(o) &&
-    typeof o.id === 'number' &&
-    (typeof o.muteCoreId === 'number' || o.muteCoreId === undefined) &&
+    typeof o.muteCoreId === 'number' &&
     (typeof o.displayName === 'string' || o.displayName === undefined) &&
     (typeof o.login === 'string' || o.login === undefined) &&
     (typeof o.email === 'string' || o.email === undefined) &&
@@ -257,7 +256,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
     */
     this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
       if (msg.swimDataRequest) {  /* Data Request */
-        const collab = { id: senderId, ...msg.swimDataRequest.collab }
+        const collab = { muteCoreId: senderId, ...msg.swimDataRequest.collab }
         if (isICollaborator(collab) && msg.swimDataRequest!.incarn !== null && msg.swimDataRequest!.incarn !== undefined) {
           this.messageISwimIn$.next({idCollab: senderId, content: {type : TYPE_DATAREQUEST_LABEL, collab: collab, incarn: msg.swimDataRequest!.incarn}})          
         }
@@ -289,7 +288,7 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
       if (msg.content.type === TYPE_DATAREQUEST_LABEL) {  /* Data Request */
         if (msg.content.collab) {
           const pg : Map<number, ISwimPG> = new Map()
-          pg.set(msg.content.collab.id, {collab: msg.content.collab, message: EnumNumPG.Alive, incarn: msg.content.incarn })
+          pg.set(msg.content.collab.muteCoreId, {collab: msg.content.collab, message: EnumNumPG.Alive, incarn: msg.content.incarn })
           this.piggyback.handlePG(pg, this.me)
 
           this.envoyerDataUpdate(msg.idCollab) // attendre avant d'envoyer? DEBUG
@@ -336,7 +335,8 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
      * Transformation et envoie d'un message (format ISwim => proto.SwimMsg)
      */
     this.messageISwimOut$.subscribe((msg: ISwimMessage) => {
-      console.log("CollaboratorsService.ts - messageISwimOut$.subscribe - this.me.id: " + this.me.id)
+      console.log("CollaboratorsService.ts - messageISwimOut$.subscribe - this.me.muteCoreId: " + this.me.muteCoreId)
+      console.log("CollaboratorsService.ts - messageISwimOut$.subscribe - id destinataire: " + msg.idCollab)
       const wrapped = wrapToProto(msg.content)
       super.send(wrapped, StreamsSubtype.COLLABORATORS_SWIM, msg.idCollab)
     })
@@ -355,8 +355,8 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
           const collaborators = Array.from(pg.values())
             .filter((a) => a.message !== EnumNumPG.Dead)
             .map((a) => a.collab)
-          const ens: Set<number> = new Set(collaborators.map((a) => a.id))
-          ens.delete(this.me.id)
+          const ens: Set<number> = new Set(collaborators.map((a) => a.muteCoreId))
+          ens.delete(this.me.muteCoreId)
           const numRandom = Math.floor(Math.random() * ens.size)
           const numCollab = Array.from(ens)[numRandom]
 
@@ -452,8 +452,8 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
           if (idx > collaborators.length - 2) {
             idx = collaborators.length - 2
           }
-          const ens: Set<number> = new Set(collaborators.map((a) => a.id))
-          ens.delete(this.me.id)
+          const ens: Set<number> = new Set(collaborators.map((a) => a.muteCoreId))
+          ens.delete(this.me.muteCoreId)
           ens.delete(numCollab)
           while (idx > 0) {
             const numRandom = Math.floor(Math.random() * ens.size)
@@ -510,16 +510,34 @@ export class CollaboratorsService extends Service<proto.ISwimMsg, proto.SwimMsg>
 
   set localUpdate(source: Observable<ICollaborator>) {
     this.newSub = source.subscribe((data: ICollaborator) => {
-      Object.assign(this.me, data)
+      //Object.assign(this.me, data)
+
+      if(data.displayName !== undefined) {
+        this.me.displayName = data.displayName
+      }
+      if(data.login !== undefined) {
+        this.me.login = data.login
+      }
+      if(data.email !== undefined) {
+        this.me.email = data.email
+      }
+      if(data.avatar !== undefined) {
+        this.me.avatar = data.avatar
+      }
+      if(data.deviceID !== undefined) {
+        this.me.deviceID = data.deviceID
+      }
+
+
       this.piggyback.increaseIncarnation()
-      this.piggyback.setValuePG(this.me.id, { collab: this.me, message: EnumNumPG.Alive, incarn: this.piggyback.getIncarnation() })
-      this.piggyback.setValueCompteurPG(this.me.id)
+      this.piggyback.setValuePG(this.me.muteCoreId, { collab: this.me, message: EnumNumPG.Alive, incarn: this.piggyback.getIncarnation() })
+      this.piggyback.setValueCompteurPG(this.me.muteCoreId)
     })
   }
 
   dispose() {
-    this.piggyback.setValuePG(this.me.id, { collab: this.me, message: EnumNumPG.Dead, incarn: this.piggyback.getIncarnation() })
-    this.piggyback.setValueCompteurPG(this.me.id)
+    this.piggyback.setValuePG(this.me.muteCoreId, { collab: this.me, message: EnumNumPG.Dead, incarn: this.piggyback.getIncarnation() })
+    this.piggyback.setValueCompteurPG(this.me.muteCoreId)
     this.envoyerPing(0)
     this.gossip = false
 

@@ -132,6 +132,7 @@ export abstract class Sync<Op> extends Disposable {
   set localOperations$(source: Observable<Op>) {
     this.newSub = source.subscribe((operation) => {
       const dependencies = this.computeDependencies(operation)
+      console.log("Sync.ts - localOperations - this.id: " + this.id)
       const richOp = new RichOperation<Op>(this.id, this.clock, operation, dependencies)
 
       this.updateState(richOp)

@@ -42,6 +42,7 @@ export class DocServiceStrategy {
     state: State<Seq, Op>,
     collaboratorService: CollaboratorsService
   ): LSDocService | DLSDocService {
+    console.log("DocServiceStrategy.ts - DocServiceStrategy - id: " + id)
     switch (strat) {
       case Strategy.LOGOOTSPLIT:
         if (state instanceof LSState) {

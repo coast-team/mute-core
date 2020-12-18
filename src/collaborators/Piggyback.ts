@@ -169,13 +169,13 @@ export class Piggyback {
               break
     
               case EnumNumPG.Suspect: // SUSPECT
-                if (key === me.id) {
+                if (key === me.muteCoreId) {
                   if(!this.collabEquals(this.getValueByKeyPG(key)!.collab, elem.collab)) {
                     this.subjectCollabUbdate.next(elem.collab)
                   }
                   this.increaseIncarnation()
-                  this.setValuePG(me.id, { collab: elem.collab, message: EnumNumPG.Alive, incarn: this.incarnation })
-                  this.setValueCompteurPG(me.id)
+                  this.setValuePG(me.muteCoreId, { collab: elem.collab, message: EnumNumPG.Alive, incarn: this.incarnation })
+                  this.setValueCompteurPG(me.muteCoreId)
                 } else {
                   let overide = false
                   let current = this.getValueByKeyPG(key)
@@ -196,7 +196,7 @@ export class Piggyback {
     
               case EnumNumPG.Dead: // DEAD
                 if (this.getValueByKeyPG(key)!.message !== EnumNumPG.Dead) {
-                  if (key === me.id) {
+                  if (key === me.muteCoreId) {
                     carryOn = false
                     this.increaseIncarnation()
                     this.PG.clear()
@@ -231,7 +231,7 @@ export class Piggyback {
    * @param collab2 ICollaborateur
    */
   collabEquals(collab1: ICollaborator, collab2: ICollaborator) {
-    return collab1.id === collab2.id && 
+    return collab1.muteCoreId === collab2.muteCoreId && 
       collab1.muteCoreId === collab2.muteCoreId &&
       collab1.displayName === collab2.displayName &&
       collab1.login === collab2.login &&
@@ -257,7 +257,7 @@ export class Piggyback {
     let connectedCollab : number[] = []
     this.PG.forEach(element => {
       if(element.message !== EnumNumPG.Dead) {
-        connectedCollab.push(element.collab.id)  // Utilisation de muteCoreId plutôt que id ???
+        connectedCollab.push(element.collab.muteCoreId)
       }
     })
     return connectedCollab

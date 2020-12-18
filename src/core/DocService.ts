@@ -28,7 +28,6 @@ export abstract class DocService<Seq, Op> extends Disposable {
   ) {
     super()
     this.id = id
-    console.log("DocService.ts - constructor - this.id: " + this.id)
     this.collaboratorService = collaboratorService
     this.document = document
     this.sync = sync

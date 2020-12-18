@@ -1,6 +1,5 @@
 export interface ICollaborator {
-  id: number
-  muteCoreId?: number
+  muteCoreId: number
   displayName?: string
   login?: string
   email?: string

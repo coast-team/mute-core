@@ -84,6 +84,7 @@ export abstract class Document<Seq, Op> extends Disposable {
         .reduce((acc, textOps) => acc.concat(textOps), [])
       this.remoteTextOperationSubject.next({ collaborator, operations: remoteOpes })
       this.updateSubject.next()
+      console.log("Document.ts - remoteOperations$ - collaborator.muteCoreId: " + collaborator!.muteCoreId)
     })
   }
 

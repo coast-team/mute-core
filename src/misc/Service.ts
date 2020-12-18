@@ -38,6 +38,7 @@ export abstract class Service<OutMsg, InMsg extends OutMsg> extends Disposable {
   }
 
   protected send(msg: OutMsg, subtype: StreamsSubtype, recipientId?: number) {
+    console.log("Service.ts - send - recipientId?: " + recipientId)
     this.messageOut$.next({
       streamId: { type: this.streamId, subtype },
       recipientId,

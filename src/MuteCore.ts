@@ -67,11 +67,13 @@ export class MuteCore<Seq, Op> extends Disposable {
     if (docContent.id !== 0) {
       muteCoreId = docContent.id
       profile.muteCoreId = muteCoreId
+      console.log("MuteCore.ts - constructor(if) - profile.muteCoreId: " + profile.muteCoreId)
     } else {
       muteCoreId = profile.muteCoreId || generateId()
       if (!profile.muteCoreId) {
         profile.muteCoreId = muteCoreId
       }
+      console.log("MuteCore.ts - constructor(else) - profile.muteCoreId: " + profile.muteCoreId)
     }
 
     /* FIXME: this.me object doesn't have id property set to the correct network id (it is set to 0 just below).
@@ -81,10 +83,7 @@ export class MuteCore<Seq, Op> extends Disposable {
     this._messageIn$ = new Subject()
 
     // Initialize CollaboratorsService
-    this.collaboratorsService = new CollaboratorsService(this._messageIn$, this._messageOut$, {
-      id: 0,
-      ...profile,
-    } as ICollaborator)
+    this.collaboratorsService = new CollaboratorsService(this._messageIn$, this._messageOut$, {...profile} as ICollaborator)
 
     this.metaDataService = new MetaDataService(
       this._messageIn$,
