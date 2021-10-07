@@ -13,6 +13,7 @@ script:
 jobs:
   include:
     - stage: npm release
+      if: tag is present
       node_js: 'node'
       script: npm run build
       deploy:
@@ -20,5 +21,4 @@ jobs:
         api_token:
           secure: jbPUO4ggV+A8USN3aqhZ59bjav1UUiCHvLT+B/aj+XnjMv8fAH6XgdF/eb4k/nQOdg9S3VfwHnVv5FKG+6SWufDuwAoGVNiZPcsKFtlPta97YfxgICRmk5DcK4jpqfG0/jmDc1K/W710zKIjxgYHCb1ZukWF4v20DOIz7NL0diM=
         edge: true
-        on:
-          tags: true
+
