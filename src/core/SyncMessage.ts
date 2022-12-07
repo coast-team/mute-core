@@ -22,13 +22,13 @@ export abstract class SyncMessage<Op> extends Service<proto.ISyncMsg, proto.Sync
     this.remoteReplySyncSubject = new Subject()
 
     // FIXME: should I save the subscription for later unsubscribe/subscribe?
-    this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
+    this.newSub = this.messageIn$.subscribe(({ senderNetworkId, msg }) => {
       switch (msg.type) {
         case 'richOpMsg':
           this.handleRichOpMsg(msg.richOpMsg as proto.RichOperationMsg)
           break
         case 'querySync':
-          this.remoteQuerySyncIdSubject.next(senderId) // Register the id of the peer
+          this.remoteQuerySyncIdSubject.next(senderNetworkId) // Register the id of the peer
           this.handleQuerySyncMsg(msg.querySync as proto.QuerySyncMsg)
           break
         case 'replySync':

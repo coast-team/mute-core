@@ -12,7 +12,7 @@ export interface IMessageFactory<OutMsg, InMsg extends OutMsg> {
 }
 
 export abstract class Service<OutMsg, InMsg extends OutMsg> extends Disposable {
-  protected messageIn$: Observable<{ senderId: number; msg: InMsg }>
+  protected messageIn$: Observable<{ senderNetworkId: number; msg: InMsg }>
 
   private messageOut$: Subject<IMessageOut>
   private streamId: Streams
@@ -31,16 +31,16 @@ export abstract class Service<OutMsg, InMsg extends OutMsg> extends Disposable {
     this.proto = proto
     this.messageIn$ = messageIn.pipe(
       filter(({ streamId }) => streamId.type === myStreamId),
-      map(({ senderId, content }) => ({ senderId, msg: proto.decode(content) }))
+      map(({ senderNetworkId, content }) => ({ senderNetworkId, msg: proto.decode(content) }))
     )
     this.messageOut$ = messageOut
     this.streamId = myStreamId
   }
 
-  protected send(msg: OutMsg, subtype: StreamsSubtype, recipientId?: number) {
+  protected send(msg: OutMsg, subtype: StreamsSubtype, recipientNetworkId?: number) {
     this.messageOut$.next({
       streamId: { type: this.streamId, subtype },
-      recipientId,
+      recipientNetworkId,
       content: this.proto.encode(this.proto.create(msg)).finish(),
     })
   }
