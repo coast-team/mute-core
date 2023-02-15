@@ -6,9 +6,9 @@ interface IMessage {
 }
 
 export interface IMessageIn extends IMessage {
-  senderId: number
+  senderNetworkId: number
 }
 
 export interface IMessageOut extends IMessage {
-  recipientId?: number // O value means send to a random peer
+  recipientNetworkId?: number // O value means send to a random peer
 }

@@ -691,7 +691,7 @@ export namespace sync {
         public lowerPos?: (sync.ISimpleDotPos|null);
 
         /** DottedLogootSBlockMsg content. */
-        public content: string;
+        public content?: (string|null);
 
         /** DottedLogootSBlockMsg concatLength. */
         public concatLength?: (sync.IConcatLength|null);

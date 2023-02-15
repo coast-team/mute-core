@@ -25,9 +25,10 @@ export class CollaboratorsService extends Service<proto.ICollaborator, proto.Col
     this.joinSubject = new Subject()
     this.leaveSubject = new Subject()
 
-    this.newSub = this.messageIn$.subscribe(({ senderId, msg }) => {
-      const updated = { id: senderId, ...msg }
-      const collab = this.collaborators.get(senderId)
+    this.newSub = this.messageIn$.subscribe(({ senderNetworkId, msg }) => {
+      const updated = { ...msg }
+      const collab = this.collaborators.get(senderNetworkId)
+
       if (collab) {
         collab.muteCoreId = updated.muteCoreId || collab.muteCoreId
         collab.displayName = updated.displayName || collab.displayName
@@ -37,7 +38,7 @@ export class CollaboratorsService extends Service<proto.ICollaborator, proto.Col
         collab.deviceID = updated.deviceID || collab.deviceID
         this.updateSubject.next(collab)
       } else {
-        this.collaborators.set(updated.id, updated)
+        this.collaborators.set(senderNetworkId, updated)
         this.joinSubject.next(updated)
       }
     })
@@ -65,18 +66,18 @@ export class CollaboratorsService extends Service<proto.ICollaborator, proto.Col
   }
 
   set memberJoin$(source: Observable<number>) {
-    this.newSub = source.subscribe((id: number) =>
-      this.emitUpdate(StreamsSubtype.COLLABORATORS_JOIN, id)
+    this.newSub = source.subscribe((networkId: number) =>
+      this.emitUpdate(StreamsSubtype.COLLABORATORS_JOIN, networkId)
     )
   }
 
   set memberLeave$(source: Observable<number>) {
-    this.newSub = source.subscribe((id: number) => {
-      const collab = this.collaborators.get(id)
+    this.newSub = source.subscribe((networkId: number) => {
+      const collab = this.collaborators.get(networkId)
       if (collab) {
         this.leaveSubject.next(collab)
       }
-      this.collaborators.delete(id)
+      this.collaborators.delete(networkId)
     })
   }
 
@@ -94,8 +95,8 @@ export class CollaboratorsService extends Service<proto.ICollaborator, proto.Col
     super.dispose()
   }
 
-  private emitUpdate(subtype: StreamsSubtype, recipientId?: number) {
-    const { id, ...rest } = this.me
-    super.send(rest, subtype, recipientId)
+  private emitUpdate(subtype: StreamsSubtype, recipientNetworkId?: number) {
+    const { ...rest } = this.me
+    super.send(rest, subtype, recipientNetworkId)
   }
 }
