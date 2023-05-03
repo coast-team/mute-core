@@ -70,6 +70,10 @@ export abstract class DocService<Seq, Op> extends Disposable {
     return this.document.positionFromIndex(index)
   }
 
+  getDigest(): number {
+    return this.document.getDigest()
+  }
+
   abstract get state(): State<Seq, Op>
   abstract logLocalOperation(id: number, textope: TextOperation, ope: Op): void
   abstract logRemoteOperation(
