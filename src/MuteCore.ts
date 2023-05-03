@@ -63,7 +63,6 @@ export class MuteCore<Seq, Op> extends Disposable {
     docServiceMethod: DocServiceStrategyMethod<Seq, Op>
   ) {
     super()
-    console.log('Using pack version of mute-core v 11.1.0')
     let muteCoreId: number
     if (docContent.id !== 0) {
       muteCoreId = docContent.id
