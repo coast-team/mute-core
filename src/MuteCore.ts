@@ -194,6 +194,10 @@ export class MuteCore<Seq, Op> extends Disposable {
     this.metaDataService.localUpdate$ = source
   }
 
+  getCollaborators(): Map<number, ICollaborator> {
+    return this.collaboratorsService.collaborators
+  }
+
   synchronize() {
     this.docService.synchronize()
   }
